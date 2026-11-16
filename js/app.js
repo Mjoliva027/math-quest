@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     roundMistakes: [],
     isEvaluating: false,
     isFeverActive: false,
+    endlessCardCount: 1,
 
     // Flashcard State & Touch Gestures
     flashcardDeck: [],
@@ -126,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const hudTimerContainer = document.getElementById('hud-timer-container');
   const hudTimerVal = document.getElementById('hud-timer-val');
   const hudHeartsContainer = document.getElementById('hud-hearts-container');
+  const hudEndlessContainer = document.getElementById('hud-endless-container');
+  const hudEndlessCardVal = document.getElementById('hud-endless-card-val');
   const hudScoreVal = document.getElementById('hud-score-val');
+  const btnQuizFinish = document.getElementById('btn-quiz-finish');
   const btnQuizExit = document.getElementById('btn-quiz-exit');
   const quizCard = document.getElementById('quiz-card');
   const quizOpSymbol = document.getElementById('quiz-op-symbol');
@@ -213,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordBlitz30 = document.getElementById('record-blitz-30');
   const recordBlitz60 = document.getElementById('record-blitz-60');
   const recordBlitz120 = document.getElementById('record-blitz-120');
+  const recordEndless = document.getElementById('record-endless');
   const btnResetData = document.getElementById('btn-reset-data');
 
   // =========================================================================
@@ -350,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.correctCount = 0;
     state.totalCount = 0;
     state.hearts = 3;
+    state.endlessCardCount = 1;
     state.roundMistakes = [];
     state.isEvaluating = false;
     state.directInputVal = '';
@@ -416,19 +422,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function startQuiz() {
     showView('view-quiz');
 
+    // Reset visibility of mode-specific HUD widgets
+    hudTimerContainer.classList.add('hidden');
+    hudHeartsContainer.classList.add('hidden');
+    if (hudEndlessContainer) hudEndlessContainer.classList.add('hidden');
+    if (btnQuizFinish) btnQuizFinish.classList.add('hidden');
+
     if (state.mode === 'blitz') {
       hudTimerContainer.classList.remove('hidden');
-      hudHeartsContainer.classList.add('hidden');
       state.timeLeft = state.blitzDuration;
       hudTimerVal.textContent = state.timeLeft;
       startBlitzTimer();
     } else if (state.mode === 'survival') {
-      hudTimerContainer.classList.add('hidden');
       hudHeartsContainer.classList.remove('hidden');
       renderHearts();
+    } else if (state.mode === 'endless') {
+      if (hudEndlessContainer) hudEndlessContainer.classList.remove('hidden');
+      if (btnQuizFinish) btnQuizFinish.classList.remove('hidden');
+      state.endlessCardCount = 1;
+      if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
     } else if (state.mode === 'mistake_drill') {
-      hudTimerContainer.classList.add('hidden');
-      hudHeartsContainer.classList.add('hidden');
+      // Untimed, mistake drill
     }
 
     updateScoreDisplay();
@@ -594,6 +608,11 @@ document.addEventListener('DOMContentLoaded', () => {
       StorageManager.removeMistake(state.currentProblem.equation);
     }
 
+    if (state.mode === 'endless') {
+      state.endlessCardCount++;
+      if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
+    }
+
     updateScoreDisplay();
     updateStreakDisplay();
     syncPlayerHUD();
@@ -609,6 +628,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     StorageManager.recordMistake(state.currentProblem);
     state.roundMistakes.push({ ...state.currentProblem });
+
+    if (state.mode === 'endless') {
+      state.endlessCardCount++;
+      if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
+    }
 
     // Reveal answer on visual area model if active
     if (state.currentProblem.operation === 'multiply') {
@@ -1302,11 +1326,21 @@ document.addEventListener('DOMContentLoaded', () => {
       card.addEventListener('click', () => {
         SoundEngine.playClick();
         modeCards.forEach(c => {
-          c.classList.remove('border-indigo-500', 'border-purple-500', 'border-2');
+          c.classList.remove(
+            'border-indigo-500', 'border-cyan-500', 'border-purple-500', 'border-rose-500', 'border-emerald-500',
+            'border-2'
+          );
           c.classList.add('border-slate-800', 'border');
         });
-        const borderColor = card.dataset.mode === 'boss' ? 'border-purple-500' : 'border-indigo-500';
-        card.classList.add(borderColor, 'border-2');
+        const borderMap = {
+          blitz: 'border-indigo-500',
+          endless: 'border-cyan-500',
+          boss: 'border-purple-500',
+          survival: 'border-rose-500',
+          flashcards: 'border-emerald-500',
+        };
+        const activeBorder = borderMap[card.dataset.mode] || 'border-indigo-500';
+        card.classList.add(activeBorder, 'border-2');
         card.classList.remove('border-slate-800', 'border');
         state.mode = card.dataset.mode;
       });
@@ -1382,6 +1416,14 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(state.timerInterval);
       showView('view-lobby');
     });
+
+    // Finish Endless Mode Session
+    if (btnQuizFinish) {
+      btnQuizFinish.addEventListener('click', () => {
+        SoundEngine.playClick();
+        endGame('Endless Session Complete!');
+      });
+    }
 
     // Exit from Boss Battle
     btnBossExit.addEventListener('click', () => {
@@ -1565,6 +1607,7 @@ document.addEventListener('DOMContentLoaded', () => {
     recordBlitz30.textContent = stats.highScores.blitz_30 || 0;
     recordBlitz60.textContent = stats.highScores.blitz_60 || 0;
     recordBlitz120.textContent = stats.highScores.blitz_120 || 0;
+    if (recordEndless) recordEndless.textContent = stats.highScores.endless || 0;
 
     modalStats.classList.remove('hidden');
   }

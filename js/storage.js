@@ -30,6 +30,7 @@ const StorageManager = (() => {
       blitz_120: 0,
       survival: 0,
       boss: 0,
+      endless: 0,
     },
     bossStats: {
       defeated: [],
@@ -143,6 +144,8 @@ const StorageManager = (() => {
       scoreKey = 'survival';
     } else if (mode === 'boss') {
       scoreKey = 'boss';
+    } else if (mode === 'endless') {
+      scoreKey = 'endless';
     }
 
     if (scoreKey && score > (data.highScores[scoreKey] || 0)) {

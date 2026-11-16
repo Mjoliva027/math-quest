@@ -18,33 +18,41 @@ Because **Math Quest** is a lightweight, zero-dependency client application with
 
 ---
 
-## 🎮 Game Modes
+## 🎮 Game Modes (Inline 5-Column Carousel)
 
-1. **🐉 RPG Boss Battle (Combat Mode):**
-   * Real RPG combat against animated math monsters:
-     * **👺 Goblin Multiplier** (Tier 1, 100 HP)
-     * **🗿 Iron Math Golem** (Tier 2, 160 HP)
-     * **🐉 Calculus Hydra** (Tier 3, 240 HP)
-   * Correct answers trigger player sword slash attacks with floating damage numbers!
-   * Wrong answers or letting the 12s turn timer expire allows the boss to counter-attack!
-   * Defeating bosses awards special badges, bonus XP, and celebratory confetti.
+Math Quest features a streamlined **inline mode selector** (5-column grid on desktop, touch-friendly horizontal swipe carousel on mobile) showcasing all 5 training formats:
 
-2. **⚡ Speed Blitz (Time Attack):**
+1. **⚡ Speed Blitz (Time Attack):**
    * Race the clock (choose **30s**, **60s**, or **120s** runs).
    * Build consecutive streaks to trigger score & XP multipliers (`1.5x`, `2x`, `3x`).
    * Reach a streak of **5+** to activate **🔥 Fever Mode** (3.5x multiplier, neon fiery border, accelerated BGM tempo!).
 
-3. **❤️ Survival (3 Hearts):**
+2. **♾️ Endless Cards (Choice-Based Continuous Practice):**
+   * Untimed, pressure-free flashcard-style practice with multiple choice options.
+   * Play as many problems as you want without life limits or ticking clocks.
+   * Tracks your active card count (`#1`, `#2`, ...), streak bonuses, and XP.
+   * Tap **Finish** anytime to end the session, review mistakes, and record your Endless High Score.
+
+3. **🐉 RPG Boss Battle (Combat Mode):**
+   * Real RPG combat against animated math monsters:
+     * **Goblin Multiplier** (Tier 1, 100 HP)
+     * **Iron Math Golem** (Tier 2, 160 HP)
+     * **Calculus Hydra** (Tier 3, 240 HP)
+   * Correct answers trigger player sword slash attacks with floating damage numbers.
+   * Wrong answers or letting the 12s turn timer expire allows the boss to counter-attack!
+   * Defeating bosses awards special badges, bonus XP, and celebratory confetti.
+
+4. **❤️ Survival (3 Hearts):**
    * Start with 3 lives.
    * Every mistake costs one heart.
-   * Untimed — tests pure precision and endurance.
+   * Untimed — tests pure precision and endurance under high stakes.
 
-4. **🎴 Flashcards (Study Mode):**
-   * Self-paced 3D card flips.
+5. **🎴 Flashcards (Study Mode):**
+   * Self-paced 3D card flips with touch swipe gestures (swipe left for learning, right for mastered).
    * Tap or press **Spacebar** to flip the card and reveal the answer with conceptual hints and **visual dot array area models**.
-   * Rate your mastery with **🔴 Still Learning** or **🟢 Mastered!** to build confidence.
+   * Rate your mastery with **Still Learning** or **Mastered!** to build confidence.
 
-5. **⚡ Mistake Review Drill:**
+6. **⚡ Mistake Review Drill:**
    * Automatically collects any problem answered incorrectly during any round.
    * Allows players to replay and drill exclusively their missed equations until mastered!
 
@@ -52,7 +60,7 @@ Because **Math Quest** is a lightweight, zero-dependency client application with
 
 ## 🔲 12×12 Multiplication Matrix & Heatmap Explorer
 
-* Click the **🔲 12×12 Grid** button in the top navigation bar to open the full interactive Pythagorean table.
+* Click the **12×12 Grid** button in the top navigation bar to open the full interactive Pythagorean table.
 * **Mastery Heatmap:**
   * 🟩 **Green (Mastered):** $\ge 80\%$ accuracy across attempts.
   * 🟨 **Yellow (Learning):** $50\% - 79\%$ accuracy.
@@ -65,7 +73,15 @@ Because **Math Quest** is a lightweight, zero-dependency client application with
 ## 🟣 Visual Area Model (Dot Array Grid)
 
 * Multiplication is visually represented as an interactive grid of glowing dots (e.g. $4 \times 6$ renders 4 rows of 6 glowing gems).
+* **Zero Answer Spoiler:** The answer remains safely concealed as `?` until the user submits their response, at which point the full equation is highlighted in glowing emerald or rose.
 * Available during quiz hints and on the back of study flashcards to help visual learners connect repeated addition to geometric arrays.
+
+---
+
+## 🎨 Professional Vector SVG Iconography
+
+* All UI icons have been upgraded from casual emojis to crisp, clean, lightweight inline vector SVGs.
+* Seamlessly styled for high-DPI retina displays with responsive coloring matching player rank, fever state, and active modes.
 
 ---
 
@@ -78,10 +94,10 @@ Because **Math Quest** is a lightweight, zero-dependency client application with
 
 ## ⌨️ Dual Input Styles & Keyboard Shortcuts
 
-* **🔘 Multiple Choice Mode:**
+* **Multiple Choice Mode:**
   * 4 dynamically generated options with realistic distractors.
   * Click on-screen buttons or press **`1`**, **`2`**, **`3`**, **`4`** on your keyboard.
-* **🔢 Direct Input Mode:**
+* **Direct Input Mode:**
   * Tactile on-screen numpad for mobile/tablets.
   * Physical keyboard support: type digits `0`–`9`, `Backspace` to delete, and `Enter` to submit.
 * **Flashcards Navigation:**

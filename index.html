@@ -131,9 +131,9 @@
     <!-- ==================================================================
          VIEW 1: LOBBY / DASHBOARD
          ================================================================== -->
-    <section id="view-lobby" class="space-y-4 sm:space-y-6">
+    <section id="view-lobby" class="space-y-4 sm:space-y-5">
 
-      <!-- Quick Summary Banner with Professional Vector SVGs -->
+      <!-- Quick Summary Banner -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         <div class="glass-panel rounded-2xl p-3 flex flex-col">
           <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
@@ -201,95 +201,106 @@
         </div>
       </div>
 
-      <!-- Main Game Modes Selection (4 Cards with Vector SVGs) -->
+      <!-- ================================================================
+           INLINE GAME MODES SELECTOR (5 MODES INLINE)
+           Desktop: 5-column grid | Mobile: Smooth horizontal swipe row
+           ================================================================ -->
       <div>
-        <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 mb-2.5 sm:mb-3 flex items-center gap-2">
-          <span>🎮</span> Select Game Mode
-        </h2>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <div class="flex items-center justify-between mb-2 sm:mb-2.5">
+          <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <span>🎮</span> Select Game Mode
+          </h2>
+          <span class="text-[11px] text-slate-400 md:hidden flex items-center gap-1">Swipe modes 👉</span>
+        </div>
+
+        <div class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-5 gap-2.5 sm:gap-3 pb-2" id="modes-carousel">
 
           <!-- Mode 1: Speed Blitz -->
-          <div class="mode-card glass-panel hover:border-indigo-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-indigo-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mb-2 sm:mb-3">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
               </div>
-              <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Speed Blitz</h3>
-              <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
-                Race the clock with streak Fever combos!
-              </p>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Speed Blitz</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Race the timer with Fever combos!</p>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-              <span class="text-indigo-400 font-semibold hidden sm:inline">Timer</span>
-              <div class="flex gap-1 w-full sm:w-auto justify-end" id="blitz-duration-selector">
-                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-[10px] sm:text-[11px]" data-duration="30">30s</button>
-                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 text-[10px] sm:text-[11px]" data-duration="60">60s</button>
-                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 text-[10px] sm:text-[11px]" data-duration="120">120s</button>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+              <div class="flex gap-1 w-full justify-center" id="blitz-duration-selector">
+                <button type="button" class="duration-btn px-1.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-[9px] sm:text-[10px]" data-duration="30">30s</button>
+                <button type="button" class="duration-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[9px] sm:text-[10px]" data-duration="60">60s</button>
+                <button type="button" class="duration-btn px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[9px] sm:text-[10px]" data-duration="120">120s</button>
               </div>
             </div>
           </div>
 
-          <!-- Mode 2: Boss Battle (RPG Mode) -->
-          <div class="mode-card glass-panel hover:border-purple-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="boss">
+          <!-- Mode 2: Endless Cards (NEW MODE!) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-cyan-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="endless">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center mb-2 sm:mb-3">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18.178 8c5.096 0 5.096 8 0 8-2.695 0-4.71-2.616-6.178-5-1.468-2.384-3.483-5-6.178-5-5.096 0-5.096 8 0 8 2.695 0 4.71-2.616 6.178-5 1.468-2.384 3.483-5 6.178-5z"/>
+                </svg>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Endless Cards</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Choices with no timers or lives!</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span class="text-cyan-400 font-semibold">Untimed Choices</span>
+            </div>
+          </div>
+
+          <!-- Mode 3: Boss Battle (RPG Mode) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-purple-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="boss">
+            <div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
                   <path d="m13 19 6-6"></path>
                   <path d="M16 16l4 4"></path>
                   <path d="M19 21l2-2"></path>
                 </svg>
               </div>
-              <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Boss Battle</h3>
-              <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
-                RPG battle! Slash monsters and deplete HP.
-              </p>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Boss Battle</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Slash monsters and deplete HP!</p>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
               <span class="text-purple-400 font-semibold">RPG Battle</span>
-              <span class="text-slate-400">Boss HP</span>
             </div>
           </div>
 
-          <!-- Mode 3: Survival (3 Hearts) -->
-          <div class="mode-card glass-panel hover:border-rose-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="survival">
+          <!-- Mode 4: Survival (3 Hearts) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-rose-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="survival">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center mb-2 sm:mb-3">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
                 </svg>
               </div>
-              <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Survival</h3>
-              <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
-                Start with 3 lives. Zero mistake tolerance!
-              </p>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Survival</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Start with 3 lives. Zero mistakes!</p>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
               <span class="text-rose-400 font-semibold">3 Lives</span>
-              <span class="text-slate-400">Precision</span>
             </div>
           </div>
 
-          <!-- Mode 4: Flashcards -->
-          <div class="mode-card glass-panel hover:border-emerald-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="flashcards">
+          <!-- Mode 5: Flashcards (Study) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-emerald-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="flashcards">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center mb-2 sm:mb-3">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
               </div>
-              <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Flashcards</h3>
-              <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
-                3D flip cards with visual dot area models.
-              </p>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Flashcards</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">3D flip cards with area model.</p>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-              <span class="text-emerald-400 font-semibold">Self-Paced</span>
-              <span class="text-slate-400">15 Cards</span>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span class="text-emerald-400 font-semibold">Self-Paced Flip</span>
             </div>
           </div>
 
@@ -391,7 +402,7 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 2: QUIZ ARENA (Speed Blitz & Survival)
+         VIEW 2: QUIZ ARENA (Speed Blitz, Survival & Endless Cards)
          ================================================================== -->
     <section id="view-quiz" class="hidden space-y-4 max-w-2xl mx-auto w-full transition-all">
 
@@ -413,8 +424,9 @@
             </div>
           </div>
 
-          <!-- Center: Timer or Hearts -->
+          <!-- Center: Mode Indicator (Timer for Blitz, Hearts for Survival, or Card Count for Endless) -->
           <div class="flex items-center gap-1.5">
+            <!-- Blitz Timer -->
             <div id="hud-timer-container" class="flex items-center gap-1.5">
               <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -423,17 +435,25 @@
               <span id="hud-timer-val" class="font-mono text-xl sm:text-2xl font-black text-white">60</span>
               <span class="text-[11px] text-slate-400">s</span>
             </div>
-            <div id="hud-hearts-container" class="hidden flex items-center gap-1">
-              <!-- Rendered via JS -->
+            <!-- Survival Hearts -->
+            <div id="hud-hearts-container" class="hidden flex items-center gap-1"></div>
+            <!-- Endless Cards Indicator -->
+            <div id="hud-endless-container" class="hidden flex items-center gap-1.5">
+              <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Card</span>
+              <span id="hud-endless-card-val" class="font-mono text-xl sm:text-2xl font-black text-cyan-300">#1</span>
             </div>
           </div>
 
-          <!-- Right: Score & Exit -->
-          <div class="flex items-center gap-2.5">
+          <!-- Right: Score & Actions -->
+          <div class="flex items-center gap-2">
             <div class="text-right">
               <span class="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Score</span>
               <span id="hud-score-val" class="text-lg sm:text-xl font-black text-indigo-300 font-mono">0</span>
             </div>
+            <!-- Finish Endless Session Button -->
+            <button id="btn-quiz-finish" class="hidden px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/50 text-cyan-200 text-xs font-bold active:scale-95 transition-all">
+              Finish
+            </button>
             <button id="btn-quiz-exit" class="p-1.5 sm:p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95" title="Quit">
               ✕
             </button>
@@ -534,7 +554,7 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 3: RPG BOSS BATTLE ARENA (VECTOR CREST AVATARS)
+         VIEW 3: RPG BOSS BATTLE ARENA
          ================================================================== -->
     <section id="view-boss" class="hidden space-y-3.5 max-w-2xl mx-auto w-full">
 
@@ -719,7 +739,7 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 5: RESULTS / GAME OVER (VECTOR TROPHY)
+         VIEW 5: RESULTS / GAME OVER
          ================================================================== -->
     <section id="view-results" class="hidden space-y-5 max-w-lg mx-auto w-full">
 
@@ -988,19 +1008,19 @@
 
       <!-- Blitz Records Breakdown -->
       <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
-        <span class="text-[11px] font-bold text-slate-300 block mb-1.5">⚡ Speed Blitz Records</span>
+        <span class="text-[11px] font-bold text-slate-300 block mb-1.5">⚡ Records Breakdown</span>
         <div class="grid grid-cols-3 gap-1.5 text-center text-xs">
           <div class="bg-slate-900/60 p-1.5 rounded-lg">
-            <span class="text-[9px] text-slate-400 block">30s</span>
+            <span class="text-[9px] text-slate-400 block">30s Blitz</span>
             <span id="record-blitz-30" class="font-mono font-bold text-indigo-300 text-xs">0</span>
           </div>
           <div class="bg-slate-900/60 p-1.5 rounded-lg">
-            <span class="text-[9px] text-slate-400 block">60s</span>
+            <span class="text-[9px] text-slate-400 block">60s Blitz</span>
             <span id="record-blitz-60" class="font-mono font-bold text-indigo-300 text-xs">0</span>
           </div>
           <div class="bg-slate-900/60 p-1.5 rounded-lg">
-            <span class="text-[9px] text-slate-400 block">120s</span>
-            <span id="record-blitz-120" class="font-mono font-bold text-indigo-300 text-xs">0</span>
+            <span class="text-[9px] text-slate-400 block">Endless Record</span>
+            <span id="record-endless" class="font-mono font-bold text-cyan-300 text-xs">0</span>
           </div>
         </div>
       </div>
