@@ -508,7 +508,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (state.currentProblem.operation === 'multiply' && state.currentProblem.num1 <= 12 && state.currentProblem.num2 <= 12) {
       quizVisualArrayWrapper.classList.remove('hidden');
-      quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ${state.currentProblem.answer}`;
+      quizVisualLabel.classList.remove('text-emerald-400', 'text-rose-400');
+      quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ?`;
       renderVisualDotGrid(quizVisualDots, state.currentProblem.num1, state.currentProblem.num2);
     } else {
       quizVisualArrayWrapper.classList.add('hidden');
@@ -568,6 +569,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     spawnFloatingXP(`+${gainedScore} pts! ${multiplier > 1 ? `(${multiplier}x)` : ''}`);
 
+    // Reveal answer on visual area model if active
+    if (state.currentProblem.operation === 'multiply') {
+      quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ${state.currentProblem.answer} ✓`;
+      quizVisualLabel.classList.add('text-emerald-400');
+    }
+
     quizCard.classList.remove('animate-shake');
     quizCard.classList.add('animate-correct');
     setTimeout(() => quizCard.classList.remove('animate-correct'), 320);
@@ -591,6 +598,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     StorageManager.recordMistake(state.currentProblem);
     state.roundMistakes.push({ ...state.currentProblem });
+
+    // Reveal answer on visual area model if active
+    if (state.currentProblem.operation === 'multiply') {
+      quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ${state.currentProblem.answer}`;
+      quizVisualLabel.classList.add('text-rose-400');
+    }
 
     if (state.currentProblem.hint) {
       quizHintText.textContent = `💡 Hint: ${state.currentProblem.hint}`;
