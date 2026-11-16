@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Quest - Gamified Multiplication & Math Training</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- ====================================================================
+       NAVBAR / TOP HEADER
+       ==================================================================== -->
+  <header class="w-full border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
+      <!-- Logo / Title -->
+      <div id="btn-nav-logo" class="flex items-center gap-2.5 cursor-pointer group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+          <span class="text-xl">⚔️</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+            MATH QUEST
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Master Multiplication & Math</p>
+        </div>
+      </div>
+
+      <!-- Player Level & XP Indicator -->
+      <div id="nav-player-bar" class="hidden sm:flex items-center gap-3 bg-slate-800/80 border border-slate-700/60 rounded-full px-4 py-1.5 shadow-inner">
+        <span id="nav-player-icon" class="text-lg">🌱</span>
+        <div class="flex flex-col min-w-[130px]">
+          <div class="flex justify-between items-center text-xs font-semibold">
+            <span id="nav-player-level" class="text-indigo-400">Level 1</span>
+            <span id="nav-player-title" class="text-slate-300 truncate max-w-[100px]">Novice</span>
+          </div>
+          <div class="w-full bg-slate-700 h-1.5 rounded-full mt-1 overflow-hidden">
+            <div id="nav-xp-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 15%"></div>
+          </div>
+        </div>
+        <span id="nav-xp-text" class="text-[11px] text-slate-400 font-mono">0 XP</span>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-2">
+        <!-- Sound Mute Toggle -->
+        <button id="btn-sound-toggle" title="Toggle Sound FX" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-white transition-all shadow-sm">
+          <span id="sound-icon" class="text-lg">🔊</span>
+        </button>
+        <!-- Stats Modal Toggle -->
+        <button id="btn-stats-modal" title="View Statistics" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-white transition-all shadow-sm">
+          <span class="text-lg">📊</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================
+       MAIN CONTAINER
+       ==================================================================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center relative">
+
+    <!-- ==================================================================
+         VIEW 1: LOBBY / DASHBOARD
+         ================================================================== -->
+    <section id="view-lobby" class="space-y-6">
+
+      <!-- Quick Summary Banner -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="glass-panel rounded-2xl p-3.5 flex flex-col">
+          <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <span>🔥</span> Best Streak
+          </span>
+          <span id="lobby-stat-streak" class="text-2xl font-black text-amber-400 mt-1">0</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-3.5 flex flex-col">
+          <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <span>🎯</span> Accuracy
+          </span>
+          <span id="lobby-stat-accuracy" class="text-2xl font-black text-emerald-400 mt-1">100%</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-3.5 flex flex-col">
+          <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <span>⚡</span> Blitz Record
+          </span>
+          <span id="lobby-stat-blitz" class="text-2xl font-black text-indigo-400 mt-1">0</span>
+        </div>
+        <div class="glass-panel rounded-2xl p-3.5 flex flex-col">
+          <span class="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <span>🎴</span> Cards Mastered
+          </span>
+          <span id="lobby-stat-cards" class="text-2xl font-black text-violet-400 mt-1">0</span>
+        </div>
+      </div>
+
+      <!-- Mistake Review Alert (if any mistakes exist) -->
+      <div id="lobby-mistakes-alert" class="hidden rounded-2xl bg-gradient-to-r from-rose-950/70 to-amber-950/60 border border-rose-500/30 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg shadow-rose-950/40">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">⚠️</span>
+          <div>
+            <h4 class="font-bold text-rose-200 text-sm">Practice Missed Problems</h4>
+            <p class="text-xs text-slate-300">You have <span id="lobby-mistakes-count" class="font-bold text-amber-300">0</span> equations flagged for review.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button id="btn-drill-mistakes" class="flex-1 sm:flex-none px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-rose-600/30">
+            Drill Mistakes Now
+          </button>
+          <button id="btn-clear-mistakes" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-xs font-medium transition-all" title="Clear Review Queue">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Game Modes Selection -->
+      <div>
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+          <span>🎮</span> Select Game Mode
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <!-- Mode 1: Speed Blitz -->
+          <div class="mode-card glass-panel hover:border-indigo-500/80 rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-1 relative group flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                ⚡
+              </div>
+              <h3 class="text-lg font-black text-white mb-1">Speed Blitz</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Race the clock! Build consecutive streaks to trigger score and XP multipliers.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-indigo-400 font-semibold">Timed Run</span>
+              <div class="flex gap-1" id="blitz-duration-selector">
+                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-[11px]" data-duration="30">30s</button>
+                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[11px]" data-duration="60">60s</button>
+                <button type="button" class="duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[11px]" data-duration="120">120s</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: Survival (3 Hearts) -->
+          <div class="mode-card glass-panel hover:border-rose-500/80 rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-1 relative group flex flex-col justify-between border border-slate-800" data-mode="survival">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                ❤️
+              </div>
+              <h3 class="text-lg font-black text-white mb-1">Survival</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Start with 3 lives. One mistake costs a heart. Test your maximum precision and focus!
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-rose-400 font-semibold">3 Lives</span>
+              <span class="text-slate-400">Untimed</span>
+            </div>
+          </div>
+
+          <!-- Mode 3: Flashcard Study -->
+          <div class="mode-card glass-panel hover:border-emerald-500/80 rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-1 relative group flex flex-col justify-between border border-slate-800" data-mode="flashcards">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                🎴
+              </div>
+              <h3 class="text-lg font-black text-white mb-1">Flashcards</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Classic 3D flip cards to memorize times tables and equations with helpful hints.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-emerald-400 font-semibold">Self-Paced</span>
+              <span class="text-slate-400">Deck of 15</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Settings / Parameters Panel -->
+      <div class="glass-panel rounded-2xl p-5 space-y-5">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <span>⚙️</span> Game Settings & Filters
+        </h2>
+
+        <!-- Operations Row -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Math Operation</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all" data-op="multiply">
+              <span class="text-base font-black">×</span> Multiplication
+            </button>
+            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all" data-op="add">
+              <span class="text-base font-black">+</span> Addition
+            </button>
+            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all" data-op="subtract">
+              <span class="text-base font-black">−</span> Subtraction
+            </button>
+            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all" data-op="mixed">
+              <span class="text-base font-black">🎲</span> Mixed
+            </button>
+          </div>
+        </div>
+
+        <!-- Difficulty Row -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Difficulty Level</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="diff-btn py-2 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all" data-diff="easy">
+              🟢 Easy <span class="block text-[10px] text-slate-400 font-normal">Tables 1–5</span>
+            </button>
+            <button type="button" class="diff-btn py-2 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all" data-diff="medium">
+              🟡 Medium <span class="block text-[10px] text-indigo-300/80 font-normal">Tables 1–12</span>
+            </button>
+            <button type="button" class="diff-btn py-2 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all" data-diff="hard">
+              🔴 Hard <span class="block text-[10px] text-slate-400 font-normal">Tables 2–20</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Multiplication Table Selector (Visible when Multiply or Mixed is selected) -->
+        <div id="custom-tables-wrapper" class="pt-2 border-t border-slate-800">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <span>🎯</span> Target Specific Times Tables <span class="text-[11px] font-normal text-slate-400">(Optional drill)</span>
+            </label>
+            <button type="button" id="btn-toggle-all-tables" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium">Select All</button>
+          </div>
+          <div class="grid grid-cols-6 sm:grid-cols-12 gap-1.5" id="table-chips-container">
+            <!-- Table chips 1 through 12 generated via JS -->
+          </div>
+        </div>
+
+        <!-- Input Mode Selection -->
+        <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="block text-xs font-semibold text-slate-300">Answer Input Style</span>
+            <span class="text-[11px] text-slate-400">Choose between multiple choice buttons or typing numbers directly</span>
+          </div>
+          <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700/80">
+            <button type="button" id="input-style-choice" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm">
+              🔘 Multiple Choice
+            </button>
+            <button type="button" id="input-style-direct" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+              🔢 Numpad / Keyboard
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Launch Action Button -->
+      <button id="btn-start-game" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white font-black text-lg tracking-wide uppercase shadow-xl shadow-indigo-600/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+        <span>🚀</span> Start Math Quest
+      </button>
+
+    </section>
+
+    <!-- ==================================================================
+         VIEW 2: QUIZ ARENA (Speed Blitz & Survival)
+         ================================================================== -->
+    <section id="view-quiz" class="hidden space-y-6 max-w-2xl mx-auto w-full">
+
+      <!-- Quiz HUD Bar -->
+      <div class="glass-panel rounded-2xl p-4 flex items-center justify-between gap-4">
+        <!-- Left: Streak & Multiplier -->
+        <div class="flex items-center gap-2.5">
+          <div id="quiz-streak-badge" class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+            <span id="quiz-flame-icon" class="text-lg">🔥</span>
+            <span id="quiz-streak-count" class="font-black text-amber-400 text-sm">0</span>
+            <span class="text-[11px] text-slate-400 font-medium">streak</span>
+          </div>
+          <div id="quiz-multiplier-badge" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider animate-pulse">
+            x1.5
+          </div>
+        </div>
+
+        <!-- Center: Game Mode Info (Timer for Blitz OR Hearts for Survival) -->
+        <div class="flex items-center gap-2">
+          <!-- Blitz Timer -->
+          <div id="hud-timer-container" class="flex items-center gap-2">
+            <span class="text-base text-indigo-400">⏱️</span>
+            <span id="hud-timer-val" class="font-mono text-2xl font-black text-white">60</span>
+            <span class="text-xs text-slate-400">s</span>
+          </div>
+          <!-- Survival Hearts -->
+          <div id="hud-hearts-container" class="hidden flex items-center gap-1 text-xl">
+            <span class="heart-icon text-rose-500">❤️</span>
+            <span class="heart-icon text-rose-500">❤️</span>
+            <span class="heart-icon text-rose-500">❤️</span>
+          </div>
+        </div>
+
+        <!-- Right: Current Score & Exit Button -->
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Score</span>
+            <span id="hud-score-val" class="text-xl font-black text-indigo-300 font-mono">0</span>
+          </div>
+          <button id="btn-quiz-exit" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold transition-all" title="Quit to Lobby">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Problem Card Arena -->
+      <div id="quiz-card" class="glass-card rounded-3xl p-8 sm:p-10 text-center relative overflow-hidden shadow-2xl border border-indigo-500/30">
+        <!-- Floating XP Container -->
+        <div id="quiz-floating-container" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
+
+        <!-- Category Tag -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-4">
+          <span id="quiz-op-symbol">×</span>
+          <span id="quiz-op-title">Multiplication</span>
+        </div>
+
+        <!-- The Equation -->
+        <div class="py-4">
+          <div id="quiz-equation-text" class="text-5xl sm:text-7xl font-black tracking-tight text-white font-mono select-none">
+            8 × 7
+          </div>
+        </div>
+
+        <div id="quiz-hint-text" class="text-xs text-slate-400 italic min-h-[1.5rem] mt-2 select-none">
+          <!-- Helpful hint text shown after mistakes -->
+        </div>
+      </div>
+
+      <!-- Input Option 1: Multiple Choice Grid (4 Options) -->
+      <div id="input-container-choice" class="grid grid-cols-2 gap-3 sm:gap-4">
+        <button type="button" class="choice-btn py-5 px-6 rounded-2xl bg-slate-900/90 hover:bg-indigo-600 border border-slate-700/80 hover:border-indigo-400 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="0">
+          <span class="text-xs text-slate-400 font-normal">A</span>
+          <span class="choice-val font-mono">0</span>
+          <span class="text-xs text-slate-500 font-mono">[1]</span>
+        </button>
+        <button type="button" class="choice-btn py-5 px-6 rounded-2xl bg-slate-900/90 hover:bg-indigo-600 border border-slate-700/80 hover:border-indigo-400 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="1">
+          <span class="text-xs text-slate-400 font-normal">B</span>
+          <span class="choice-val font-mono">0</span>
+          <span class="text-xs text-slate-500 font-mono">[2]</span>
+        </button>
+        <button type="button" class="choice-btn py-5 px-6 rounded-2xl bg-slate-900/90 hover:bg-indigo-600 border border-slate-700/80 hover:border-indigo-400 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="2">
+          <span class="text-xs text-slate-400 font-normal">C</span>
+          <span class="choice-val font-mono">0</span>
+          <span class="text-xs text-slate-500 font-mono">[3]</span>
+        </button>
+        <button type="button" class="choice-btn py-5 px-6 rounded-2xl bg-slate-900/90 hover:bg-indigo-600 border border-slate-700/80 hover:border-indigo-400 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="3">
+          <span class="text-xs text-slate-400 font-normal">D</span>
+          <span class="choice-val font-mono">0</span>
+          <span class="text-xs text-slate-500 font-mono">[4]</span>
+        </button>
+      </div>
+
+      <!-- Input Option 2: Direct Input & Tactile Virtual Numpad -->
+      <div id="input-container-direct" class="hidden space-y-3">
+        <!-- Display Field -->
+        <div class="glass-panel rounded-2xl p-3 flex items-center justify-center border-2 border-indigo-500/50">
+          <span class="text-sm text-slate-400 mr-2">Your Answer:</span>
+          <span id="direct-display-val" class="font-mono text-3xl font-black text-indigo-300 min-w-[80px] text-center border-b-2 border-indigo-400 pb-0.5">_</span>
+        </div>
+
+        <!-- Tactile On-Screen Numpad -->
+        <div class="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-sm mx-auto">
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="1">1</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="2">2</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="3">3</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="4">4</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="5">5</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="6">6</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="7">7</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="8">8</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="9">9</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 font-mono text-sm font-bold shadow" data-key="clear">Clear</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="0">0</button>
+          <button type="button" class="numpad-btn py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-mono text-sm font-bold shadow" data-key="enter">Enter ↵</button>
+        </div>
+        <p class="text-[11px] text-center text-slate-400">💡 Physical keyboard supported: type digits and press <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-white font-mono">Enter</kbd></p>
+      </div>
+
+    </section>
+
+    <!-- ==================================================================
+         VIEW 3: FLASHCARDS STUDY ARENA
+         ================================================================== -->
+    <section id="view-flashcards" class="hidden space-y-6 max-w-xl mx-auto w-full">
+
+      <!-- Flashcards HUD -->
+      <div class="glass-panel rounded-2xl p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400 text-lg">🎴</span>
+          <div>
+            <h3 class="text-sm font-bold text-white">Study Flashcards</h3>
+            <span id="fc-progress-text" class="text-xs text-slate-400">Card 1 of 15</span>
+          </div>
+        </div>
+        <button id="btn-fc-exit" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold transition-all">
+          Exit to Lobby
+        </button>
+      </div>
+
+      <!-- 3D Perspective Flip Card -->
+      <div class="perspective-1000 w-full h-80 sm:h-96 cursor-pointer select-none" id="fc-flip-card">
+        <div id="fc-card-inner" class="card-inner relative w-full h-full transform-style-3d">
+
+          <!-- FRONT SIDE (Question) -->
+          <div class="absolute inset-0 backface-hidden glass-card rounded-3xl p-8 flex flex-col justify-between items-center border-2 border-indigo-500/40 shadow-2xl">
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-3 py-1 rounded-full">
+              Tap or Space to Flip
+            </span>
+            <div class="text-center my-auto">
+              <div id="fc-front-equation" class="text-6xl sm:text-7xl font-black text-white font-mono">
+                7 × 8
+              </div>
+              <span class="text-slate-400 text-xs mt-3 block">What is the product?</span>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+              <span>🔄</span> Click card to flip
+            </div>
+          </div>
+
+          <!-- BACK SIDE (Answer & Explanation) -->
+          <div class="absolute inset-0 backface-hidden rotate-y-180 glass-card rounded-3xl p-8 flex flex-col justify-between items-center border-2 border-emerald-500/40 shadow-2xl bg-gradient-to-br from-slate-900 to-emerald-950/40">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-3 py-1 rounded-full">
+              Solution
+            </span>
+            <div class="text-center my-auto">
+              <div id="fc-back-equation" class="text-2xl text-slate-400 font-mono mb-1">7 × 8 =</div>
+              <div id="fc-back-answer" class="text-6xl sm:text-7xl font-black text-emerald-400 font-mono">
+                56
+              </div>
+              <div id="fc-back-hint" class="text-xs text-slate-300 mt-4 max-w-xs bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                7 groups of 8 equals 56
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+              <span>🔄</span> Click to flip back
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Self-Rating Controls -->
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="btn-fc-learning" class="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-500 text-rose-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+          <span>🔴</span> Still Learning
+        </button>
+        <button id="btn-fc-mastered" class="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-emerald-950/60 border border-slate-700 hover:border-emerald-500 text-emerald-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+          <span>🟢</span> Mastered!
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ==================================================================
+         VIEW 4: RESULTS / GAME OVER
+         ================================================================== -->
+    <section id="view-results" class="hidden space-y-6 max-w-lg mx-auto w-full">
+
+      <div class="glass-card rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl border border-indigo-500/30">
+
+        <!-- Trophy / Celebration Icon -->
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center text-4xl shadow-xl shadow-amber-500/30 animate-bounce">
+          🏆
+        </div>
+
+        <div>
+          <h2 id="results-title" class="text-2xl sm:text-3xl font-black text-white">Quest Complete!</h2>
+          <p id="results-subtitle" class="text-xs sm:text-sm text-slate-400 mt-1">Excellent mental math workout!</p>
+        </div>
+
+        <!-- Level Up Callout (Hidden by default) -->
+        <div id="results-levelup-banner" class="hidden p-3 rounded-2xl bg-gradient-to-r from-indigo-900/80 to-emerald-900/80 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
+          <span>🎉</span> <span>LEVEL UP! You reached Level <span id="results-levelup-num">2</span>!</span>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-3 text-left">
+          <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block">Final Score</span>
+            <span id="results-score" class="text-2xl font-black text-indigo-300 font-mono">0</span>
+          </div>
+          <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block">Max Streak</span>
+            <span id="results-streak" class="text-2xl font-black text-amber-400 font-mono">0</span>
+          </div>
+          <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block">Accuracy</span>
+            <span id="results-accuracy" class="text-2xl font-black text-emerald-400 font-mono">100%</span>
+          </div>
+          <div class="bg-slate-800/80 rounded-2xl p-3.5 border border-slate-700/60">
+            <span class="text-[11px] text-slate-400 font-medium block">XP Gained</span>
+            <span id="results-xp" class="text-2xl font-black text-violet-400 font-mono">+0 XP</span>
+          </div>
+        </div>
+
+        <!-- Missed Questions List (if any) -->
+        <div id="results-mistakes-container" class="hidden text-left bg-slate-900/90 rounded-2xl p-4 border border-rose-500/20 space-y-2">
+          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider block">Questions to Review</span>
+          <div id="results-mistakes-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1 text-xs">
+            <!-- Items injected by JS -->
+          </div>
+          <button id="btn-results-drill" class="w-full mt-2 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all">
+            ⚡ Practice These Missed Questions
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-2">
+          <button id="btn-results-replay" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">
+            🔄 Play Again
+          </button>
+          <button id="btn-results-lobby" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-all">
+            🏠 Return to Lobby
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL: FULL STATISTICS & PROGRESS
+       ==================================================================== -->
+  <div id="modal-stats" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 space-y-5 border border-slate-700 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📊</span> Career Statistics & XP
+        </h3>
+        <button id="btn-close-stats" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <!-- Level & Title Card -->
+      <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex items-center gap-4">
+        <span id="modal-level-icon" class="text-3xl">🌱</span>
+        <div class="flex-1">
+          <h4 id="modal-level-title" class="font-bold text-white text-sm">Number Novice</h4>
+          <p id="modal-level-num" class="text-xs text-indigo-400 font-semibold">Level 1</p>
+          <div class="w-full bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
+            <div id="modal-xp-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full" style="width: 20%"></div>
+          </div>
+          <span id="modal-xp-needed" class="text-[10px] text-slate-400 mt-1 block">50 XP to next level</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+          <span class="text-slate-400 block">Total Answered</span>
+          <span id="stat-total-answered" class="text-lg font-bold text-white mt-0.5 block font-mono">0</span>
+        </div>
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+          <span class="text-slate-400 block">Accuracy Rate</span>
+          <span id="stat-accuracy-rate" class="text-lg font-bold text-emerald-400 mt-0.5 block font-mono">0%</span>
+        </div>
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+          <span class="text-slate-400 block">Highest Streak</span>
+          <span id="stat-highest-streak" class="text-lg font-bold text-amber-400 mt-0.5 block font-mono">0</span>
+        </div>
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
+          <span class="text-slate-400 block">Survival Best</span>
+          <span id="stat-survival-best" class="text-lg font-bold text-rose-400 mt-0.5 block font-mono">0</span>
+        </div>
+      </div>
+
+      <!-- Blitz Records Breakdown -->
+      <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60">
+        <span class="text-xs font-bold text-slate-300 block mb-2">⚡ Speed Blitz Records</span>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+          <div class="bg-slate-900/60 p-2 rounded-lg">
+            <span class="text-[10px] text-slate-400 block">30s</span>
+            <span id="record-blitz-30" class="font-mono font-bold text-indigo-300">0</span>
+          </div>
+          <div class="bg-slate-900/60 p-2 rounded-lg">
+            <span class="text-[10px] text-slate-400 block">60s</span>
+            <span id="record-blitz-60" class="font-mono font-bold text-indigo-300">0</span>
+          </div>
+          <div class="bg-slate-900/60 p-2 rounded-lg">
+            <span class="text-[10px] text-slate-400 block">120s</span>
+            <span id="record-blitz-120" class="font-mono font-bold text-indigo-300">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reset Progress Button -->
+      <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+        <button id="btn-reset-data" class="text-[11px] text-rose-400 hover:text-rose-300 underline">
+          Reset All Progress
+        </button>
+        <button id="btn-modal-close-action" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/math-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
