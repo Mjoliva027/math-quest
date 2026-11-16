@@ -1,6 +1,6 @@
 /**
- * Math Quest - Main Application Controller
- * Handles gameplay loop, Boss Battles, 12x12 Matrix Explorer, Fever Mode, and Voice Synthesis.
+ * Math Quest - Main Application Controller (Mobile-Optimized & Touch-Enabled)
+ * Handles gameplay loop, touch swipe gestures, mobile drawer, Boss Battles, and 12x12 Matrix.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,10 +31,15 @@ document.addEventListener('DOMContentLoaded', () => {
     isEvaluating: false,
     isFeverActive: false,
 
-    // Flashcard State
+    // Flashcard State & Touch Gestures
     flashcardDeck: [],
     flashcardIndex: 0,
     isCardFlipped: false,
+    touchStartX: 0,
+    touchStartY: 0,
+    touchDeltaX: 0,
+    touchDeltaY: 0,
+    isSwiping: false,
 
     // Boss Battle State
     currentBoss: null,
@@ -46,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bossTimerInterval: null,
 
     // Matrix Explorer State
+    matrixTab: '1-6', // '1-6' | '7-12' | 'all'
     selectedMatrixRow: 7,
     selectedMatrixCol: 8,
   };
@@ -61,13 +67,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const speechIcon = document.getElementById('speech-icon');
   const btnSoundToggle = document.getElementById('btn-sound-toggle');
   const soundIcon = document.getElementById('sound-icon');
+  const btnSoundToggleMobile = document.getElementById('btn-sound-toggle-mobile');
+  const soundIconMobile = document.getElementById('sound-icon-mobile');
   const btnStatsModal = document.getElementById('btn-stats-modal');
   const btnMatrixToggle = document.getElementById('btn-matrix-toggle');
+  const btnMobileMenu = document.getElementById('btn-mobile-menu');
+  const modalMobileMenu = document.getElementById('modal-mobile-menu');
+  const btnCloseMobileMenu = document.getElementById('btn-close-mobile-menu');
   const navPlayerLevel = document.getElementById('nav-player-level');
   const navPlayerTitle = document.getElementById('nav-player-title');
   const navPlayerIcon = document.getElementById('nav-player-icon');
   const navXPBar = document.getElementById('nav-xp-bar');
   const navXPText = document.getElementById('nav-xp-text');
+
+  // Mobile Menu Items
+  const btnMenuMatrix = document.getElementById('btn-menu-matrix');
+  const btnMenuStats = document.getElementById('btn-menu-stats');
+  const btnMenuBgm = document.getElementById('btn-menu-bgm');
+  const menuBgmIcon = document.getElementById('menu-bgm-icon');
+  const menuBgmStatus = document.getElementById('menu-bgm-status');
+  const btnMenuSpeech = document.getElementById('btn-menu-speech');
+  const menuSpeechIcon = document.getElementById('menu-speech-icon');
+  const menuSpeechStatus = document.getElementById('menu-speech-status');
+  const btnMenuReset = document.getElementById('btn-menu-reset');
 
   // Views
   const viewLobby = document.getElementById('view-lobby');
@@ -91,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const diffBtns = document.querySelectorAll('.diff-btn');
   const customTablesWrapper = document.getElementById('custom-tables-wrapper');
   const tableChipsContainer = document.getElementById('table-chips-container');
-  const btnToggleAllTables = document.getElementById('btn-toggle-all-tables');
+  const tablePresetBtns = document.querySelectorAll('.table-preset-btn');
   const inputStyleChoice = document.getElementById('input-style-choice');
   const inputStyleDirect = document.getElementById('input-style-direct');
   const btnStartGame = document.getElementById('btn-start-game');
@@ -168,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalMatrix = document.getElementById('modal-matrix');
   const btnCloseMatrix = document.getElementById('btn-close-matrix');
   const btnMatrixCloseAction = document.getElementById('btn-matrix-close-action');
+  const matrixTabBtns = document.querySelectorAll('.matrix-tab-btn');
   const matrixGridContainer = document.getElementById('matrix-grid-container');
   const matrixInfoFactors = document.getElementById('matrix-info-factors');
   const matrixInfoProduct = document.getElementById('matrix-info-product');
@@ -201,21 +224,32 @@ document.addEventListener('DOMContentLoaded', () => {
     syncPlayerHUD();
     syncLobbyStats();
     buildMatrixGrid();
+    setupTouchSwipeGestures();
     attachEventListeners();
   }
 
   function updateAudioIcons() {
-    soundIcon.textContent = SoundEngine.isMuted() ? '🔇' : '🔊';
-    bgmIcon.textContent = SoundEngine.isBgmMuted() ? '🔇' : '🎵';
-    speechIcon.textContent = SoundEngine.isSpeechEnabled() ? '🗣️' : '🤐';
+    const isMuted = SoundEngine.isMuted();
+    soundIcon.textContent = isMuted ? '🔇' : '🔊';
+    if (soundIconMobile) soundIconMobile.textContent = isMuted ? '🔇' : '🔊';
+
+    const isBgmMuted = SoundEngine.isBgmMuted();
+    bgmIcon.textContent = isBgmMuted ? '🔇' : '🎵';
+    if (menuBgmIcon) menuBgmIcon.textContent = isBgmMuted ? '🔇' : '🎵';
+    if (menuBgmStatus) menuBgmStatus.textContent = isBgmMuted ? 'Off' : 'Playing';
+
+    const isSpeech = SoundEngine.isSpeechEnabled();
+    speechIcon.textContent = isSpeech ? '🗣️' : '🤐';
+    if (menuSpeechIcon) menuSpeechIcon.textContent = isSpeech ? '🗣️' : '🤐';
+    if (menuSpeechStatus) menuSpeechStatus.textContent = isSpeech ? 'Active' : 'Off';
   }
 
   function syncPlayerHUD() {
     const data = StorageManager.getData();
     const info = StorageManager.getLevelInfo(data.xp);
 
-    navPlayerLevel.textContent = `Level ${info.level}`;
-    navPlayerTitle.textContent = info.title;
+    navPlayerLevel.textContent = `Lvl ${info.level}`;
+    if (navPlayerTitle) navPlayerTitle.textContent = info.title;
     navPlayerIcon.textContent = info.icon;
     navXPBar.style.width = `${info.progressPercent}%`;
     navXPText.textContent = `${info.xp} XP`;
@@ -242,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= 12; i++) {
       const chip = document.createElement('button');
       chip.type = 'button';
-      chip.className = `table-chip py-1.5 px-2 rounded-lg text-xs font-bold font-mono transition-all border ${
+      chip.className = `table-chip py-2 px-1.5 rounded-xl text-xs font-bold font-mono transition-all border active:scale-95 ${
         state.customTables.includes(i)
           ? 'bg-indigo-600 border-indigo-400 text-white shadow-sm'
           : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
@@ -279,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = document.getElementById(viewId);
     if (target) {
       target.classList.remove('hidden');
+      window.scrollTo(0, 0); // Reset scroll on view change
     }
 
     if (viewId === 'view-lobby') {
@@ -296,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
       state.mode = customMode;
     }
 
-    // Reset common round parameters
     state.score = 0;
     state.streak = 0;
     state.maxStreak = 0;
@@ -326,8 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
       quizFeverWrapper.classList.add('fever-active');
       SoundEngine.playFever();
       SoundEngine.setFeverMode(true);
-      Confetti.burst(50);
-      spawnFloatingXP('🔥 FEVER MODE ACTIVATED! (3x Multiplier!)');
+      Confetti.burst(40);
+      spawnFloatingXP('🔥 FEVER MODE! (3.5x pts)');
     } else if (state.streak < 5 && state.isFeverActive) {
       disableFeverMode();
     }
@@ -350,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let r = 0; r < arrayInfo.rows; r++) {
       const rowDiv = document.createElement('div');
-      rowDiv.className = 'flex gap-1.5 items-center justify-center';
+      rowDiv.className = 'flex gap-1 items-center justify-center';
 
       for (let c = 0; c < arrayInfo.cols; c++) {
         const dot = document.createElement('div');
@@ -463,18 +497,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Update Equation Card
     quizOpSymbol.textContent = state.currentProblem.symbol;
     quizOpTitle.textContent = capitalize(state.currentProblem.operation);
     quizEquationText.textContent = state.currentProblem.equation;
     quizHintText.textContent = '';
 
-    // Voice Read-Aloud
     if (SoundEngine.isSpeechEnabled()) {
       SoundEngine.speakEquation(state.currentProblem.num1, state.currentProblem.operation, state.currentProblem.num2);
     }
 
-    // Visual Area Model for Multiplication
     if (state.currentProblem.operation === 'multiply' && state.currentProblem.num1 <= 12 && state.currentProblem.num2 <= 12) {
       quizVisualArrayWrapper.classList.remove('hidden');
       quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ${state.currentProblem.answer}`;
@@ -483,14 +514,12 @@ document.addEventListener('DOMContentLoaded', () => {
       quizVisualArrayWrapper.classList.add('hidden');
     }
 
-    // Multiple Choice Buttons
     if (state.inputStyle === 'choice') {
       choiceBtns.forEach((btn, index) => {
         const val = state.currentProblem.options[index];
         const valSpan = btn.querySelector('.choice-val');
         valSpan.textContent = val !== undefined ? val : '';
         btn.dataset.answer = val;
-        btn.className = 'choice-btn py-5 px-6 rounded-2xl bg-slate-900/90 hover:bg-indigo-600 border border-slate-700/80 hover:border-indigo-400 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between';
       });
     }
   }
@@ -502,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isCorrect = Number(playerAnswer) === state.currentProblem.answer;
 
-    // Record matrix heatmap data for multiplication
     if (state.currentProblem.operation === 'multiply') {
       StorageManager.recordMatrixAttempt(state.currentProblem.num1, state.currentProblem.num2, isCorrect);
     }
@@ -532,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.streak >= 3) {
       SoundEngine.playStreak(state.streak);
       if (state.streak % 5 === 0) {
-        Confetti.burst(40);
+        Confetti.burst(35);
       }
     } else {
       SoundEngine.playCorrect();
@@ -542,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     quizCard.classList.remove('animate-shake');
     quizCard.classList.add('animate-correct');
-    setTimeout(() => quizCard.classList.remove('animate-correct'), 350);
+    setTimeout(() => quizCard.classList.remove('animate-correct'), 320);
 
     if (state.mode === 'mistake_drill') {
       StorageManager.removeMistake(state.currentProblem.equation);
@@ -552,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStreakDisplay();
     syncPlayerHUD();
 
-    setTimeout(loadNextProblem, 350);
+    setTimeout(loadNextProblem, 320);
   }
 
   function handleIncorrectAnswer() {
@@ -570,18 +598,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     quizCard.classList.remove('animate-correct');
     quizCard.classList.add('animate-shake');
-    setTimeout(() => quizCard.classList.remove('animate-shake'), 450);
+    setTimeout(() => quizCard.classList.remove('animate-shake'), 400);
 
     if (state.mode === 'survival') {
       state.hearts--;
       renderHearts();
       if (state.hearts <= 0) {
-        setTimeout(() => endGame('Out of Lives!'), 600);
+        setTimeout(() => endGame('Out of Lives!'), 500);
         return;
       }
     }
 
-    setTimeout(loadNextProblem, 1000);
+    setTimeout(loadNextProblem, 900);
   }
 
   function getMultiplier(streak) {
@@ -619,10 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function spawnFloatingXP(text) {
     const badge = document.createElement('div');
-    badge.className = 'floating-xp-badge px-3 py-1 rounded-full bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/50';
+    badge.className = 'floating-xp-badge px-3 py-1 rounded-full bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/50';
     badge.textContent = text;
     quizFloatingContainer.appendChild(badge);
-    setTimeout(() => badge.remove(), 1200);
+    setTimeout(() => badge.remove(), 1100);
   }
 
   function updateDirectInputDisplay() {
@@ -630,12 +658,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // RPG BOSS BATTLE CONTROLLER (NEW!)
+  // RPG BOSS BATTLE CONTROLLER
   // =========================================================================
   function startBossBattle() {
     showView('view-boss');
 
-    // Pick boss based on difficulty or stats
     const bossIndex = state.difficulty === 'hard' ? 2 : state.difficulty === 'medium' ? 1 : 0;
     state.currentBoss = MathEngine.getBoss(bossIndex);
 
@@ -646,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.bossTurnTime = 12;
 
     bossName.textContent = state.currentBoss.name;
-    bossTitleDesc.textContent = state.currentBoss.title;
+    if (bossTitleDesc) bossTitleDesc.textContent = state.currentBoss.title;
     bossAvatarIcon.textContent = state.currentBoss.icon;
 
     syncBossHUD();
@@ -659,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bossPercent = Math.max(0, Math.floor((state.bossHp / state.bossMaxHp) * 100));
     bossHpBar.style.width = `${bossPercent}%`;
 
-    playerHpText.textContent = `${Math.max(0, state.playerHp)} / ${state.playerMaxHp}`;
+    playerHpText.textContent = `YOU: ${Math.max(0, state.playerHp)} HP`;
     bossTurnTimer.textContent = `${state.bossTurnTime}s`;
   }
 
@@ -680,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (state.bossTurnTime <= 0) {
         clearInterval(state.bossTimerInterval);
-        handleBossRetaliation("Time expired! The boss counter-attacks!");
+        handleBossRetaliation("Time expired! The boss strikes!");
       }
     }, 1000);
   }
@@ -717,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isCorrect) {
       handlePlayerBossAttack();
     } else {
-      handleBossRetaliation("Wrong answer! The boss counter-attacks!");
+      handleBossRetaliation("Incorrect! The boss counter-attacks!");
     }
   }
 
@@ -727,47 +754,40 @@ document.addEventListener('DOMContentLoaded', () => {
     state.streak++;
     state.maxStreak = Math.max(state.maxStreak, state.streak);
 
-    // Audio & Combat visuals
     SoundEngine.playSlash();
     SoundEngine.playBossHit();
 
-    // Spawn slash effect
     const slash = document.createElement('div');
     slash.className = 'slash-effect';
     bossAvatarWrapper.appendChild(slash);
-    setTimeout(() => slash.remove(), 400);
+    setTimeout(() => slash.remove(), 350);
 
-    // Boss recoil shake
     bossAvatarWrapper.classList.remove('boss-idle');
     bossAvatarWrapper.classList.add('boss-hit');
     setTimeout(() => {
       bossAvatarWrapper.classList.remove('boss-hit');
       bossAvatarWrapper.classList.add('boss-idle');
-    }, 500);
+    }, 450);
 
-    // Calculate Damage
     const multiplier = state.streak >= 3 ? 1.5 : 1.0;
     const damage = Math.round(25 * multiplier);
     state.bossHp -= damage;
     state.score += damage * 2;
 
-    // Spawn Damage Number
     spawnDamageNumber(`-${damage} HP!`, '#ef4444');
-
     syncBossHUD();
 
     if (state.bossHp <= 0) {
-      // VICTORY!
       SoundEngine.playLevelUp();
       Confetti.cannon();
       StorageManager.recordBossDefeated(state.currentBoss.id);
       StorageManager.addXP(60);
-      setTimeout(() => endGame(`Defeated ${state.currentBoss.name}!`), 800);
+      setTimeout(() => endGame(`Defeated ${state.currentBoss.name}!`), 750);
     } else {
       setTimeout(() => {
         startBossTurnTimer();
         loadNextBossProblem();
-      }, 500);
+      }, 450);
     }
   }
 
@@ -779,11 +799,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const attackDamage = state.currentBoss.attackPower;
     state.playerHp -= attackDamage;
 
-    spawnDamageNumber(`-${attackDamage} HP!`, '#f87171', window.innerWidth * 0.4, window.innerHeight * 0.6);
+    spawnDamageNumber(`-${attackDamage} HP!`, '#f87171');
 
-    // Screen Shake
     document.body.classList.add('animate-shake');
-    setTimeout(() => document.body.classList.remove('animate-shake'), 400);
+    setTimeout(() => document.body.classList.remove('animate-shake'), 350);
 
     syncBossHUD();
 
@@ -794,13 +813,13 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         startBossTurnTimer();
         loadNextBossProblem();
-      }, 800);
+      }, 750);
     }
   }
 
-  function spawnDamageNumber(text, color = '#ef4444', originX = null, originY = null) {
+  function spawnDamageNumber(text, color = '#ef4444') {
     const el = document.createElement('div');
-    el.className = 'damage-number text-2xl sm:text-3xl font-black drop-shadow-md';
+    el.className = 'damage-number text-xl sm:text-3xl font-black drop-shadow-md';
     el.style.color = color;
     el.textContent = text;
     bossCombatEffectsContainer.appendChild(el);
@@ -808,7 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // FLASHCARDS STUDY ENGINE
+  // FLASHCARDS STUDY ENGINE & TOUCH SWIPES
   // =========================================================================
   function startFlashcards() {
     showView('view-flashcards');
@@ -828,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderCurrentFlashcard() {
     state.isCardFlipped = false;
-    fcCardInner.classList.remove('flipped');
+    fcCardInner.className = 'card-inner relative w-full h-full transform-style-3d min-h-[300px] sm:min-h-[360px]';
 
     const card = state.flashcardDeck[state.flashcardIndex];
     if (!card) {
@@ -842,7 +861,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fcBackAnswer.textContent = card.answer;
     fcBackHint.textContent = card.hint || `${card.num1} ${card.symbol} ${card.num2} equals ${card.answer}`;
 
-    // Render Visual Dot Array on Back of Flashcard
     if (card.operation === 'multiply' && card.num1 <= 12 && card.num2 <= 12) {
       fcVisualDotsContainer.classList.remove('hidden');
       renderVisualDotGrid(fcVisualDotsContainer, card.num1, card.num2);
@@ -876,32 +894,101 @@ document.addEventListener('DOMContentLoaded', () => {
       StorageManager.recordMistake(card);
     }
 
-    state.flashcardIndex++;
-    if (state.flashcardIndex >= state.flashcardDeck.length) {
-      Confetti.cannon();
-      endGame('Flashcards Completed!');
-    } else {
-      renderCurrentFlashcard();
-    }
+    // Swipe animation class
+    const animClass = wasMastered ? 'card-swipe-right' : 'card-swipe-left';
+    fcCardInner.classList.add(animClass);
+
+    setTimeout(() => {
+      state.flashcardIndex++;
+      if (state.flashcardIndex >= state.flashcardDeck.length) {
+        Confetti.cannon();
+        endGame('Flashcards Completed!');
+      } else {
+        renderCurrentFlashcard();
+      }
+    }, 280);
+  }
+
+  // Setup mobile touch gestures on flashcards (Swipe left: learning, Swipe right: mastered, Tap: flip)
+  function setupTouchSwipeGestures() {
+    fcFlipCard.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      state.touchStartX = touch.clientX;
+      state.touchStartY = touch.clientY;
+      state.touchDeltaX = 0;
+      state.touchDeltaY = 0;
+      state.isSwiping = false;
+    }, { passive: true });
+
+    fcFlipCard.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      state.touchDeltaX = touch.clientX - state.touchStartX;
+      state.touchDeltaY = touch.clientY - state.touchStartY;
+
+      // Detect if user is swiping horizontally
+      if (Math.abs(state.touchDeltaX) > 20 && Math.abs(state.touchDeltaX) > Math.abs(state.touchDeltaY)) {
+        state.isSwiping = true;
+      }
+    }, { passive: true });
+
+    fcFlipCard.addEventListener('touchend', () => {
+      if (state.isSwiping) {
+        if (state.touchDeltaX > 55) {
+          // Swiped right -> Mastered
+          nextFlashcard(true);
+        } else if (state.touchDeltaX < -55) {
+          // Swiped left -> Learning
+          nextFlashcard(false);
+        }
+      } else if (Math.abs(state.touchDeltaX) < 15 && Math.abs(state.touchDeltaY) < 15) {
+        // Simple tap -> Flip card
+        toggleFlipCard();
+      }
+    });
+
+    // Also allow mouse click for desktop
+    fcFlipCard.addEventListener('click', (e) => {
+      // Only flip on click if not triggered by touch
+      if (!('ontouchstart' in window)) {
+        toggleFlipCard();
+      }
+    });
   }
 
   // =========================================================================
-  // 12x12 MULTIPLICATION MATRIX EXPLORER (NEW!)
+  // 12x12 MULTIPLICATION MATRIX EXPLORER (SEGMENTED ON MOBILE)
   // =========================================================================
   function buildMatrixGrid() {
     matrixGridContainer.innerHTML = '';
     const matrixStats = StorageManager.getMatrixStats();
 
-    // Cell (0, 0): Corner Symbol
+    let startCol = 1;
+    let endCol = 12;
+
+    if (state.matrixTab === '1-6') {
+      startCol = 1;
+      endCol = 6;
+      matrixGridContainer.className = 'grid grid-cols-7 gap-1 min-w-[280px]';
+    } else if (state.matrixTab === '7-12') {
+      startCol = 7;
+      endCol = 12;
+      matrixGridContainer.className = 'grid grid-cols-7 gap-1 min-w-[280px]';
+    } else {
+      startCol = 1;
+      endCol = 12;
+      matrixGridContainer.className = 'grid grid-cols-13 gap-1 min-w-[340px]';
+    }
+
+    // Corner symbol
     const corner = document.createElement('div');
-    corner.className = 'matrix-cell bg-slate-900 text-indigo-400 font-black text-sm border border-slate-800';
+    corner.className = 'matrix-cell bg-slate-900 text-indigo-400 font-black text-xs border border-slate-800';
     corner.textContent = '×';
     matrixGridContainer.appendChild(corner);
 
-    // Column Headers (1 to 12)
-    for (let c = 1; c <= 12; c++) {
+    // Column Headers
+    for (let c = startCol; c <= endCol; c++) {
       const colHeader = document.createElement('div');
-      colHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80 header-col';
+      colHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80';
       colHeader.textContent = c;
       colHeader.dataset.col = c;
       matrixGridContainer.appendChild(colHeader);
@@ -909,15 +996,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Grid Rows
     for (let r = 1; r <= 12; r++) {
-      // Row Header
       const rowHeader = document.createElement('div');
-      rowHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80 header-row';
+      rowHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80';
       rowHeader.textContent = r;
       rowHeader.dataset.row = r;
       matrixGridContainer.appendChild(rowHeader);
 
-      // Data Cells (1 to 12)
-      for (let c = 1; c <= 12; c++) {
+      for (let c = startCol; c <= endCol; c++) {
         const product = r * c;
         const cell = document.createElement('div');
         const key = `${Math.min(r, c)}x${Math.max(r, c)}`;
@@ -937,7 +1022,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.dataset.col = c;
         cell.dataset.product = product;
 
-        // Hover & Tap Events
         cell.addEventListener('mouseenter', () => highlightMatrixCrosshair(r, c));
         cell.addEventListener('click', () => {
           SoundEngine.playClick();
@@ -948,21 +1032,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Default select 7x8
-    selectMatrixCell(7, 8, 56, matrixStats['7x8']);
+    selectMatrixCell(state.selectedMatrixRow, state.selectedMatrixCol, state.selectedMatrixRow * state.selectedMatrixCol, matrixStats[`${Math.min(state.selectedMatrixRow, state.selectedMatrixCol)}x${Math.max(state.selectedMatrixRow, state.selectedMatrixCol)}`]);
   }
 
   function highlightMatrixCrosshair(row, col) {
-    document.querySelectorAll('.matrix-cell').forEach(el => {
-      el.classList.remove('crosshair');
-    });
-
-    document.querySelectorAll(`.matrix-cell[data-row="${row}"]`).forEach(el => {
-      el.classList.add('crosshair');
-    });
-    document.querySelectorAll(`.matrix-cell[data-col="${col}"]`).forEach(el => {
-      el.classList.add('crosshair');
-    });
+    document.querySelectorAll('.matrix-cell').forEach(el => el.classList.remove('crosshair'));
+    document.querySelectorAll(`.matrix-cell[data-row="${row}"]`).forEach(el => el.classList.add('crosshair'));
+    document.querySelectorAll(`.matrix-cell[data-col="${col}"]`).forEach(el => el.classList.add('crosshair'));
   }
 
   function selectMatrixCell(row, col, product, stat) {
@@ -974,12 +1050,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (stat && stat.attempts > 0) {
       const pct = Math.round((stat.correct / stat.attempts) * 100);
-      matrixInfoStatus.textContent = `${pct}% accuracy (${stat.correct}/${stat.attempts} correct)`;
+      matrixInfoStatus.textContent = `${pct}% accuracy (${stat.correct}/${stat.attempts})`;
     } else {
-      matrixInfoStatus.textContent = 'Untested (No attempts yet)';
+      matrixInfoStatus.textContent = 'Untested';
     }
 
-    btnMatrixDrillRow.textContent = `⚡ Practice Table of ${row}`;
+    btnMatrixDrillRow.textContent = `⚡ Table of ${row}`;
   }
 
   function openMatrixModal() {
@@ -1026,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resultsSubtitle.textContent = '🎉 Brand New High Score Record!';
     } else if (state.score > 0 || state.mode === 'flashcards') {
       SoundEngine.playLevelUp();
-      Confetti.burst();
+      Confetti.burst(30);
     } else {
       SoundEngine.playGameOver();
     }
@@ -1054,11 +1130,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // EVENT LISTENERS & INPUT HANDLING
   // =========================================================================
   function attachEventListeners() {
-    // Sound FX Toggle
-    btnSoundToggle.addEventListener('click', () => {
+    // Sound FX Toggles (Desktop & Mobile)
+    const handleSoundToggle = () => {
       SoundEngine.toggleMute();
       updateAudioIcons();
-    });
+    };
+    btnSoundToggle.addEventListener('click', handleSoundToggle);
+    if (btnSoundToggleMobile) btnSoundToggleMobile.addEventListener('click', handleSoundToggle);
 
     // 8-Bit BGM Toggle
     btnBgmToggle.addEventListener('click', () => {
@@ -1085,6 +1163,89 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(state.timerInterval);
       clearInterval(state.bossTimerInterval);
       showView('view-lobby');
+    });
+
+    // Mobile Action Menu Drawer
+    if (btnMobileMenu) {
+      btnMobileMenu.addEventListener('click', () => {
+        SoundEngine.playClick();
+        updateAudioIcons();
+        modalMobileMenu.classList.remove('hidden');
+      });
+    }
+    if (btnCloseMobileMenu) {
+      btnCloseMobileMenu.addEventListener('click', () => modalMobileMenu.classList.add('hidden'));
+    }
+    if (modalMobileMenu) {
+      modalMobileMenu.addEventListener('click', (e) => {
+        if (e.target === modalMobileMenu) modalMobileMenu.classList.add('hidden');
+      });
+    }
+
+    // Drawer Tile Actions
+    if (btnMenuMatrix) {
+      btnMenuMatrix.addEventListener('click', () => {
+        modalMobileMenu.classList.add('hidden');
+        openMatrixModal();
+      });
+    }
+    if (btnMenuStats) {
+      btnMenuStats.addEventListener('click', () => {
+        modalMobileMenu.classList.add('hidden');
+        openStatsModal();
+      });
+    }
+    if (btnMenuBgm) {
+      btnMenuBgm.addEventListener('click', () => {
+        SoundEngine.toggleBGM();
+        updateAudioIcons();
+      });
+    }
+    if (btnMenuSpeech) {
+      btnMenuSpeech.addEventListener('click', () => {
+        SoundEngine.toggleSpeech();
+        updateAudioIcons();
+      });
+    }
+    if (btnMenuReset) {
+      btnMenuReset.addEventListener('click', () => {
+        modalMobileMenu.classList.add('hidden');
+        if (confirm('Are you sure you want to reset all progress data?')) {
+          StorageManager.resetAll();
+          syncPlayerHUD();
+          syncLobbyStats();
+          buildMatrixGrid();
+        }
+      });
+    }
+
+    // Matrix Tabs (1-6, 7-12, all)
+    matrixTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        SoundEngine.playClick();
+        matrixTabBtns.forEach(b => {
+          b.className = 'matrix-tab-btn flex-1 py-1.5 rounded-lg text-slate-400 active:scale-95 text-center';
+        });
+        btn.className = 'matrix-tab-btn flex-1 py-1.5 rounded-lg bg-indigo-600 text-white active:scale-95 text-center';
+        state.matrixTab = btn.dataset.tab;
+        buildMatrixGrid();
+      });
+    });
+
+    // Times Table Quick Presets
+    tablePresetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        SoundEngine.playClick();
+        const preset = btn.dataset.preset;
+        if (preset === '1-5') {
+          state.customTables = [1, 2, 3, 4, 5];
+        } else if (preset === '6-10') {
+          state.customTables = [6, 7, 8, 9, 10];
+        } else if (preset === 'all') {
+          state.customTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        }
+        renderTableChips();
+      });
     });
 
     // Matrix Explorer Modal
@@ -1133,9 +1294,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         SoundEngine.playClick();
         durationBtns.forEach(b => {
-          b.className = 'duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[11px]';
+          b.className = 'duration-btn px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 text-[10px] sm:text-[11px]';
         });
-        btn.className = 'duration-btn px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-[11px]';
+        btn.className = 'duration-btn px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-[10px] sm:text-[11px]';
         state.blitzDuration = parseInt(btn.dataset.duration, 10);
       });
     });
@@ -1145,9 +1306,9 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         SoundEngine.playClick();
         opBtns.forEach(b => {
-          b.className = 'op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all';
+          b.className = 'op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95';
         });
-        btn.className = 'op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all';
+        btn.className = 'op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95';
         state.operation = btn.dataset.op;
 
         if (state.operation === 'multiply') {
@@ -1163,37 +1324,26 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         SoundEngine.playClick();
         diffBtns.forEach(b => {
-          b.className = 'diff-btn py-2 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all';
+          b.className = 'diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center';
         });
-        btn.className = 'diff-btn py-2 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all';
+        btn.className = 'diff-btn py-2 px-2.5 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all active:scale-95 text-center';
         state.difficulty = btn.dataset.diff;
       });
-    });
-
-    // Select / Deselect All Tables
-    btnToggleAllTables.addEventListener('click', () => {
-      SoundEngine.playClick();
-      if (state.customTables.length === 12) {
-        state.customTables = [7];
-      } else {
-        state.customTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-      }
-      renderTableChips();
     });
 
     // Input Style Toggle
     inputStyleChoice.addEventListener('click', () => {
       SoundEngine.playClick();
       state.inputStyle = 'choice';
-      inputStyleChoice.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm';
-      inputStyleDirect.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+      inputStyleChoice.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm';
+      inputStyleDirect.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
     });
 
     inputStyleDirect.addEventListener('click', () => {
       SoundEngine.playClick();
       state.inputStyle = 'direct';
-      inputStyleDirect.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm';
-      inputStyleChoice.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+      inputStyleDirect.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm';
+      inputStyleChoice.className = 'flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
     });
 
     // Start Button
@@ -1254,8 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Flashcard Interactions
-    fcFlipCard.addEventListener('click', toggleFlipCard);
+    // Flashcard Buttons
     btnFcLearning.addEventListener('click', () => nextFlashcard(false));
     btnFcMastered.addEventListener('click', () => nextFlashcard(true));
     btnFcExit.addEventListener('click', () => {
@@ -1313,6 +1462,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!modalStats.classList.contains('hidden') && e.key === 'Escape') {
       closeStatsModal();
+      return;
+    }
+
+    if (!modalMobileMenu.classList.contains('hidden') && e.key === 'Escape') {
+      modalMobileMenu.classList.add('hidden');
       return;
     }
 
