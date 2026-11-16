@@ -30,14 +30,23 @@
 <body class="min-h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- ====================================================================
-       NAVBAR / TOP HEADER (RESPONSIVE & COMPACT)
+       NAVBAR / TOP HEADER (CLEAN & PROFESSIONAL)
        ==================================================================== -->
   <header class="w-full border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 py-2 sm:py-2.5">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <!-- Logo / Title -->
-      <div id="btn-nav-logo" class="flex items-center gap-2 cursor-pointer group active:scale-95 transition-transform">
+      <div id="btn-nav-logo" class="flex items-center gap-2.5 cursor-pointer group active:scale-95 transition-transform">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-          <span class="text-lg">⚔️</span>
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
+            <path d="m13 19 6-6"></path>
+            <path d="M16 16l4 4"></path>
+            <path d="M19 21l2-2"></path>
+            <path d="m17.5 14.5 3.5-3.5L18 8l-3.5 3.5"></path>
+            <path d="m9.5 6.5-6 6"></path>
+            <path d="m8 8-4 4"></path>
+            <path d="m5 3-2 2"></path>
+          </svg>
         </div>
         <div>
           <h1 class="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
@@ -47,9 +56,9 @@
         </div>
       </div>
 
-      <!-- Player Mini HUD (Visible on all screens) -->
+      <!-- Player Mini HUD -->
       <div id="nav-player-bar" class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/60 rounded-full px-2.5 sm:px-3.5 py-1 shadow-inner">
-        <span id="nav-player-icon" class="text-base sm:text-lg">🌱</span>
+        <span id="nav-player-icon" class="flex items-center justify-center"></span>
         <div class="flex flex-col min-w-[70px] sm:min-w-[110px]">
           <div class="flex justify-between items-center text-[10px] sm:text-xs font-semibold">
             <span id="nav-player-level" class="text-indigo-400">Lvl 1</span>
@@ -62,36 +71,53 @@
         <span id="nav-xp-text" class="text-[10px] text-slate-400 font-mono hidden sm:inline">0 XP</span>
       </div>
 
-      <!-- Desktop Header Controls (Hidden on Mobile) -->
+      <!-- Desktop Header Controls (Vector SVGs) -->
       <div class="hidden md:flex items-center gap-1.5">
         <button id="btn-matrix-toggle" title="12x12 Multiplication Grid" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
-          <span>🔲</span> <span>12×12 Grid</span>
+          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M3 9h18"></path>
+            <path d="M3 15h18"></path>
+            <path d="M9 3v18"></path>
+            <path d="M15 3v18"></path>
+          </svg>
+          <span>12×12 Grid</span>
         </button>
 
-        <button id="btn-bgm-toggle" title="Toggle 8-Bit Music" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1">
-          <span id="bgm-icon">🎵</span> <span>Music</span>
+        <button id="btn-bgm-toggle" title="Toggle 8-Bit Music" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+          <span id="bgm-icon-wrapper" class="flex items-center"></span>
+          <span>Music</span>
         </button>
 
         <button id="btn-speech-toggle" title="Toggle Read Aloud Voice" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <span id="speech-icon">🗣️</span>
+          <span id="speech-icon-wrapper" class="flex items-center"></span>
         </button>
 
         <button id="btn-sound-toggle" title="Toggle Sound FX" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <span id="sound-icon">🔊</span>
+          <span id="sound-icon-wrapper" class="flex items-center"></span>
         </button>
 
         <button id="btn-stats-modal" title="View Career Statistics" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <span>📊</span>
+          <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 17V9"></path>
+            <path d="M13 17V5"></path>
+            <path d="M8 17v-3"></path>
+          </svg>
         </button>
       </div>
 
-      <!-- Mobile Top Right Action Bar (Sound + Menu Drawer) -->
+      <!-- Mobile Top Right Action Bar -->
       <div class="flex md:hidden items-center gap-1.5">
         <button id="btn-sound-toggle-mobile" class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 active:scale-95" title="Toggle Sound">
-          <span id="sound-icon-mobile">🔊</span>
+          <span id="sound-icon-mobile-wrapper" class="flex items-center"></span>
         </button>
-        <button id="btn-mobile-menu" class="p-2 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 active:scale-95 font-bold flex items-center gap-1 text-xs" title="Menu">
-          <span>☰</span>
+        <button id="btn-mobile-menu" class="p-2 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 active:scale-95 font-bold flex items-center justify-center" title="Menu">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
         </button>
       </div>
     </div>
@@ -107,29 +133,44 @@
          ================================================================== -->
     <section id="view-lobby" class="space-y-4 sm:space-y-6">
 
-      <!-- Quick Summary Banner -->
+      <!-- Quick Summary Banner with Professional Vector SVGs -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
-            <span>🔥</span> Best Streak
+          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+            </svg>
+            <span>Best Streak</span>
           </span>
           <span id="lobby-stat-streak" class="text-xl sm:text-2xl font-black text-amber-400 mt-0.5 font-mono">0</span>
         </div>
         <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
-            <span>🎯</span> Accuracy
+          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="6"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+            <span>Accuracy</span>
           </span>
           <span id="lobby-stat-accuracy" class="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 font-mono">100%</span>
         </div>
         <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
-            <span>⚡</span> Blitz Record
+          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span>Blitz Record</span>
           </span>
           <span id="lobby-stat-blitz" class="text-xl sm:text-2xl font-black text-indigo-400 mt-0.5 font-mono">0</span>
         </div>
         <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1">
-            <span>🐉</span> Bosses Defeated
+          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M9 12l2 2 4-4"></path>
+            </svg>
+            <span>Bosses Defeated</span>
           </span>
           <span id="lobby-stat-boss" class="text-xl sm:text-2xl font-black text-rose-400 mt-0.5 font-mono">0</span>
         </div>
@@ -138,7 +179,13 @@
       <!-- Mistake Review Alert -->
       <div id="lobby-mistakes-alert" class="hidden rounded-2xl bg-gradient-to-r from-rose-950/70 to-amber-950/60 border border-rose-500/30 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
         <div class="flex items-center gap-3 w-full sm:w-auto">
-          <span class="text-2xl flex-shrink-0">⚠️</span>
+          <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
           <div>
             <h4 class="font-bold text-rose-200 text-xs sm:text-sm">Practice Missed Problems</h4>
             <p class="text-[11px] sm:text-xs text-slate-300">You have <span id="lobby-mistakes-count" class="font-bold text-amber-300">0</span> equations flagged for review.</p>
@@ -154,7 +201,7 @@
         </div>
       </div>
 
-      <!-- Main Game Modes Selection (4 Cards) -->
+      <!-- Main Game Modes Selection (4 Cards with Vector SVGs) -->
       <div>
         <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 mb-2.5 sm:mb-3 flex items-center gap-2">
           <span>🎮</span> Select Game Mode
@@ -164,8 +211,10 @@
           <!-- Mode 1: Speed Blitz -->
           <div class="mode-card glass-panel hover:border-indigo-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
-                ⚡
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mb-2 sm:mb-3">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
               </div>
               <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Speed Blitz</h3>
               <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
@@ -185,8 +234,13 @@
           <!-- Mode 2: Boss Battle (RPG Mode) -->
           <div class="mode-card glass-panel hover:border-purple-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="boss">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
-                🐉
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center mb-2 sm:mb-3">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
+                  <path d="m13 19 6-6"></path>
+                  <path d="M16 16l4 4"></path>
+                  <path d="M19 21l2-2"></path>
+                </svg>
               </div>
               <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Boss Battle</h3>
               <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
@@ -202,8 +256,10 @@
           <!-- Mode 3: Survival (3 Hearts) -->
           <div class="mode-card glass-panel hover:border-rose-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="survival">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
-                ❤️
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center mb-2 sm:mb-3">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                </svg>
               </div>
               <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Survival</h3>
               <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
@@ -219,8 +275,12 @@
           <!-- Mode 4: Flashcards -->
           <div class="mode-card glass-panel hover:border-emerald-500/80 rounded-2xl p-3.5 sm:p-5 cursor-pointer transition-all duration-150 active:scale-[0.98] relative flex flex-col justify-between border border-slate-800" data-mode="flashcards">
             <div>
-              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-xl sm:text-2xl mb-2 sm:mb-3">
-                🎴
+              <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center mb-2 sm:mb-3">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
               </div>
               <h3 class="text-sm sm:text-base font-black text-white mb-0.5">Flashcards</h3>
               <p class="text-[11px] text-slate-400 leading-tight line-clamp-2">
@@ -256,7 +316,14 @@
               <span class="text-base font-black">−</span> Subtraction
             </button>
             <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="mixed">
-              <span class="text-base font-black">🎲</span> Mixed
+              <svg class="w-3.5 h-3.5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+                <line x1="4" y1="4" x2="9" y2="9"></line>
+              </svg>
+              <span>Mixed</span>
             </button>
           </div>
         </div>
@@ -266,13 +333,13 @@
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">Difficulty Level</label>
           <div class="grid grid-cols-3 gap-2">
             <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="easy">
-              🟢 Easy <span class="block text-[10px] text-slate-400 font-normal">Tables 1–5</span>
+              Easy <span class="block text-[10px] text-slate-400 font-normal">Tables 1–5</span>
             </button>
             <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all active:scale-95 text-center" data-diff="medium">
-              🟡 Medium <span class="block text-[10px] text-indigo-300/80 font-normal">Tables 1–12</span>
+              Medium <span class="block text-[10px] text-indigo-300/80 font-normal">Tables 1–12</span>
             </button>
             <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="hard">
-              🔴 Hard <span class="block text-[10px] text-slate-400 font-normal">Tables 2–20</span>
+              Hard <span class="block text-[10px] text-slate-400 font-normal">Tables 2–20</span>
             </button>
           </div>
         </div>
@@ -303,10 +370,10 @@
           </div>
           <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700/80 w-full sm:w-auto">
             <button type="button" id="input-style-choice" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm">
-              🔘 Multiple Choice
+              Multiple Choice
             </button>
             <button type="button" id="input-style-direct" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
-              🔢 Numpad / Keyboard
+              Numpad / Keyboard
             </button>
           </div>
         </div>
@@ -315,7 +382,10 @@
 
       <!-- Launch Action Button -->
       <button id="btn-start-game" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 active:scale-[0.98] text-white font-black text-base sm:text-lg tracking-wide uppercase shadow-xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-2.5">
-        <span>🚀</span> Start Math Quest
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span>Start Math Quest</span>
       </button>
 
     </section>
@@ -332,7 +402,9 @@
           <!-- Left: Streak & Multiplier -->
           <div class="flex items-center gap-2">
             <div id="quiz-streak-badge" class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">
-              <span id="quiz-flame-icon" class="text-base sm:text-lg">🔥</span>
+              <svg id="quiz-flame-icon" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+              </svg>
               <span id="quiz-streak-count" class="font-black text-amber-400 text-sm font-mono">0</span>
               <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">streak</span>
             </div>
@@ -344,14 +416,15 @@
           <!-- Center: Timer or Hearts -->
           <div class="flex items-center gap-1.5">
             <div id="hud-timer-container" class="flex items-center gap-1.5">
-              <span class="text-sm text-indigo-400">⏱️</span>
+              <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
               <span id="hud-timer-val" class="font-mono text-xl sm:text-2xl font-black text-white">60</span>
               <span class="text-[11px] text-slate-400">s</span>
             </div>
-            <div id="hud-hearts-container" class="hidden flex items-center gap-1 text-lg sm:text-xl">
-              <span class="heart-icon text-rose-500">❤️</span>
-              <span class="heart-icon text-rose-500">❤️</span>
-              <span class="heart-icon text-rose-500">❤️</span>
+            <div id="hud-hearts-container" class="hidden flex items-center gap-1">
+              <!-- Rendered via JS -->
             </div>
           </div>
 
@@ -378,7 +451,10 @@
               <span id="quiz-op-title">Multiplication</span>
             </div>
             <button id="btn-quiz-speak" class="p-1 px-2 rounded-full bg-slate-800 text-slate-300 text-xs flex items-center gap-1 active:scale-95" title="Read Aloud">
-              <span>🗣️</span>
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
             </button>
           </div>
 
@@ -394,7 +470,12 @@
           <!-- Visual Dot Array Model (Collapsible) -->
           <div id="quiz-visual-array-wrapper" class="hidden mt-3 pt-2.5 border-t border-slate-800/80">
             <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-              <span class="font-semibold text-indigo-300 flex items-center gap-1 text-[11px]"><span>🟣</span> Area Model</span>
+              <span class="font-semibold text-indigo-300 flex items-center gap-1 text-[11px]">
+                <svg class="w-3 h-3 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                <span>Area Model</span>
+              </span>
               <span id="quiz-visual-label" class="font-mono text-[10px]">8 × 7 = ?</span>
             </div>
             <div id="quiz-visual-dots" class="flex flex-col gap-1 items-center justify-center py-1 max-h-32 overflow-x-auto"></div>
@@ -403,7 +484,7 @@
 
       </div>
 
-      <!-- Input Option 1: Multiple Choice Grid (4 Options, 56px+ Touch Height) -->
+      <!-- Input Option 1: Multiple Choice Grid -->
       <div id="input-container-choice" class="grid grid-cols-2 gap-2.5 sm:gap-4">
         <button type="button" class="choice-btn min-h-[58px] sm:min-h-[70px] py-3.5 px-4 sm:px-6 rounded-2xl bg-slate-900/95 active:bg-indigo-600 border border-slate-700 font-black text-2xl sm:text-3xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="0">
           <span class="text-xs text-slate-400 font-normal">A</span>
@@ -427,7 +508,7 @@
         </button>
       </div>
 
-      <!-- Input Option 2: Direct Input & Tactile Virtual Numpad (Ergonomic Thumb Keys) -->
+      <!-- Input Option 2: Direct Input & Tactile Virtual Numpad -->
       <div id="input-container-direct" class="hidden space-y-2.5">
         <div class="glass-panel rounded-2xl p-2.5 flex items-center justify-center border-2 border-indigo-500/50">
           <span class="text-xs text-slate-400 mr-2">Your Answer:</span>
@@ -453,7 +534,7 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 3: RPG BOSS BATTLE ARENA (COMPACT NO-SCROLL LAYOUT)
+         VIEW 3: RPG BOSS BATTLE ARENA (VECTOR CREST AVATARS)
          ================================================================== -->
     <section id="view-boss" class="hidden space-y-3.5 max-w-2xl mx-auto w-full">
 
@@ -476,8 +557,8 @@
 
         <!-- Compact Avatar + HP Bar Layout -->
         <div class="flex items-center gap-3 my-1">
-          <div id="boss-avatar-wrapper" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900/90 border border-purple-500/50 flex items-center justify-center text-3xl sm:text-4xl shadow-xl boss-idle flex-shrink-0 select-none">
-            <span id="boss-avatar-icon">👺</span>
+          <div id="boss-avatar-wrapper" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900/90 border border-purple-500/50 flex items-center justify-center shadow-xl boss-idle flex-shrink-0 select-none">
+            <div id="boss-avatar-icon" class="flex items-center justify-center"></div>
           </div>
 
           <div class="flex-1 space-y-1.5 text-left">
@@ -490,7 +571,13 @@
             </div>
             <div class="flex justify-between items-center text-[10px]">
               <span id="player-hp-text" class="font-bold text-emerald-400 font-mono">YOU: 100 HP</span>
-              <span class="text-slate-400">Turn: <span id="boss-turn-timer" class="font-black font-mono text-amber-400">12s</span></span>
+              <span class="text-slate-400 flex items-center gap-1">
+                <svg class="w-3 h-3 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span id="boss-turn-timer" class="font-black font-mono text-amber-400">12s</span>
+              </span>
             </div>
           </div>
         </div>
@@ -506,7 +593,7 @@
         </div>
       </div>
 
-      <!-- Boss Input Buttons (Big 56px+ Touch Targets) -->
+      <!-- Boss Input Buttons -->
       <div id="boss-input-container-choice" class="grid grid-cols-2 gap-2.5 sm:gap-3">
         <button type="button" class="boss-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-purple-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="0">
           <span class="text-xs text-slate-400">A</span>
@@ -533,14 +620,18 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 4: FLASHCARDS STUDY ARENA (TOUCH SWIPE ENABLED)
+         VIEW 4: FLASHCARDS STUDY ARENA
          ================================================================== -->
     <section id="view-flashcards" class="hidden space-y-4 max-w-xl mx-auto w-full">
 
       <!-- Flashcards HUD -->
       <div class="glass-panel rounded-2xl p-3 sm:p-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-emerald-400 text-lg">🎴</span>
+          <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
           <div>
             <h3 class="text-xs sm:text-sm font-bold text-white">Study Flashcards</h3>
             <span id="fc-progress-text" class="text-[11px] text-slate-400">Card 1 of 15</span>
@@ -566,8 +657,11 @@
               </div>
               <span class="text-slate-400 text-xs mt-2 block">What is the product?</span>
             </div>
-            <div class="text-[11px] text-slate-400 flex items-center gap-1">
-              <span>🔄</span> Tap to reveal answer
+            <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span>Tap to reveal answer</span>
             </div>
           </div>
 
@@ -585,11 +679,13 @@
                 7 groups of 8 equals 56
               </div>
 
-              <!-- Visual Dot Model on Back -->
               <div id="fc-visual-dots-container" class="mt-2.5 flex flex-col gap-1 items-center justify-center max-h-24 overflow-y-auto"></div>
             </div>
-            <div class="text-[11px] text-slate-400 flex items-center gap-1">
-              <span>🔄</span> Tap to flip back
+            <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span>Tap to flip back</span>
             </div>
           </div>
 
@@ -604,24 +700,41 @@
       <!-- Self-Rating Controls -->
       <div class="grid grid-cols-2 gap-2.5 pt-1">
         <button id="btn-fc-learning" class="min-h-[50px] py-3 px-3 rounded-xl bg-slate-800 active:bg-rose-950/80 border border-slate-700 text-rose-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow">
-          <span>🔴</span> Still Learning
+          <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Still Learning</span>
         </button>
         <button id="btn-fc-mastered" class="min-h-[50px] py-3 px-3 rounded-xl bg-slate-800 active:bg-emerald-950/80 border border-slate-700 text-emerald-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow">
-          <span>🟢</span> Mastered!
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Mastered!</span>
         </button>
       </div>
 
     </section>
 
     <!-- ==================================================================
-         VIEW 5: RESULTS / GAME OVER
+         VIEW 5: RESULTS / GAME OVER (VECTOR TROPHY)
          ================================================================== -->
     <section id="view-results" class="hidden space-y-5 max-w-lg mx-auto w-full">
 
       <div class="glass-card rounded-3xl p-5 sm:p-8 text-center space-y-5 shadow-2xl border border-indigo-500/30">
 
+        <!-- Polished Vector Trophy Icon -->
         <div id="results-icon-wrapper" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shadow-amber-500/30 animate-bounce">
-          🏆
+          <svg class="w-9 h-9 sm:w-11 sm:h-11 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45.98-.98 1.05A4 4 0 0 1 5 14.2V4h14v10.2a4 4 0 0 1-4.02 3.85c-.53-.07-.98-.5-.98-1.05v-2.34"></path>
+            <path d="M14 22v-4"></path>
+            <path d="M10 22v-4"></path>
+          </svg>
         </div>
 
         <div>
@@ -630,7 +743,10 @@
         </div>
 
         <div id="results-levelup-banner" class="hidden p-2.5 rounded-2xl bg-gradient-to-r from-indigo-900/80 to-emerald-900/80 border border-emerald-400/40 text-emerald-200 text-xs font-bold flex items-center justify-center gap-2 animate-pulse">
-          <span>🎉</span> <span>LEVEL UP! You reached Level <span id="results-levelup-num">2</span>!</span>
+          <svg class="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>LEVEL UP! You reached Level <span id="results-levelup-num">2</span>!</span>
         </div>
 
         <!-- Stats Grid -->
@@ -664,11 +780,18 @@
 
         <!-- Action Buttons -->
         <div class="space-y-2 pt-1">
-          <button id="btn-results-replay" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all">
-            🔄 Play Again
+          <button id="btn-results-replay" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Play Again</span>
           </button>
-          <button id="btn-results-lobby" class="w-full py-2.5 rounded-xl bg-slate-800 active:scale-95 text-slate-300 hover:text-white font-semibold text-xs transition-all">
-            🏠 Return to Lobby
+          <button id="btn-results-lobby" class="w-full py-2.5 rounded-xl bg-slate-800 active:scale-95 text-slate-300 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Return to Lobby</span>
           </button>
         </div>
 
@@ -679,7 +802,7 @@
   </main>
 
   <!-- ====================================================================
-       MOBILE ACTION DRAWER / BOTTOM SHEET (SLIDE-OVER MENU)
+       MOBILE ACTION DRAWER / BOTTOM SHEET
        ==================================================================== -->
   <div id="modal-mobile-menu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex flex-col justify-end">
     <div class="glass-card rounded-t-3xl p-5 space-y-4 border-t border-slate-700 shadow-2xl drawer-enter max-w-lg mx-auto w-full">
@@ -693,7 +816,13 @@
       <!-- Action Grid -->
       <div class="grid grid-cols-2 gap-2.5 text-xs">
         <button id="btn-menu-matrix" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
-          <span class="text-xl mb-1">🔲</span>
+          <svg class="w-5 h-5 text-indigo-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M3 9h18"></path>
+            <path d="M3 15h18"></path>
+            <path d="M9 3v18"></path>
+            <path d="M15 3v18"></path>
+          </svg>
           <div>
             <span class="font-bold text-white block">12×12 Grid</span>
             <span class="text-[10px] text-slate-400">Mastery Heatmap</span>
@@ -701,7 +830,12 @@
         </button>
 
         <button id="btn-menu-stats" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
-          <span class="text-xl mb-1">📊</span>
+          <svg class="w-5 h-5 text-emerald-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 17V9"></path>
+            <path d="M13 17V5"></path>
+            <path d="M8 17v-3"></path>
+          </svg>
           <div>
             <span class="font-bold text-white block">Career Stats</span>
             <span class="text-[10px] text-slate-400">XP & Records</span>
@@ -709,7 +843,7 @@
         </button>
 
         <button id="btn-menu-bgm" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
-          <span class="text-xl mb-1" id="menu-bgm-icon">🎵</span>
+          <span id="menu-bgm-icon-wrapper" class="mb-1 flex items-center"></span>
           <div>
             <span class="font-bold text-white block">8-Bit BGM</span>
             <span class="text-[10px] text-slate-400" id="menu-bgm-status">Off</span>
@@ -717,7 +851,7 @@
         </button>
 
         <button id="btn-menu-speech" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
-          <span class="text-xl mb-1" id="menu-speech-icon">🗣️</span>
+          <span id="menu-speech-icon-wrapper" class="mb-1 flex items-center"></span>
           <div>
             <span class="font-bold text-white block">Voice Read</span>
             <span class="text-[10px] text-slate-400" id="menu-speech-status">Off</span>
@@ -732,21 +866,28 @@
   </div>
 
   <!-- ====================================================================
-       MODAL 1: 12x12 INTERACTIVE MATRIX HEATMAP EXPLORER (SEGMENTED ON MOBILE)
+       MODAL 1: 12x12 INTERACTIVE MATRIX HEATMAP EXPLORER
        ==================================================================== -->
   <div id="modal-matrix" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-2.5 sm:p-4">
     <div class="glass-card rounded-3xl max-w-2xl w-full p-3.5 sm:p-6 space-y-3.5 border border-slate-700 shadow-2xl max-h-[96vh] flex flex-col">
       <div class="flex items-center justify-between pb-2 border-b border-slate-800">
         <div>
           <h3 class="text-sm sm:text-lg font-black text-white flex items-center gap-1.5">
-            <span>🔲</span> 12×12 Multiplication Matrix
+            <svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <path d="M3 9h18"></path>
+              <path d="M3 15h18"></path>
+              <path d="M9 3v18"></path>
+              <path d="M15 3v18"></path>
+            </svg>
+            <span>12×12 Multiplication Matrix</span>
           </h3>
           <p class="text-[10px] sm:text-xs text-slate-400">Tap any cell to inspect and practice</p>
         </div>
         <button id="btn-close-matrix" class="text-slate-400 hover:text-white text-xl p-1">✕</button>
       </div>
 
-      <!-- Mobile Segment Switcher (Tables 1-6 / Tables 7-12 / Full) -->
+      <!-- Mobile Segment Switcher -->
       <div class="flex bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold">
         <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg bg-indigo-600 text-white active:scale-95 text-center" data-tab="1-6">
           Tables 1–6
@@ -773,7 +914,7 @@
         </button>
       </div>
 
-      <!-- Grid Container (Responsive & Touch Friendly) -->
+      <!-- Grid Container -->
       <div class="flex-1 overflow-auto p-1 bg-slate-950/60 rounded-2xl border border-slate-800">
         <div id="matrix-grid-container" class="grid gap-1 min-w-[280px]">
           <!-- Injected via JS -->
@@ -801,14 +942,20 @@
     <div class="glass-card rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 border border-slate-700 shadow-2xl">
       <div class="flex items-center justify-between pb-2 border-b border-slate-800">
         <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-          <span>📊</span> Career Statistics & XP
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 17V9"></path>
+            <path d="M13 17V5"></path>
+            <path d="M8 17v-3"></path>
+          </svg>
+          <span>Career Statistics & XP</span>
         </h3>
         <button id="btn-close-stats" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
       </div>
 
       <!-- Level & Title Card -->
       <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-3 sm:p-4 flex items-center gap-3">
-        <span id="modal-level-icon" class="text-2xl sm:text-3xl">🌱</span>
+        <span id="modal-level-icon" class="flex items-center justify-center"></span>
         <div class="flex-1">
           <h4 id="modal-level-title" class="font-bold text-white text-xs sm:text-sm">Number Novice</h4>
           <p id="modal-level-num" class="text-[11px] text-indigo-400 font-semibold">Level 1</p>

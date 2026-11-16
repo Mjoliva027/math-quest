@@ -17,6 +17,7 @@ const MathEngine = (() => {
     subtract: '−',
   };
 
+  // Professional Vector Boss Avatars
   const BOSSES = [
     {
       id: 'goblin',
@@ -25,7 +26,7 @@ const MathEngine = (() => {
       title: 'Hoarder of Times Tables',
       maxHp: 100,
       attackPower: 20,
-      icon: '👺',
+      svg: `<svg class="w-10 h-10 sm:w-12 sm:h-12 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-7.38 16.75L2 22l5.25-2.62A10 10 0 1 0 12 2z"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="m10 15 2 2 2-2"/></svg>`,
       bgGradient: 'from-emerald-950/80 to-amber-950/60',
       borderColor: 'border-emerald-500/40',
       description: 'A nimble forest imp that tests your basic multiplication speed!',
@@ -37,7 +38,7 @@ const MathEngine = (() => {
       title: 'Guardian of Arithmetic',
       maxHp: 160,
       attackPower: 25,
-      icon: '🗿',
+      svg: `<svg class="w-10 h-10 sm:w-12 sm:h-12 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>`,
       bgGradient: 'from-slate-900 to-indigo-950/80',
       borderColor: 'border-indigo-500/40',
       description: 'A giant automaton forged from geometric equations and stone.',
@@ -49,7 +50,7 @@ const MathEngine = (() => {
       title: 'Ancient Overlord of Numbers',
       maxHp: 240,
       attackPower: 35,
-      icon: '🐉',
+      svg: `<svg class="w-10 h-10 sm:w-12 sm:h-12 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><circle cx="12" cy="12" r="3"/></svg>`,
       bgGradient: 'from-purple-950/90 to-rose-950/80',
       borderColor: 'border-rose-500/50',
       description: 'The ultimate boss of mental math. Striking fast is your only hope!',
@@ -238,9 +239,7 @@ const MathEngine = (() => {
     return '';
   }
 
-  // Generates visual dot array grid for multiplication
   function generateVisualArray(num1, num2) {
-    // Limit grid rendering to max 12x12 so it fits comfortably on screen
     const rows = Math.min(num1, 12);
     const cols = Math.min(num2, 12);
     return {

@@ -62,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation & Controls
   const btnNavLogo = document.getElementById('btn-nav-logo');
   const btnBgmToggle = document.getElementById('btn-bgm-toggle');
-  const bgmIcon = document.getElementById('bgm-icon');
+  const bgmIconWrapper = document.getElementById('bgm-icon-wrapper');
   const btnSpeechToggle = document.getElementById('btn-speech-toggle');
-  const speechIcon = document.getElementById('speech-icon');
+  const speechIconWrapper = document.getElementById('speech-icon-wrapper');
   const btnSoundToggle = document.getElementById('btn-sound-toggle');
-  const soundIcon = document.getElementById('sound-icon');
+  const soundIconWrapper = document.getElementById('sound-icon-wrapper');
   const btnSoundToggleMobile = document.getElementById('btn-sound-toggle-mobile');
-  const soundIconMobile = document.getElementById('sound-icon-mobile');
+  const soundIconMobileWrapper = document.getElementById('sound-icon-mobile-wrapper');
   const btnStatsModal = document.getElementById('btn-stats-modal');
   const btnMatrixToggle = document.getElementById('btn-matrix-toggle');
   const btnMobileMenu = document.getElementById('btn-mobile-menu');
@@ -84,10 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnMenuMatrix = document.getElementById('btn-menu-matrix');
   const btnMenuStats = document.getElementById('btn-menu-stats');
   const btnMenuBgm = document.getElementById('btn-menu-bgm');
-  const menuBgmIcon = document.getElementById('menu-bgm-icon');
+  const menuBgmIconWrapper = document.getElementById('menu-bgm-icon-wrapper');
   const menuBgmStatus = document.getElementById('menu-bgm-status');
   const btnMenuSpeech = document.getElementById('btn-menu-speech');
-  const menuSpeechIcon = document.getElementById('menu-speech-icon');
+  const menuSpeechIconWrapper = document.getElementById('menu-speech-icon-wrapper');
   const menuSpeechStatus = document.getElementById('menu-speech-status');
   const btnMenuReset = document.getElementById('btn-menu-reset');
 
@@ -228,19 +228,32 @@ document.addEventListener('DOMContentLoaded', () => {
     attachEventListeners();
   }
 
+  // Vector SVG Icon Definitions for Reactive Controls
+  const SVG_ICONS = {
+    soundOn: `<svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
+    soundOff: `<svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>`,
+    bgmOn: `<svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    bgmOff: `<svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M9 18V5l12-2v7"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    speechOn: `<svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>`,
+    speechOff: `<svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+  };
+
   function updateAudioIcons() {
     const isMuted = SoundEngine.isMuted();
-    soundIcon.textContent = isMuted ? '🔇' : '🔊';
-    if (soundIconMobile) soundIconMobile.textContent = isMuted ? '🔇' : '🔊';
+    const soundHtml = isMuted ? SVG_ICONS.soundOff : SVG_ICONS.soundOn;
+    if (soundIconWrapper) soundIconWrapper.innerHTML = soundHtml;
+    if (soundIconMobileWrapper) soundIconMobileWrapper.innerHTML = soundHtml;
 
     const isBgmMuted = SoundEngine.isBgmMuted();
-    bgmIcon.textContent = isBgmMuted ? '🔇' : '🎵';
-    if (menuBgmIcon) menuBgmIcon.textContent = isBgmMuted ? '🔇' : '🎵';
-    if (menuBgmStatus) menuBgmStatus.textContent = isBgmMuted ? 'Off' : 'Playing';
+    const bgmHtml = isBgmMuted ? SVG_ICONS.bgmOff : SVG_ICONS.bgmOn;
+    if (bgmIconWrapper) bgmIconWrapper.innerHTML = bgmHtml;
+    if (menuBgmIconWrapper) menuBgmIconWrapper.innerHTML = bgmHtml;
+    if (menuBgmStatus) menuBgmStatus.textContent = isBgmMuted ? 'Off' : 'Active';
 
     const isSpeech = SoundEngine.isSpeechEnabled();
-    speechIcon.textContent = isSpeech ? '🗣️' : '🤐';
-    if (menuSpeechIcon) menuSpeechIcon.textContent = isSpeech ? '🗣️' : '🤐';
+    const speechHtml = isSpeech ? SVG_ICONS.speechOn : SVG_ICONS.speechOff;
+    if (speechIconWrapper) speechIconWrapper.innerHTML = speechHtml;
+    if (menuSpeechIconWrapper) menuSpeechIconWrapper.innerHTML = speechHtml;
     if (menuSpeechStatus) menuSpeechStatus.textContent = isSpeech ? 'Active' : 'Off';
   }
 
@@ -250,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navPlayerLevel.textContent = `Lvl ${info.level}`;
     if (navPlayerTitle) navPlayerTitle.textContent = info.title;
-    navPlayerIcon.textContent = info.icon;
+    if (navPlayerIcon) navPlayerIcon.innerHTML = info.icon;
     navXPBar.style.width = `${info.progressPercent}%`;
     navXPText.textContent = `${info.xp} XP`;
   }
@@ -454,16 +467,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderHearts() {
-    const heartElements = hudHeartsContainer.querySelectorAll('.heart-icon');
-    heartElements.forEach((el, index) => {
-      if (index < state.hearts) {
-        el.textContent = '❤️';
-        el.classList.remove('opacity-25', 'grayscale');
-      } else {
-        el.textContent = '🖤';
-        el.classList.add('opacity-25', 'grayscale');
-      }
-    });
+    hudHeartsContainer.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const isAlive = i < state.hearts;
+      const span = document.createElement('span');
+      span.className = isAlive ? 'text-rose-500' : 'text-slate-700 opacity-40';
+      span.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5 ${isAlive ? 'fill-rose-500' : ''}" viewBox="0 0 24 24" fill="${isAlive ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+      hudHeartsContainer.appendChild(span);
+    }
   }
 
   function loadNextProblem() {
@@ -687,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bossName.textContent = state.currentBoss.name;
     if (bossTitleDesc) bossTitleDesc.textContent = state.currentBoss.title;
-    bossAvatarIcon.textContent = state.currentBoss.icon;
+    if (bossAvatarIcon) bossAvatarIcon.innerHTML = state.currentBoss.svg;
 
     syncBossHUD();
     startBossTurnTimer();
@@ -1540,7 +1551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stats = StorageManager.getStats();
     const info = stats.levelInfo;
 
-    modalLevelIcon.textContent = info.icon;
+    if (modalLevelIcon) modalLevelIcon.innerHTML = info.icon;
     modalLevelTitle.textContent = info.title;
     modalLevelNum.textContent = `Level ${info.level}`;
     modalXPBar.style.width = `${info.progressPercent}%`;
