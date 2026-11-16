@@ -24,6 +24,10 @@ Math Quest features a streamlined **inline mode selector** (5-column grid on des
 
 1. **⚡ Speed Blitz (Time Attack):**
    * Race the clock (choose **30s**, **60s**, or **120s** runs).
+   * **⏱️ Tiered Streak Time Bonus:** High streaks earn extra seconds back to the clock!
+     * **Streak 3:** **+2s** Streak Bonus
+     * **Streak 5:** **+3s** Fever Bonus
+     * **Streak 10+ (every 5):** **+5s** Mega Streak Bonus
    * Build consecutive streaks to trigger score & XP multipliers (`1.5x`, `2x`, `3x`).
    * Reach a streak of **5+** to activate **🔥 Fever Mode** (3.5x multiplier, neon fiery border, accelerated BGM tempo!).
 

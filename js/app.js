@@ -471,6 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.timeLeft <= 5 && state.timeLeft > 0) {
         SoundEngine.playTick();
         hudTimerVal.classList.add('text-rose-400');
+      } else if (state.timeLeft > 5) {
+        hudTimerVal.classList.remove('text-rose-400');
       }
 
       if (state.timeLeft <= 0) {
@@ -613,6 +615,37 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
     }
 
+    // Blitz Mode Streak Time Bonus (Tiered: +2s @ 3 streak, +3s @ 5 streak, +5s @ 10+ streak)
+    if (state.mode === 'blitz') {
+      let timeBonus = 0;
+      let bonusMessage = '';
+
+      if (state.streak >= 10 && state.streak % 5 === 0) {
+        timeBonus = 5;
+        bonusMessage = '⚡ +5s MEGA STREAK BONUS!';
+      } else if (state.streak === 5) {
+        timeBonus = 3;
+        bonusMessage = '🔥 +3s FEVER TIME BONUS!';
+      } else if (state.streak === 3) {
+        timeBonus = 2;
+        bonusMessage = '⏱️ +2s STREAK TIME BONUS!';
+      }
+
+      if (timeBonus > 0) {
+        state.timeLeft += timeBonus;
+        hudTimerVal.textContent = state.timeLeft;
+        if (state.timeLeft > 5) {
+          hudTimerVal.classList.remove('text-rose-400');
+        }
+
+        hudTimerVal.classList.add('timer-bonus-pulse');
+        setTimeout(() => hudTimerVal.classList.remove('timer-bonus-pulse'), 500);
+
+        spawnFloatingXP(bonusMessage, true);
+        Confetti.burst(25);
+      }
+    }
+
     updateScoreDisplay();
     updateStreakDisplay();
     syncPlayerHUD();
@@ -693,9 +726,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function spawnFloatingXP(text) {
+  function spawnFloatingXP(text, isBonus = false) {
     const badge = document.createElement('div');
-    badge.className = 'floating-xp-badge px-3 py-1 rounded-full bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/50';
+    badge.className = isBonus
+      ? 'floating-xp-badge px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/50 border border-emerald-300/40'
+      : 'floating-xp-badge px-3 py-1 rounded-full bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/50';
     badge.textContent = text;
     quizFloatingContainer.appendChild(badge);
     setTimeout(() => badge.remove(), 1100);
