@@ -19,6 +19,65 @@ const StorageManager = (() => {
     { level: 10, title: 'Grand Math Sage', icon: `<svg class="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
   ];
 
+  const ACHIEVEMENT_DEFINITIONS = [
+    {
+      id: 'first_win',
+      title: 'First Step',
+      desc: 'Complete your first math round',
+      icon: `<svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>`,
+      check: (data) => data.totalAnswered >= 1,
+    },
+    {
+      id: 'streak_10',
+      title: 'Flame Keeper',
+      desc: 'Achieve a 10+ answer streak',
+      icon: `<svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+      check: (data) => data.highestStreak >= 10,
+    },
+    {
+      id: 'streak_20',
+      title: 'Unstoppable Flow',
+      desc: 'Reach a streak of 20 or higher',
+      icon: `<svg class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      check: (data) => data.highestStreak >= 20,
+    },
+    {
+      id: 'centurion',
+      title: 'Centurion',
+      desc: 'Solve 100 equations lifetime',
+      icon: `<svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>`,
+      check: (data) => data.totalAnswered >= 100,
+    },
+    {
+      id: 'boss_slayer',
+      title: 'Boss Slayer',
+      desc: 'Defeat any RPG math monster',
+      icon: `<svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+      check: (data) => (data.bossStats && data.bossStats.totalBeaten >= 1),
+    },
+    {
+      id: 'hydra_bane',
+      title: 'Hydra Bane',
+      desc: 'Defeat the Tier 3 Calculus Hydra',
+      icon: `<svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      check: (data) => (data.bossStats && data.bossStats.defeated && data.bossStats.defeated.includes('dragon')),
+    },
+    {
+      id: 'speed_demon',
+      title: 'Speed Demon',
+      desc: 'Score 250+ points in Speed Blitz',
+      icon: `<svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+      check: (data) => (data.highScores && (data.highScores.blitz_30 >= 250 || data.highScores.blitz_60 >= 250 || data.highScores.blitz_120 >= 250)),
+    },
+    {
+      id: 'card_scholar',
+      title: 'Card Scholar',
+      desc: 'Master 15 or more study flashcards',
+      icon: `<svg class="w-5 h-5 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+      check: (data) => (data.masteredFlashcards >= 15),
+    },
+  ];
+
   const DEFAULT_DATA = {
     xp: 0,
     totalAnswered: 0,
@@ -38,6 +97,7 @@ const StorageManager = (() => {
     },
     matrixStats: {},
     masteredFlashcards: 0,
+    achievements: [],
     mistakes: [],
     lastPlayed: null,
   };
@@ -53,6 +113,7 @@ const StorageManager = (() => {
         highScores: { ...DEFAULT_DATA.highScores, ...(parsed.highScores || {}) },
         bossStats: { ...DEFAULT_DATA.bossStats, ...(parsed.bossStats || {}) },
         matrixStats: { ...(parsed.matrixStats || {}) },
+        achievements: Array.isArray(parsed.achievements) ? parsed.achievements : [],
       };
     } catch (e) {
       console.warn('Failed to load Math Quest data from localStorage:', e);
@@ -266,6 +327,127 @@ const StorageManager = (() => {
     saveData({ ...DEFAULT_DATA });
   }
 
+  function getAchievements() {
+    const data = getData();
+    const unlockedIds = data.achievements || [];
+    return ACHIEVEMENT_DEFINITIONS.map(def => ({
+      id: def.id,
+      title: def.title,
+      desc: def.desc,
+      icon: def.icon,
+      unlocked: unlockedIds.includes(def.id),
+    }));
+  }
+
+  function checkAchievements() {
+    const data = getData();
+    const unlockedNow = [];
+    data.achievements = data.achievements || [];
+
+    ACHIEVEMENT_DEFINITIONS.forEach(def => {
+      if (!data.achievements.includes(def.id)) {
+        if (def.check(data)) {
+          data.achievements.push(def.id);
+          unlockedNow.push({
+            id: def.id,
+            title: def.title,
+            desc: def.desc,
+            icon: def.icon,
+          });
+        }
+      }
+    });
+
+    if (unlockedNow.length > 0) {
+      saveData(data);
+    }
+    return unlockedNow;
+  }
+
+  function getWeakFacts(operation = 'multiply', max = 15) {
+    const data = getData();
+    const candidates = [];
+    const matrix = data.matrixStats || {};
+
+    (data.mistakes || []).forEach(m => {
+      if (m.operation === operation && m.num1 && m.num2) {
+        candidates.push({
+          num1: m.num1,
+          num2: m.num2,
+          weight: 25,
+        });
+      }
+    });
+
+    if (operation === 'multiply') {
+      for (let r = 1; r <= 12; r++) {
+        for (let c = 1; c <= 12; c++) {
+          const key = `${Math.min(r, c)}x${Math.max(r, c)}`;
+          const stat = matrix[key];
+          if (stat && stat.attempts > 0) {
+            const acc = stat.correct / stat.attempts;
+            if (acc < 0.70) {
+              candidates.push({
+                num1: r,
+                num2: c,
+                weight: Math.round((1 - acc) * 20),
+              });
+            }
+          }
+        }
+      }
+    }
+
+    const unique = [];
+    const seen = new Set();
+    candidates.sort((a, b) => b.weight - a.weight);
+
+    for (const item of candidates) {
+      const key = `${Math.min(item.num1, item.num2)}x${Math.max(item.num1, item.num2)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push({ num1: item.num1, num2: item.num2 });
+        if (unique.length >= max) break;
+      }
+    }
+
+    return unique;
+  }
+
+  function exportDataJSON() {
+    const data = getData();
+    return JSON.stringify(data, null, 2);
+  }
+
+  function importDataJSON(jsonString) {
+    try {
+      const parsed = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid JSON format');
+      }
+
+      const merged = {
+        ...DEFAULT_DATA,
+        xp: typeof parsed.xp === 'number' ? Math.max(0, parsed.xp) : 0,
+        totalAnswered: typeof parsed.totalAnswered === 'number' ? parsed.totalAnswered : 0,
+        totalCorrect: typeof parsed.totalCorrect === 'number' ? parsed.totalCorrect : 0,
+        highestStreak: typeof parsed.highestStreak === 'number' ? parsed.highestStreak : 0,
+        highScores: { ...DEFAULT_DATA.highScores, ...(parsed.highScores || {}) },
+        bossStats: { ...DEFAULT_DATA.bossStats, ...(parsed.bossStats || {}) },
+        matrixStats: { ...(parsed.matrixStats || {}) },
+        masteredFlashcards: typeof parsed.masteredFlashcards === 'number' ? parsed.masteredFlashcards : 0,
+        achievements: Array.isArray(parsed.achievements) ? parsed.achievements : [],
+        mistakes: Array.isArray(parsed.mistakes) ? parsed.mistakes : [],
+        lastPlayed: Date.now(),
+      };
+
+      saveData(merged);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
   return {
     getData,
     saveData,
@@ -281,6 +463,11 @@ const StorageManager = (() => {
     clearMistakes,
     incrementMasteredCards,
     getStats,
+    getAchievements,
+    checkAchievements,
+    getWeakFacts,
+    exportDataJSON,
+    importDataJSON,
     resetAll,
   };
 })();

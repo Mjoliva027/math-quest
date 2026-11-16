@@ -218,6 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordBlitz60 = document.getElementById('record-blitz-60');
   const recordBlitz120 = document.getElementById('record-blitz-120');
   const recordEndless = document.getElementById('record-endless');
+  const achievementsContainer = document.getElementById('achievements-container');
+  const achievementsCount = document.getElementById('achievements-count');
+  const btnExportJson = document.getElementById('btn-export-json');
+  const btnImportTrigger = document.getElementById('btn-import-trigger');
+  const inputImportJson = document.getElementById('input-import-json');
   const btnResetData = document.getElementById('btn-reset-data');
 
   // =========================================================================
@@ -380,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
       SoundEngine.playFever();
       SoundEngine.setFeverMode(true);
       Confetti.burst(40);
-      spawnFloatingXP('🔥 FEVER MODE! (3.5x pts)');
+      spawnFloatingXP('FEVER MODE! (3.5x pts)', true);
     } else if (state.streak < 5 && state.isFeverActive) {
       disableFeverMode();
     }
@@ -521,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
         operation: state.operation,
         difficulty: state.difficulty,
         customTables: state.operation === 'multiply' ? state.customTables : [],
+        weakFacts: StorageManager.getWeakFacts(state.operation),
       });
     }
 
@@ -622,13 +628,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (state.streak >= 10 && state.streak % 5 === 0) {
         timeBonus = 5;
-        bonusMessage = '⚡ +5s MEGA STREAK BONUS!';
+        bonusMessage = '+5s MEGA STREAK BONUS!';
       } else if (state.streak === 5) {
         timeBonus = 3;
-        bonusMessage = '🔥 +3s FEVER TIME BONUS!';
+        bonusMessage = '+3s FEVER TIME BONUS!';
       } else if (state.streak === 3) {
         timeBonus = 2;
-        bonusMessage = '⏱️ +2s STREAK TIME BONUS!';
+        bonusMessage = '+2s STREAK TIME BONUS!';
       }
 
       if (timeBonus > 0) {
@@ -674,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (state.currentProblem.hint) {
-      quizHintText.textContent = `💡 Hint: ${state.currentProblem.hint}`;
+      quizHintText.textContent = `Hint: ${state.currentProblem.hint}`;
     }
 
     quizCard.classList.remove('animate-correct');
@@ -801,6 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
       operation: state.operation,
       difficulty: state.difficulty,
       customTables: state.operation === 'multiply' ? state.customTables : [],
+      weakFacts: StorageManager.getWeakFacts(state.operation),
     });
 
     bossEquationText.textContent = state.currentProblem.equation;
@@ -921,6 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
       operation: state.operation,
       difficulty: state.difficulty,
       customTables: state.operation === 'multiply' ? state.customTables : [],
+      weakFacts: StorageManager.getWeakFacts(state.operation),
       count: 15,
     });
     state.flashcardIndex = 0;
@@ -1138,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       matrixInfoStatus.textContent = 'Untested';
     }
 
-    btnMatrixDrillRow.textContent = `⚡ Table of ${row}`;
+    btnMatrixDrillRow.textContent = `Table of ${row}`;
   }
 
   function openMatrixModal() {
@@ -1182,12 +1190,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (outcome.newHighScore && state.score > 0) {
       SoundEngine.playLevelUp();
       Confetti.cannon();
-      resultsSubtitle.textContent = '🎉 Brand New High Score Record!';
+      resultsSubtitle.textContent = 'Brand New High Score Record!';
     } else if (state.score > 0 || state.mode === 'flashcards') {
       SoundEngine.playLevelUp();
       Confetti.burst(30);
     } else {
       SoundEngine.playGameOver();
+    }
+
+    // Check & celebrate newly unlocked achievements
+    const newlyUnlocked = StorageManager.checkAchievements();
+    if (newlyUnlocked.length > 0) {
+      SoundEngine.playLevelUp();
+      Confetti.cannon();
+      newlyUnlocked.forEach((ach, i) => {
+        setTimeout(() => {
+          spawnFloatingXP(`Badge Unlocked: ${ach.title}!`, true);
+        }, i * 650);
+      });
     }
 
     if (state.roundMistakes.length > 0) {
@@ -1540,6 +1560,55 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLobbyStats();
     });
 
+    // Export Data JSON
+    if (btnExportJson) {
+      btnExportJson.addEventListener('click', () => {
+        SoundEngine.playClick();
+        const jsonStr = StorageManager.exportDataJSON();
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `math-quest-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    // Import Data Trigger & Handler
+    if (btnImportTrigger && inputImportJson) {
+      btnImportTrigger.addEventListener('click', () => {
+        SoundEngine.playClick();
+        inputImportJson.click();
+      });
+
+      inputImportJson.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const res = StorageManager.importDataJSON(event.target.result);
+          if (res.success) {
+            SoundEngine.playLevelUp();
+            Confetti.cannon();
+            syncPlayerHUD();
+            syncLobbyStats();
+            buildMatrixGrid();
+            openStatsModal();
+            alert('Progress and achievements restored successfully!');
+          } else {
+            SoundEngine.playWrong();
+            alert('Failed to import backup: ' + (res.error || 'Invalid format'));
+          }
+        };
+        reader.readAsText(file);
+        inputImportJson.value = '';
+      });
+    }
+
     // Reset All Data
     btnResetData.addEventListener('click', () => {
       if (confirm('Are you sure you want to reset all XP, high scores, matrix heatmap, and progress?')) {
@@ -1644,6 +1713,30 @@ document.addEventListener('DOMContentLoaded', () => {
     recordBlitz120.textContent = stats.highScores.blitz_120 || 0;
     if (recordEndless) recordEndless.textContent = stats.highScores.endless || 0;
 
+    // Render Achievements Showcase
+    const achievements = StorageManager.getAchievements();
+    const unlockedCount = achievements.filter(a => a.unlocked).length;
+    if (achievementsCount) {
+      achievementsCount.textContent = `${unlockedCount} / ${achievements.length}`;
+    }
+    if (achievementsContainer) {
+      achievementsContainer.innerHTML = '';
+      achievements.forEach(ach => {
+        const item = document.createElement('div');
+        item.className = `p-2 rounded-xl border text-center flex flex-col items-center justify-center transition-all ${
+          ach.unlocked
+            ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-sm'
+            : 'bg-slate-900/60 border-slate-800 text-slate-600 grayscale opacity-45'
+        }`;
+        item.title = `${ach.title}: ${ach.desc} ${ach.unlocked ? '(Unlocked)' : '(Locked)'}`;
+        item.innerHTML = `
+          <div class="mb-1">${ach.icon}</div>
+          <span class="text-[9px] font-bold truncate max-w-full block">${ach.title}</span>
+        `;
+        achievementsContainer.appendChild(item);
+      });
+    }
+
     modalStats.classList.remove('hidden');
   }
 
@@ -1657,4 +1750,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   init();
+
+  // Register PWA Service Worker
+  if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.warn('Service Worker registration skipped:', err);
+      });
+    });
+  }
 });

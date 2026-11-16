@@ -111,7 +111,20 @@ Math Quest features a streamlined **inline mode selector** (5-column grid on des
 
 ---
 
-## 🏆 Progression & Storage
+## 🏆 Progression, Achievements & Storage
 
 * **XP & Level Progression:** Earn experience points, climb from *Number Novice* to *Grand Math Sage*, and track lifetime statistics.
-* **Offline Local Storage:** No database required — streaks, high scores, accuracy, matrix heatmap data, and boss defeats are saved securely in the browser's `localStorage`.
+* **Badges & Achievements:** 8 unlockable milestone achievements (e.g., *Flame Keeper*, *Centurion*, *Boss Slayer*, *Hydra Bane*, *Speed Demon*, *Card Scholar*) tracked and showcased inside the Career Stats modal.
+* **Adaptive Learning Engine:** Automatically analyzes your 12×12 matrix heatmap and mistakes queue, prioritizing your struggling and unmastered multiplication facts ~45% of the time to maximize learning retention.
+* **JSON Backup & Restore:** Export your entire career history, high scores, matrix mastery stats, and unlocked achievements as a standalone `.json` backup file, or import it to sync between devices.
+* **Offline Local Storage & PWA:** Zero database required — fully installable as a mobile or desktop Progressive Web App via `manifest.json` and `sw.js` for instant offline practice.
+
+---
+
+## 🧪 Automated Testing
+
+Math Quest includes an integrated Node.js test suite covering math generation, distractor uniqueness, visual arrays, matrix tracking, and JSON data integrity:
+
+```bash
+node tests/runner.js
+```

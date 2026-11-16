@@ -85,10 +85,28 @@ const MathEngine = (() => {
     return requestedOp;
   }
 
-  function generateNumbers(op, difficulty, customTables = []) {
+  function generateNumbers(op, difficulty, customTables = [], weakFacts = []) {
     let num1, num2;
 
     if (op === OPERATIONS.MULTIPLY) {
+      // Adaptive learning: 45% chance to draw from weak facts if available
+      if (weakFacts && weakFacts.length > 0 && Math.random() < 0.45) {
+        let pool = weakFacts;
+        if (customTables && customTables.length > 0) {
+          const filtered = weakFacts.filter(f => customTables.includes(f.num1) || customTables.includes(f.num2));
+          if (filtered.length > 0) pool = filtered;
+        }
+        const picked = pool[Math.floor(Math.random() * pool.length)];
+        if (Math.random() < 0.5) {
+          num1 = picked.num1;
+          num2 = picked.num2;
+        } else {
+          num1 = picked.num2;
+          num2 = picked.num1;
+        }
+        return { num1, num2 };
+      }
+
       if (customTables && customTables.length > 0) {
         num1 = customTables[Math.floor(Math.random() * customTables.length)];
         const maxFactor = difficulty === 'hard' ? 15 : 12;
@@ -251,13 +269,13 @@ const MathEngine = (() => {
     };
   }
 
-  function generateProblem({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [] }) {
+  function generateProblem({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [], weakFacts = [] }) {
     let resolvedOp = resolveOperation(operation);
     let num1, num2, answer, key;
     let attempts = 0;
 
     do {
-      const nums = generateNumbers(resolvedOp, difficulty, customTables);
+      const nums = generateNumbers(resolvedOp, difficulty, customTables, weakFacts);
       num1 = nums.num1;
       num2 = nums.num2;
       answer = calculateAnswer(resolvedOp, num1, num2);
@@ -289,10 +307,10 @@ const MathEngine = (() => {
     };
   }
 
-  function generateDeck({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [], count = 15 }) {
+  function generateDeck({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [], weakFacts = [], count = 15 }) {
     const deck = [];
     for (let i = 0; i < count; i++) {
-      deck.push(generateProblem({ operation, difficulty, customTables }));
+      deck.push(generateProblem({ operation, difficulty, customTables, weakFacts }));
     }
     return deck;
   }
