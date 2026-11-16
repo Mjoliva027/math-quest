@@ -1,6 +1,6 @@
 /**
  * Local Storage & Progression Manager for Math Quest
- * Manages player profile, XP, levels, high scores, accuracy, and mistake queue.
+ * Manages player profile, XP, levels, high scores, matrix heatmap stats, and boss victories.
  */
 
 const StorageManager = (() => {
@@ -29,9 +29,15 @@ const StorageManager = (() => {
       blitz_60: 0,
       blitz_120: 0,
       survival: 0,
+      boss: 0,
     },
+    bossStats: {
+      defeated: [], // Array of defeated boss IDs
+      totalBeaten: 0,
+    },
+    matrixStats: {}, // e.g. "7x8": { attempts: 5, correct: 4 }
     masteredFlashcards: 0,
-    mistakes: [], // Array of missed problem objects for review
+    mistakes: [],
     lastPlayed: null,
   };
 
@@ -44,6 +50,8 @@ const StorageManager = (() => {
         ...DEFAULT_DATA,
         ...parsed,
         highScores: { ...DEFAULT_DATA.highScores, ...(parsed.highScores || {}) },
+        bossStats: { ...DEFAULT_DATA.bossStats, ...(parsed.bossStats || {}) },
+        matrixStats: { ...(parsed.matrixStats || {}) },
       };
     } catch (e) {
       console.warn('Failed to load Math Quest data from localStorage:', e);
@@ -59,10 +67,6 @@ const StorageManager = (() => {
     }
   }
 
-  /**
-   * Calculates level based on XP
-   * Formula: XP threshold = 60 * (level - 1)^1.6
-   */
   function getLevelForXP(xp) {
     let level = 1;
     while (getXPForLevel(level + 1) <= xp) {
@@ -84,7 +88,6 @@ const StorageManager = (() => {
     const neededXP = nextLevelXP - currentLevelXP;
     const progressPercent = Math.min(100, Math.floor((progressXP / neededXP) * 100));
 
-    // Find title
     let titleInfo = LEVEL_TITLES[LEVEL_TITLES.length - 1];
     for (let i = 0; i < LEVEL_TITLES.length; i++) {
       if (LEVEL_TITLES[i].level === currentLevel) {
@@ -106,9 +109,6 @@ const StorageManager = (() => {
     };
   }
 
-  /**
-   * Add XP to the player profile
-   */
   function addXP(amount) {
     const data = getData();
     const oldLevel = getLevelForXP(data.xp);
@@ -126,9 +126,6 @@ const StorageManager = (() => {
     };
   }
 
-  /**
-   * Record game results
-   */
   function recordGameResult({ mode, duration = null, score = 0, streak = 0, correct = 0, total = 0 }) {
     const data = getData();
 
@@ -142,16 +139,15 @@ const StorageManager = (() => {
 
     if (mode === 'blitz') {
       scoreKey = `blitz_${duration || 60}`;
-      if (score > (data.highScores[scoreKey] || 0)) {
-        data.highScores[scoreKey] = score;
-        newHighScore = true;
-      }
     } else if (mode === 'survival') {
       scoreKey = 'survival';
-      if (score > (data.highScores[scoreKey] || 0)) {
-        data.highScores[scoreKey] = score;
-        newHighScore = true;
-      }
+    } else if (mode === 'boss') {
+      scoreKey = 'boss';
+    }
+
+    if (scoreKey && score > (data.highScores[scoreKey] || 0)) {
+      data.highScores[scoreKey] = score;
+      newHighScore = true;
     }
 
     saveData(data);
@@ -163,15 +159,45 @@ const StorageManager = (() => {
     };
   }
 
-  /**
-   * Record a mistake into the review queue
-   */
+  // Record an attempt for a specific cell in the 12x12 matrix
+  function recordMatrixAttempt(num1, num2, isCorrect) {
+    const data = getData();
+    const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`; // Symmetric key
+    data.matrixStats = data.matrixStats || {};
+    
+    if (!data.matrixStats[key]) {
+      data.matrixStats[key] = { attempts: 0, correct: 0 };
+    }
+    
+    data.matrixStats[key].attempts++;
+    if (isCorrect) {
+      data.matrixStats[key].correct++;
+    }
+    
+    saveData(data);
+  }
+
+  function getMatrixStats() {
+    const data = getData();
+    return data.matrixStats || {};
+  }
+
+  // Record a boss defeat
+  function recordBossDefeated(bossId) {
+    const data = getData();
+    data.bossStats = data.bossStats || { defeated: [], totalBeaten: 0 };
+    if (!data.bossStats.defeated.includes(bossId)) {
+      data.bossStats.defeated.push(bossId);
+    }
+    data.bossStats.totalBeaten = (data.bossStats.totalBeaten || 0) + 1;
+    saveData(data);
+  }
+
   function recordMistake(problem) {
     if (!problem) return;
     const data = getData();
     data.mistakes = data.mistakes || [];
 
-    // Deduplicate by equation text
     const exists = data.mistakes.some(m => m.equation === problem.equation);
     if (!exists) {
       data.mistakes.push({
@@ -185,7 +211,6 @@ const StorageManager = (() => {
         hint: problem.hint,
         timestamp: Date.now(),
       });
-      // Limit queue to most recent 40 mistakes
       if (data.mistakes.length > 40) {
         data.mistakes.shift();
       }
@@ -230,6 +255,7 @@ const StorageManager = (() => {
       accuracy,
       highestStreak: data.highestStreak,
       highScores: data.highScores,
+      bossStats: data.bossStats || { defeated: [], totalBeaten: 0 },
       masteredFlashcards: data.masteredFlashcards || 0,
       mistakeCount: (data.mistakes || []).length,
     };
@@ -245,6 +271,9 @@ const StorageManager = (() => {
     getLevelInfo,
     addXP,
     recordGameResult,
+    recordMatrixAttempt,
+    getMatrixStats,
+    recordBossDefeated,
     recordMistake,
     getMistakes,
     removeMistake,

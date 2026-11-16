@@ -1,6 +1,6 @@
 /**
  * Math Engine for Math Quest
- * Handles problem generation, difficulty scaling, distractors, and calculations.
+ * Handles problem generation, visual arrays, boss battle configurations, and distractors.
  */
 
 const MathEngine = (() => {
@@ -16,6 +16,45 @@ const MathEngine = (() => {
     add: '+',
     subtract: '−',
   };
+
+  const BOSSES = [
+    {
+      id: 'goblin',
+      tier: 1,
+      name: 'Goblin Multiplier',
+      title: 'Hoarder of Times Tables',
+      maxHp: 100,
+      attackPower: 20,
+      icon: '👺',
+      bgGradient: 'from-emerald-950/80 to-amber-950/60',
+      borderColor: 'border-emerald-500/40',
+      description: 'A nimble forest imp that tests your basic multiplication speed!',
+    },
+    {
+      id: 'golem',
+      tier: 2,
+      name: 'Iron Math Golem',
+      title: 'Guardian of Arithmetic',
+      maxHp: 160,
+      attackPower: 25,
+      icon: '🗿',
+      bgGradient: 'from-slate-900 to-indigo-950/80',
+      borderColor: 'border-indigo-500/40',
+      description: 'A giant automaton forged from geometric equations and stone.',
+    },
+    {
+      id: 'dragon',
+      tier: 3,
+      name: 'Calculus Hydra',
+      title: 'Ancient Overlord of Numbers',
+      maxHp: 240,
+      attackPower: 35,
+      icon: '🐉',
+      bgGradient: 'from-purple-950/90 to-rose-950/80',
+      borderColor: 'border-rose-500/50',
+      description: 'The ultimate boss of mental math. Striking fast is your only hope!',
+    },
+  ];
 
   const recentHistory = [];
   const MAX_HISTORY = 6;
@@ -37,8 +76,6 @@ const MathEngine = (() => {
 
   function resolveOperation(requestedOp) {
     if (requestedOp === OPERATIONS.MIXED) {
-      const ops = [OPERATIONS.MULTIPLY, OPERATIONS.ADD, OPERATIONS.SUBTRACT];
-      // Bias slightly towards multiplication (50% mult, 25% add, 25% sub)
       const roll = Math.random();
       if (roll < 0.5) return OPERATIONS.MULTIPLY;
       if (roll < 0.75) return OPERATIONS.ADD;
@@ -52,19 +89,16 @@ const MathEngine = (() => {
 
     if (op === OPERATIONS.MULTIPLY) {
       if (customTables && customTables.length > 0) {
-        // Practice specific table(s) selected by the user
         num1 = customTables[Math.floor(Math.random() * customTables.length)];
         const maxFactor = difficulty === 'hard' ? 15 : 12;
         num2 = getRandomInt(1, maxFactor);
       } else {
         switch (difficulty) {
           case 'easy':
-            // Tables 1 to 5
             num1 = getRandomInt(1, 5);
             num2 = getRandomInt(1, 10);
             break;
           case 'hard':
-            // Tables 2 to 20, or larger combinations
             if (Math.random() < 0.5) {
               num1 = getRandomInt(11, 20);
               num2 = getRandomInt(2, 10);
@@ -75,7 +109,6 @@ const MathEngine = (() => {
             break;
           case 'medium':
           default:
-            // Standard 1 to 12
             num1 = getRandomInt(2, 12);
             num2 = getRandomInt(2, 12);
             break;
@@ -98,7 +131,6 @@ const MathEngine = (() => {
           break;
       }
     } else if (op === OPERATIONS.SUBTRACT) {
-      // Always guarantee num1 >= num2 so answer is positive
       switch (difficulty) {
         case 'easy':
           num2 = getRandomInt(1, 10);
@@ -136,7 +168,6 @@ const MathEngine = (() => {
     const candidates = new Set();
 
     if (op === OPERATIONS.MULTIPLY) {
-      // Typical multiplication mistakes: adjacent multiples, off by 1 on factor, off by 10
       candidates.add(num1 * Math.max(1, num2 - 1));
       candidates.add(num1 * (num2 + 1));
       candidates.add(Math.max(1, num1 - 1) * num2);
@@ -145,7 +176,7 @@ const MathEngine = (() => {
       candidates.add(answer - 10);
       candidates.add(answer + 2);
       candidates.add(answer - 2);
-      candidates.add(num1 + num2); // Kid accidentally added instead of multiplied
+      candidates.add(num1 + num2);
     } else if (op === OPERATIONS.ADD) {
       candidates.add(answer + 1);
       candidates.add(answer - 1);
@@ -153,7 +184,7 @@ const MathEngine = (() => {
       candidates.add(answer - 10);
       candidates.add(answer + 2);
       candidates.add(answer - 2);
-      candidates.add(Math.abs(num1 - num2)); // Kid subtracted instead of added
+      candidates.add(Math.abs(num1 - num2));
     } else if (op === OPERATIONS.SUBTRACT) {
       candidates.add(answer + 1);
       candidates.add(answer - 1);
@@ -161,13 +192,11 @@ const MathEngine = (() => {
       candidates.add(answer - 10);
       candidates.add(answer + 2);
       candidates.add(answer - 2);
-      candidates.add(num1 + num2); // Kid added instead of subtracted
+      candidates.add(num1 + num2);
     }
 
-    // Filter candidates: must be positive, not equal to the correct answer
     const valid = Array.from(candidates).filter(n => Number.isInteger(n) && n > 0 && n !== answer);
 
-    // If we don't have enough, generate close random offsets
     while (valid.length < 3) {
       const delta = getRandomInt(1, 5) * (Math.random() < 0.5 ? -1 : 1);
       const val = answer + delta;
@@ -176,9 +205,7 @@ const MathEngine = (() => {
       }
     }
 
-    // Shuffle and pick 3
     const chosen = shuffle(valid).slice(0, 3);
-    // Combine with answer and shuffle again
     return shuffle([answer, ...chosen]);
   }
 
@@ -211,12 +238,25 @@ const MathEngine = (() => {
     return '';
   }
 
+  // Generates visual dot array grid for multiplication
+  function generateVisualArray(num1, num2) {
+    // Limit grid rendering to max 12x12 so it fits comfortably on screen
+    const rows = Math.min(num1, 12);
+    const cols = Math.min(num2, 12);
+    return {
+      rows,
+      cols,
+      total: num1 * num2,
+      label: `${rows} rows × ${cols} columns = ${rows * cols}`,
+      isScaled: num1 > 12 || num2 > 12,
+    };
+  }
+
   function generateProblem({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [] }) {
     let resolvedOp = resolveOperation(operation);
     let num1, num2, answer, key;
     let attempts = 0;
 
-    // Avoid immediate duplicates
     do {
       const nums = generateNumbers(resolvedOp, difficulty, customTables);
       num1 = nums.num1;
@@ -226,7 +266,6 @@ const MathEngine = (() => {
       attempts++;
     } while (recentHistory.includes(key) && attempts < 15);
 
-    // Track in history
     recentHistory.push(key);
     if (recentHistory.length > MAX_HISTORY) {
       recentHistory.shift();
@@ -235,6 +274,7 @@ const MathEngine = (() => {
     const symbol = SYMBOLS[resolvedOp];
     const options = generateDistractors(answer, resolvedOp, num1, num2);
     const hint = generateHint(resolvedOp, num1, num2, answer);
+    const visualArray = resolvedOp === OPERATIONS.MULTIPLY ? generateVisualArray(num1, num2) : null;
 
     return {
       id: 'prob_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
@@ -246,10 +286,10 @@ const MathEngine = (() => {
       equation: `${num1} ${symbol} ${num2}`,
       options,
       hint,
+      visualArray,
     };
   }
 
-  // Pre-generate a deck of problems for flashcard mode
   function generateDeck({ operation = OPERATIONS.MULTIPLY, difficulty = 'medium', customTables = [], count = 15 }) {
     const deck = [];
     for (let i = 0; i < count; i++) {
@@ -258,11 +298,21 @@ const MathEngine = (() => {
     return deck;
   }
 
+  function getBoss(bossIdOrIndex) {
+    if (typeof bossIdOrIndex === 'number') {
+      return BOSSES[bossIdOrIndex % BOSSES.length];
+    }
+    return BOSSES.find(b => b.id === bossIdOrIndex) || BOSSES[0];
+  }
+
   return {
     OPERATIONS,
     SYMBOLS,
+    BOSSES,
+    getBoss,
     generateProblem,
     generateDeck,
+    generateVisualArray,
     calculateAnswer,
   };
 })();

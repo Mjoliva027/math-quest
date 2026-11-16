@@ -1,6 +1,6 @@
 /**
  * Math Quest - Main Application Controller
- * Handles gameplay loop, UI states, input modes, timers, and animations.
+ * Handles gameplay loop, Boss Battles, 12x12 Matrix Explorer, Fever Mode, and Voice Synthesis.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,14 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   const state = {
     // Current Configuration
-    mode: 'blitz', // 'blitz' | 'survival' | 'flashcards' | 'mistake_drill'
+    mode: 'blitz', // 'blitz' | 'boss' | 'survival' | 'flashcards' | 'mistake_drill'
     operation: 'multiply',
     difficulty: 'medium',
     customTables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     blitzDuration: 30,
     inputStyle: 'choice', // 'choice' | 'direct'
 
-    // Active Round State
+    // Active Quiz/Survival Round State
     currentProblem: null,
     score: 0,
     streak: 0,
@@ -29,21 +29,40 @@ document.addEventListener('DOMContentLoaded', () => {
     directInputVal: '',
     roundMistakes: [],
     isEvaluating: false,
+    isFeverActive: false,
 
-    // Flashcard Round State
+    // Flashcard State
     flashcardDeck: [],
     flashcardIndex: 0,
     isCardFlipped: false,
+
+    // Boss Battle State
+    currentBoss: null,
+    bossHp: 100,
+    bossMaxHp: 100,
+    playerHp: 100,
+    playerMaxHp: 100,
+    bossTurnTime: 12,
+    bossTimerInterval: null,
+
+    // Matrix Explorer State
+    selectedMatrixRow: 7,
+    selectedMatrixCol: 8,
   };
 
   // =========================================================================
   // DOM REFERENCES
   // =========================================================================
-  // Navigation & Header
+  // Navigation & Controls
   const btnNavLogo = document.getElementById('btn-nav-logo');
+  const btnBgmToggle = document.getElementById('btn-bgm-toggle');
+  const bgmIcon = document.getElementById('bgm-icon');
+  const btnSpeechToggle = document.getElementById('btn-speech-toggle');
+  const speechIcon = document.getElementById('speech-icon');
   const btnSoundToggle = document.getElementById('btn-sound-toggle');
   const soundIcon = document.getElementById('sound-icon');
   const btnStatsModal = document.getElementById('btn-stats-modal');
+  const btnMatrixToggle = document.getElementById('btn-matrix-toggle');
   const navPlayerLevel = document.getElementById('nav-player-level');
   const navPlayerTitle = document.getElementById('nav-player-title');
   const navPlayerIcon = document.getElementById('nav-player-icon');
@@ -53,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Views
   const viewLobby = document.getElementById('view-lobby');
   const viewQuiz = document.getElementById('view-quiz');
+  const viewBoss = document.getElementById('view-boss');
   const viewFlashcards = document.getElementById('view-flashcards');
   const viewResults = document.getElementById('view-results');
 
@@ -60,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lobbyStatStreak = document.getElementById('lobby-stat-streak');
   const lobbyStatAccuracy = document.getElementById('lobby-stat-accuracy');
   const lobbyStatBlitz = document.getElementById('lobby-stat-blitz');
-  const lobbyStatCards = document.getElementById('lobby-stat-cards');
+  const lobbyStatBoss = document.getElementById('lobby-stat-boss');
   const lobbyMistakesAlert = document.getElementById('lobby-mistakes-alert');
   const lobbyMistakesCount = document.getElementById('lobby-mistakes-count');
   const btnDrillMistakes = document.getElementById('btn-drill-mistakes');
@@ -77,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnStartGame = document.getElementById('btn-start-game');
 
   // Quiz Arena Elements
+  const quizFeverWrapper = document.getElementById('quiz-fever-wrapper');
   const quizStreakCount = document.getElementById('quiz-streak-count');
   const quizFlameIcon = document.getElementById('quiz-flame-icon');
   const quizMultiplierBadge = document.getElementById('quiz-multiplier-badge');
@@ -88,8 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const quizCard = document.getElementById('quiz-card');
   const quizOpSymbol = document.getElementById('quiz-op-symbol');
   const quizOpTitle = document.getElementById('quiz-op-title');
+  const btnQuizSpeak = document.getElementById('btn-quiz-speak');
   const quizEquationText = document.getElementById('quiz-equation-text');
   const quizHintText = document.getElementById('quiz-hint-text');
+  const quizVisualArrayWrapper = document.getElementById('quiz-visual-array-wrapper');
+  const quizVisualLabel = document.getElementById('quiz-visual-label');
+  const quizVisualDots = document.getElementById('quiz-visual-dots');
   const quizFloatingContainer = document.getElementById('quiz-floating-container');
   const inputContainerChoice = document.getElementById('input-container-choice');
   const choiceBtns = document.querySelectorAll('.choice-btn');
@@ -97,7 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const directDisplayVal = document.getElementById('direct-display-val');
   const numpadBtns = document.querySelectorAll('.numpad-btn');
 
-  // Flashcards Arena Elements
+  // Boss Battle Arena Elements
+  const bossName = document.getElementById('boss-name');
+  const bossTitleDesc = document.getElementById('boss-title-desc');
+  const bossAvatarWrapper = document.getElementById('boss-avatar-wrapper');
+  const bossAvatarIcon = document.getElementById('boss-avatar-icon');
+  const bossHpText = document.getElementById('boss-hp-text');
+  const bossHpBar = document.getElementById('boss-hp-bar');
+  const playerHpText = document.getElementById('player-hp-text');
+  const bossTurnTimer = document.getElementById('boss-turn-timer');
+  const bossEquationText = document.getElementById('boss-equation-text');
+  const bossCombatEffectsContainer = document.getElementById('boss-combat-effects-container');
+  const btnBossExit = document.getElementById('btn-boss-exit');
+  const bossChoiceBtns = document.querySelectorAll('.boss-choice-btn');
+
+  // Flashcards Elements
   const fcProgressText = document.getElementById('fc-progress-text');
   const btnFcExit = document.getElementById('btn-fc-exit');
   const fcFlipCard = document.getElementById('fc-flip-card');
@@ -106,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fcBackEquation = document.getElementById('fc-back-equation');
   const fcBackAnswer = document.getElementById('fc-back-answer');
   const fcBackHint = document.getElementById('fc-back-hint');
+  const fcVisualDotsContainer = document.getElementById('fc-visual-dots-container');
   const btnFcLearning = document.getElementById('btn-fc-learning');
   const btnFcMastered = document.getElementById('btn-fc-mastered');
 
@@ -124,7 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnResultsReplay = document.getElementById('btn-results-replay');
   const btnResultsLobby = document.getElementById('btn-results-lobby');
 
-  // Stats Modal Elements
+  // 12x12 Matrix Modal Elements
+  const modalMatrix = document.getElementById('modal-matrix');
+  const btnCloseMatrix = document.getElementById('btn-close-matrix');
+  const btnMatrixCloseAction = document.getElementById('btn-matrix-close-action');
+  const matrixGridContainer = document.getElementById('matrix-grid-container');
+  const matrixInfoFactors = document.getElementById('matrix-info-factors');
+  const matrixInfoProduct = document.getElementById('matrix-info-product');
+  const matrixInfoStatus = document.getElementById('matrix-info-status');
+  const btnMatrixDrillRow = document.getElementById('btn-matrix-drill-row');
+
+  // Career Stats Modal Elements
   const modalStats = document.getElementById('modal-stats');
   const btnCloseStats = document.getElementById('btn-close-stats');
   const btnModalCloseAction = document.getElementById('btn-modal-close-action');
@@ -136,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statTotalAnswered = document.getElementById('stat-total-answered');
   const statAccuracyRate = document.getElementById('stat-accuracy-rate');
   const statHighestStreak = document.getElementById('stat-highest-streak');
-  const statSurvivalBest = document.getElementById('stat-survival-best');
+  const statBossDefeated = document.getElementById('stat-boss-defeated');
   const recordBlitz30 = document.getElementById('record-blitz-30');
   const recordBlitz60 = document.getElementById('record-blitz-60');
   const recordBlitz120 = document.getElementById('record-blitz-120');
@@ -147,14 +197,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   function init() {
     renderTableChips();
-    updateAudioIcon();
+    updateAudioIcons();
     syncPlayerHUD();
     syncLobbyStats();
+    buildMatrixGrid();
     attachEventListeners();
   }
 
-  function updateAudioIcon() {
+  function updateAudioIcons() {
     soundIcon.textContent = SoundEngine.isMuted() ? '🔇' : '🔊';
+    bgmIcon.textContent = SoundEngine.isBgmMuted() ? '🔇' : '🎵';
+    speechIcon.textContent = SoundEngine.isSpeechEnabled() ? '🗣️' : '🤐';
   }
 
   function syncPlayerHUD() {
@@ -173,9 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lobbyStatStreak.textContent = stats.highestStreak;
     lobbyStatAccuracy.textContent = `${stats.accuracy}%`;
     lobbyStatBlitz.textContent = stats.highScores.blitz_30 || stats.highScores.blitz_60 || 0;
-    lobbyStatCards.textContent = stats.masteredFlashcards;
+    lobbyStatBoss.textContent = stats.bossStats ? stats.bossStats.totalBeaten : 0;
 
-    // Check for mistake review queue
     const mistakes = StorageManager.getMistakes();
     if (mistakes.length > 0) {
       lobbyMistakesAlert.classList.remove('hidden');
@@ -220,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // VIEW SWITCHING
   // =========================================================================
   function showView(viewId) {
-    [viewLobby, viewQuiz, viewFlashcards, viewResults].forEach(el => {
+    [viewLobby, viewQuiz, viewBoss, viewFlashcards, viewResults].forEach(el => {
       el.classList.add('hidden');
     });
 
@@ -230,20 +282,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (viewId === 'view-lobby') {
+      disableFeverMode();
       syncPlayerHUD();
       syncLobbyStats();
     }
   }
 
   // =========================================================================
-  // GAME START CONTROLLER
+  // GAME LAUNCHER
   // =========================================================================
   function startGame(customMode = null) {
     if (customMode) {
       state.mode = customMode;
     }
 
-    // Reset round states
+    // Reset common round parameters
     state.score = 0;
     state.streak = 0;
     state.maxStreak = 0;
@@ -253,11 +306,60 @@ document.addEventListener('DOMContentLoaded', () => {
     state.roundMistakes = [];
     state.isEvaluating = false;
     state.directInputVal = '';
+    disableFeverMode();
 
-    if (state.mode === 'flashcards') {
+    if (state.mode === 'boss') {
+      startBossBattle();
+    } else if (state.mode === 'flashcards') {
       startFlashcards();
     } else {
       startQuiz();
+    }
+  }
+
+  // =========================================================================
+  // FEVER MODE CONTROLLER
+  // =========================================================================
+  function checkFeverMode() {
+    if (state.streak >= 5 && !state.isFeverActive) {
+      state.isFeverActive = true;
+      quizFeverWrapper.classList.add('fever-active');
+      SoundEngine.playFever();
+      SoundEngine.setFeverMode(true);
+      Confetti.burst(50);
+      spawnFloatingXP('🔥 FEVER MODE ACTIVATED! (3x Multiplier!)');
+    } else if (state.streak < 5 && state.isFeverActive) {
+      disableFeverMode();
+    }
+  }
+
+  function disableFeverMode() {
+    state.isFeverActive = false;
+    if (quizFeverWrapper) {
+      quizFeverWrapper.classList.remove('fever-active');
+    }
+    SoundEngine.setFeverMode(false);
+  }
+
+  // =========================================================================
+  // VISUAL DOT ARRAY (AREA MODEL) RENDERER
+  // =========================================================================
+  function renderVisualDotGrid(container, num1, num2) {
+    container.innerHTML = '';
+    const arrayInfo = MathEngine.generateVisualArray(num1, num2);
+
+    for (let r = 0; r < arrayInfo.rows; r++) {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'flex gap-1.5 items-center justify-center';
+
+      for (let c = 0; c < arrayInfo.cols; c++) {
+        const dot = document.createElement('div');
+        dot.className = 'array-dot cursor-pointer';
+        dot.title = `Row ${r + 1}, Col ${c + 1}`;
+        dot.addEventListener('mouseenter', () => SoundEngine.playClick());
+        rowDiv.appendChild(dot);
+      }
+      container.appendChild(rowDiv);
     }
   }
 
@@ -267,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function startQuiz() {
     showView('view-quiz');
 
-    // Setup HUD according to mode
     if (state.mode === 'blitz') {
       hudTimerContainer.classList.remove('hidden');
       hudHeartsContainer.classList.add('hidden');
@@ -336,29 +437,25 @@ document.addEventListener('DOMContentLoaded', () => {
     state.directInputVal = '';
     updateDirectInputDisplay();
 
-    // Check if mistake drill has finished
     if (state.mode === 'mistake_drill') {
       const mistakes = StorageManager.getMistakes();
       if (mistakes.length === 0) {
         endGame('Mistakes Mastered!');
         return;
       }
-      // Pick first or random mistake
       const m = mistakes[0];
       state.currentProblem = {
         ...m,
         options: MathEngine.generateProblem({
           operation: m.operation,
           difficulty: state.difficulty,
-        }).options, // generate fresh distractors
+        }).options,
       };
-      // Ensure answer is in options
       if (!state.currentProblem.options.includes(m.answer)) {
         state.currentProblem.options[0] = m.answer;
         state.currentProblem.options.sort(() => Math.random() - 0.5);
       }
     } else {
-      // Normal generator
       state.currentProblem = MathEngine.generateProblem({
         operation: state.operation,
         difficulty: state.difficulty,
@@ -372,7 +469,21 @@ document.addEventListener('DOMContentLoaded', () => {
     quizEquationText.textContent = state.currentProblem.equation;
     quizHintText.textContent = '';
 
-    // Update Multiple Choice Buttons
+    // Voice Read-Aloud
+    if (SoundEngine.isSpeechEnabled()) {
+      SoundEngine.speakEquation(state.currentProblem.num1, state.currentProblem.operation, state.currentProblem.num2);
+    }
+
+    // Visual Area Model for Multiplication
+    if (state.currentProblem.operation === 'multiply' && state.currentProblem.num1 <= 12 && state.currentProblem.num2 <= 12) {
+      quizVisualArrayWrapper.classList.remove('hidden');
+      quizVisualLabel.textContent = `${state.currentProblem.num1} × ${state.currentProblem.num2} = ${state.currentProblem.answer}`;
+      renderVisualDotGrid(quizVisualDots, state.currentProblem.num1, state.currentProblem.num2);
+    } else {
+      quizVisualArrayWrapper.classList.add('hidden');
+    }
+
+    // Multiple Choice Buttons
     if (state.inputStyle === 'choice') {
       choiceBtns.forEach((btn, index) => {
         const val = state.currentProblem.options[index];
@@ -391,6 +502,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isCorrect = Number(playerAnswer) === state.currentProblem.answer;
 
+    // Record matrix heatmap data for multiplication
+    if (state.currentProblem.operation === 'multiply') {
+      StorageManager.recordMatrixAttempt(state.currentProblem.num1, state.currentProblem.num2, isCorrect);
+    }
+
     if (isCorrect) {
       handleCorrectAnswer();
     } else {
@@ -403,17 +519,16 @@ document.addEventListener('DOMContentLoaded', () => {
     state.streak++;
     state.maxStreak = Math.max(state.maxStreak, state.streak);
 
-    // Calculate score & multipliers
+    checkFeverMode();
+
     const multiplier = getMultiplier(state.streak);
     const basePoints = state.difficulty === 'hard' ? 25 : state.difficulty === 'medium' ? 15 : 10;
     const gainedScore = Math.round(basePoints * multiplier);
     state.score += gainedScore;
 
-    // Add XP
     const earnedXP = Math.round(5 * multiplier);
-    const xpResult = StorageManager.addXP(earnedXP);
+    StorageManager.addXP(earnedXP);
 
-    // Audio & visuals
     if (state.streak >= 3) {
       SoundEngine.playStreak(state.streak);
       if (state.streak % 5 === 0) {
@@ -423,15 +538,12 @@ document.addEventListener('DOMContentLoaded', () => {
       SoundEngine.playCorrect();
     }
 
-    // Floating XP text
     spawnFloatingXP(`+${gainedScore} pts! ${multiplier > 1 ? `(${multiplier}x)` : ''}`);
 
-    // Card visual feedback
     quizCard.classList.remove('animate-shake');
     quizCard.classList.add('animate-correct');
-    setTimeout(() => quizCard.classList.remove('animate-correct'), 400);
+    setTimeout(() => quizCard.classList.remove('animate-correct'), 350);
 
-    // If in mistake drill mode, remove from queue
     if (state.mode === 'mistake_drill') {
       StorageManager.removeMistake(state.currentProblem.equation);
     }
@@ -440,30 +552,26 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStreakDisplay();
     syncPlayerHUD();
 
-    // Small delay before next problem
     setTimeout(loadNextProblem, 350);
   }
 
   function handleIncorrectAnswer() {
     state.streak = 0;
+    disableFeverMode();
     updateStreakDisplay();
     SoundEngine.playWrong();
 
-    // Save mistake to review list
     StorageManager.recordMistake(state.currentProblem);
     state.roundMistakes.push({ ...state.currentProblem });
 
-    // Show hint on card
     if (state.currentProblem.hint) {
       quizHintText.textContent = `💡 Hint: ${state.currentProblem.hint}`;
     }
 
-    // Card shake animation
     quizCard.classList.remove('animate-correct');
     quizCard.classList.add('animate-shake');
     setTimeout(() => quizCard.classList.remove('animate-shake'), 450);
 
-    // Handle Survival Lives
     if (state.mode === 'survival') {
       state.hearts--;
       renderHearts();
@@ -473,11 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Delay to let player see the hint
     setTimeout(loadNextProblem, 1000);
   }
 
   function getMultiplier(streak) {
+    if (state.isFeverActive) return 3.5;
     if (streak >= 10) return 3.0;
     if (streak >= 6) return 2.0;
     if (streak >= 3) return 1.5;
@@ -522,6 +630,184 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
+  // RPG BOSS BATTLE CONTROLLER (NEW!)
+  // =========================================================================
+  function startBossBattle() {
+    showView('view-boss');
+
+    // Pick boss based on difficulty or stats
+    const bossIndex = state.difficulty === 'hard' ? 2 : state.difficulty === 'medium' ? 1 : 0;
+    state.currentBoss = MathEngine.getBoss(bossIndex);
+
+    state.bossMaxHp = state.currentBoss.maxHp;
+    state.bossHp = state.bossMaxHp;
+    state.playerMaxHp = 100;
+    state.playerHp = 100;
+    state.bossTurnTime = 12;
+
+    bossName.textContent = state.currentBoss.name;
+    bossTitleDesc.textContent = state.currentBoss.title;
+    bossAvatarIcon.textContent = state.currentBoss.icon;
+
+    syncBossHUD();
+    startBossTurnTimer();
+    loadNextBossProblem();
+  }
+
+  function syncBossHUD() {
+    bossHpText.textContent = `${Math.max(0, state.bossHp)} / ${state.bossMaxHp}`;
+    const bossPercent = Math.max(0, Math.floor((state.bossHp / state.bossMaxHp) * 100));
+    bossHpBar.style.width = `${bossPercent}%`;
+
+    playerHpText.textContent = `${Math.max(0, state.playerHp)} / ${state.playerMaxHp}`;
+    bossTurnTimer.textContent = `${state.bossTurnTime}s`;
+  }
+
+  function startBossTurnTimer() {
+    clearInterval(state.bossTimerInterval);
+    state.bossTurnTime = 12;
+    bossTurnTimer.textContent = `${state.bossTurnTime}s`;
+    bossTurnTimer.classList.remove('text-rose-400');
+
+    state.bossTimerInterval = setInterval(() => {
+      state.bossTurnTime--;
+      bossTurnTimer.textContent = `${state.bossTurnTime}s`;
+
+      if (state.bossTurnTime <= 4) {
+        SoundEngine.playTick();
+        bossTurnTimer.classList.add('text-rose-400');
+      }
+
+      if (state.bossTurnTime <= 0) {
+        clearInterval(state.bossTimerInterval);
+        handleBossRetaliation("Time expired! The boss counter-attacks!");
+      }
+    }, 1000);
+  }
+
+  function loadNextBossProblem() {
+    state.isEvaluating = false;
+    state.currentProblem = MathEngine.generateProblem({
+      operation: state.operation,
+      difficulty: state.difficulty,
+      customTables: state.operation === 'multiply' ? state.customTables : [],
+    });
+
+    bossEquationText.textContent = state.currentProblem.equation;
+
+    if (SoundEngine.isSpeechEnabled()) {
+      SoundEngine.speakEquation(state.currentProblem.num1, state.currentProblem.operation, state.currentProblem.num2);
+    }
+
+    bossChoiceBtns.forEach((btn, index) => {
+      const val = state.currentProblem.options[index];
+      const valSpan = btn.querySelector('.choice-val');
+      valSpan.textContent = val !== undefined ? val : '';
+      btn.dataset.answer = val;
+    });
+  }
+
+  function handleBossAnswerSubmit(playerAnswer) {
+    if (state.isEvaluating) return;
+    state.isEvaluating = true;
+    state.totalCount++;
+
+    const isCorrect = Number(playerAnswer) === state.currentProblem.answer;
+
+    if (isCorrect) {
+      handlePlayerBossAttack();
+    } else {
+      handleBossRetaliation("Wrong answer! The boss counter-attacks!");
+    }
+  }
+
+  function handlePlayerBossAttack() {
+    clearInterval(state.bossTimerInterval);
+    state.correctCount++;
+    state.streak++;
+    state.maxStreak = Math.max(state.maxStreak, state.streak);
+
+    // Audio & Combat visuals
+    SoundEngine.playSlash();
+    SoundEngine.playBossHit();
+
+    // Spawn slash effect
+    const slash = document.createElement('div');
+    slash.className = 'slash-effect';
+    bossAvatarWrapper.appendChild(slash);
+    setTimeout(() => slash.remove(), 400);
+
+    // Boss recoil shake
+    bossAvatarWrapper.classList.remove('boss-idle');
+    bossAvatarWrapper.classList.add('boss-hit');
+    setTimeout(() => {
+      bossAvatarWrapper.classList.remove('boss-hit');
+      bossAvatarWrapper.classList.add('boss-idle');
+    }, 500);
+
+    // Calculate Damage
+    const multiplier = state.streak >= 3 ? 1.5 : 1.0;
+    const damage = Math.round(25 * multiplier);
+    state.bossHp -= damage;
+    state.score += damage * 2;
+
+    // Spawn Damage Number
+    spawnDamageNumber(`-${damage} HP!`, '#ef4444');
+
+    syncBossHUD();
+
+    if (state.bossHp <= 0) {
+      // VICTORY!
+      SoundEngine.playLevelUp();
+      Confetti.cannon();
+      StorageManager.recordBossDefeated(state.currentBoss.id);
+      StorageManager.addXP(60);
+      setTimeout(() => endGame(`Defeated ${state.currentBoss.name}!`), 800);
+    } else {
+      setTimeout(() => {
+        startBossTurnTimer();
+        loadNextBossProblem();
+      }, 500);
+    }
+  }
+
+  function handleBossRetaliation(message) {
+    clearInterval(state.bossTimerInterval);
+    state.streak = 0;
+    SoundEngine.playBossAttack();
+
+    const attackDamage = state.currentBoss.attackPower;
+    state.playerHp -= attackDamage;
+
+    spawnDamageNumber(`-${attackDamage} HP!`, '#f87171', window.innerWidth * 0.4, window.innerHeight * 0.6);
+
+    // Screen Shake
+    document.body.classList.add('animate-shake');
+    setTimeout(() => document.body.classList.remove('animate-shake'), 400);
+
+    syncBossHUD();
+
+    if (state.playerHp <= 0) {
+      SoundEngine.playGameOver();
+      setTimeout(() => endGame(`${state.currentBoss.name} defeated you!`), 600);
+    } else {
+      setTimeout(() => {
+        startBossTurnTimer();
+        loadNextBossProblem();
+      }, 800);
+    }
+  }
+
+  function spawnDamageNumber(text, color = '#ef4444', originX = null, originY = null) {
+    const el = document.createElement('div');
+    el.className = 'damage-number text-2xl sm:text-3xl font-black drop-shadow-md';
+    el.style.color = color;
+    el.textContent = text;
+    bossCombatEffectsContainer.appendChild(el);
+    setTimeout(() => el.remove(), 1100);
+  }
+
+  // =========================================================================
   // FLASHCARDS STUDY ENGINE
   // =========================================================================
   function startFlashcards() {
@@ -529,7 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
     state.isCardFlipped = false;
     fcCardInner.classList.remove('flipped');
 
-    // Generate a deck of 15 problems
     state.flashcardDeck = MathEngine.generateDeck({
       operation: state.operation,
       difficulty: state.difficulty,
@@ -556,6 +841,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fcBackEquation.textContent = `${card.equation} =`;
     fcBackAnswer.textContent = card.answer;
     fcBackHint.textContent = card.hint || `${card.num1} ${card.symbol} ${card.num2} equals ${card.answer}`;
+
+    // Render Visual Dot Array on Back of Flashcard
+    if (card.operation === 'multiply' && card.num1 <= 12 && card.num2 <= 12) {
+      fcVisualDotsContainer.classList.remove('hidden');
+      renderVisualDotGrid(fcVisualDotsContainer, card.num1, card.num2);
+    } else {
+      fcVisualDotsContainer.classList.add('hidden');
+    }
+
+    if (SoundEngine.isSpeechEnabled()) {
+      SoundEngine.speakEquation(card.num1, card.operation, card.num2);
+    }
   }
 
   function toggleFlipCard() {
@@ -589,10 +886,119 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
+  // 12x12 MULTIPLICATION MATRIX EXPLORER (NEW!)
+  // =========================================================================
+  function buildMatrixGrid() {
+    matrixGridContainer.innerHTML = '';
+    const matrixStats = StorageManager.getMatrixStats();
+
+    // Cell (0, 0): Corner Symbol
+    const corner = document.createElement('div');
+    corner.className = 'matrix-cell bg-slate-900 text-indigo-400 font-black text-sm border border-slate-800';
+    corner.textContent = '×';
+    matrixGridContainer.appendChild(corner);
+
+    // Column Headers (1 to 12)
+    for (let c = 1; c <= 12; c++) {
+      const colHeader = document.createElement('div');
+      colHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80 header-col';
+      colHeader.textContent = c;
+      colHeader.dataset.col = c;
+      matrixGridContainer.appendChild(colHeader);
+    }
+
+    // Grid Rows
+    for (let r = 1; r <= 12; r++) {
+      // Row Header
+      const rowHeader = document.createElement('div');
+      rowHeader.className = 'matrix-cell bg-slate-800/90 text-indigo-300 font-bold border border-slate-700/80 header-row';
+      rowHeader.textContent = r;
+      rowHeader.dataset.row = r;
+      matrixGridContainer.appendChild(rowHeader);
+
+      // Data Cells (1 to 12)
+      for (let c = 1; c <= 12; c++) {
+        const product = r * c;
+        const cell = document.createElement('div');
+        const key = `${Math.min(r, c)}x${Math.max(r, c)}`;
+        const stat = matrixStats[key];
+
+        let masteryClass = 'untested';
+        if (stat && stat.attempts > 0) {
+          const acc = stat.correct / stat.attempts;
+          if (acc >= 0.8 && stat.attempts >= 2) masteryClass = 'mastered';
+          else if (acc >= 0.5) masteryClass = 'learning';
+          else masteryClass = 'struggling';
+        }
+
+        cell.className = `matrix-cell ${masteryClass}`;
+        cell.textContent = product;
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.dataset.product = product;
+
+        // Hover & Tap Events
+        cell.addEventListener('mouseenter', () => highlightMatrixCrosshair(r, c));
+        cell.addEventListener('click', () => {
+          SoundEngine.playClick();
+          selectMatrixCell(r, c, product, stat);
+        });
+
+        matrixGridContainer.appendChild(cell);
+      }
+    }
+
+    // Default select 7x8
+    selectMatrixCell(7, 8, 56, matrixStats['7x8']);
+  }
+
+  function highlightMatrixCrosshair(row, col) {
+    document.querySelectorAll('.matrix-cell').forEach(el => {
+      el.classList.remove('crosshair');
+    });
+
+    document.querySelectorAll(`.matrix-cell[data-row="${row}"]`).forEach(el => {
+      el.classList.add('crosshair');
+    });
+    document.querySelectorAll(`.matrix-cell[data-col="${col}"]`).forEach(el => {
+      el.classList.add('crosshair');
+    });
+  }
+
+  function selectMatrixCell(row, col, product, stat) {
+    state.selectedMatrixRow = row;
+    state.selectedMatrixCol = col;
+
+    matrixInfoFactors.textContent = `${row} × ${col}`;
+    matrixInfoProduct.textContent = `= ${product}`;
+
+    if (stat && stat.attempts > 0) {
+      const pct = Math.round((stat.correct / stat.attempts) * 100);
+      matrixInfoStatus.textContent = `${pct}% accuracy (${stat.correct}/${stat.attempts} correct)`;
+    } else {
+      matrixInfoStatus.textContent = 'Untested (No attempts yet)';
+    }
+
+    btnMatrixDrillRow.textContent = `⚡ Practice Table of ${row}`;
+  }
+
+  function openMatrixModal() {
+    SoundEngine.playClick();
+    buildMatrixGrid();
+    modalMatrix.classList.remove('hidden');
+  }
+
+  function closeMatrixModal() {
+    modalMatrix.classList.add('hidden');
+  }
+
+  // =========================================================================
   // GAME END & RESULTS CONTROLLER
   // =========================================================================
   function endGame(title = 'Quest Complete!') {
     clearInterval(state.timerInterval);
+    clearInterval(state.bossTimerInterval);
+    disableFeverMode();
 
     showView('view-results');
     resultsTitle.textContent = title;
@@ -600,7 +1006,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const accuracy = state.totalCount > 0 ? Math.round((state.correctCount / state.totalCount) * 100) : 100;
     const gainedXP = Math.round(state.score / 2);
 
-    // Save results to storage
     const outcome = StorageManager.recordGameResult({
       mode: state.mode,
       duration: state.blitzDuration,
@@ -610,13 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
       total: state.totalCount,
     });
 
-    // Populate Results UI
     resultsScore.textContent = state.score;
     resultsStreak.textContent = state.maxStreak;
     resultsAccuracy.textContent = `${accuracy}%`;
     resultsXP.textContent = `+${gainedXP} XP`;
 
-    // High Score / Fanfare Audio
     if (outcome.newHighScore && state.score > 0) {
       SoundEngine.playLevelUp();
       Confetti.cannon();
@@ -628,7 +1031,6 @@ document.addEventListener('DOMContentLoaded', () => {
       SoundEngine.playGameOver();
     }
 
-    // Populate mistakes section
     if (state.roundMistakes.length > 0) {
       resultsMistakesContainer.classList.remove('hidden');
       resultsMistakesList.innerHTML = '';
@@ -655,14 +1057,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sound FX Toggle
     btnSoundToggle.addEventListener('click', () => {
       SoundEngine.toggleMute();
-      updateAudioIcon();
+      updateAudioIcons();
+    });
+
+    // 8-Bit BGM Toggle
+    btnBgmToggle.addEventListener('click', () => {
+      SoundEngine.toggleBGM();
+      updateAudioIcons();
+    });
+
+    // Speech Read-Aloud Toggle
+    btnSpeechToggle.addEventListener('click', () => {
+      SoundEngine.toggleSpeech();
+      updateAudioIcons();
+    });
+
+    // Single Question Speech Button
+    btnQuizSpeak.addEventListener('click', () => {
+      if (state.currentProblem) {
+        SoundEngine.speakEquation(state.currentProblem.num1, state.currentProblem.operation, state.currentProblem.num2);
+      }
     });
 
     // Logo click returns to lobby
     btnNavLogo.addEventListener('click', () => {
       SoundEngine.playClick();
       clearInterval(state.timerInterval);
+      clearInterval(state.bossTimerInterval);
       showView('view-lobby');
+    });
+
+    // Matrix Explorer Modal
+    btnMatrixToggle.addEventListener('click', openMatrixModal);
+    btnCloseMatrix.addEventListener('click', closeMatrixModal);
+    btnMatrixCloseAction.addEventListener('click', closeMatrixModal);
+    modalMatrix.addEventListener('click', (e) => {
+      if (e.target === modalMatrix) closeMatrixModal();
+    });
+
+    // Matrix instant drill button
+    btnMatrixDrillRow.addEventListener('click', () => {
+      closeMatrixModal();
+      state.operation = 'multiply';
+      state.customTables = [state.selectedMatrixRow];
+      renderTableChips();
+      startGame('blitz');
     });
 
     // Stats Modal
@@ -678,10 +1117,11 @@ document.addEventListener('DOMContentLoaded', () => {
       card.addEventListener('click', () => {
         SoundEngine.playClick();
         modeCards.forEach(c => {
-          c.classList.remove('border-indigo-500', 'border-2');
+          c.classList.remove('border-indigo-500', 'border-purple-500', 'border-2');
           c.classList.add('border-slate-800', 'border');
         });
-        card.classList.add('border-indigo-500', 'border-2');
+        const borderColor = card.dataset.mode === 'boss' ? 'border-purple-500' : 'border-indigo-500';
+        card.classList.add(borderColor, 'border-2');
         card.classList.remove('border-slate-800', 'border');
         state.mode = card.dataset.mode;
       });
@@ -710,7 +1150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.className = 'op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all';
         state.operation = btn.dataset.op;
 
-        // Toggle custom tables visibility
         if (state.operation === 'multiply') {
           customTablesWrapper.classList.remove('hidden');
         } else {
@@ -735,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleAllTables.addEventListener('click', () => {
       SoundEngine.playClick();
       if (state.customTables.length === 12) {
-        state.customTables = [7]; // keep at least one
+        state.customTables = [7];
       } else {
         state.customTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
       }
@@ -770,11 +1209,27 @@ document.addEventListener('DOMContentLoaded', () => {
       showView('view-lobby');
     });
 
+    // Exit from Boss Battle
+    btnBossExit.addEventListener('click', () => {
+      SoundEngine.playClick();
+      clearInterval(state.bossTimerInterval);
+      showView('view-lobby');
+    });
+
     // Multiple Choice Buttons Click
     choiceBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         if (!state.isEvaluating) {
           handleAnswerSubmit(btn.dataset.answer);
+        }
+      });
+    });
+
+    // Boss Battle Choice Buttons Click
+    bossChoiceBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!state.isEvaluating) {
+          handleBossAnswerSubmit(btn.dataset.answer);
         }
       });
     });
@@ -791,7 +1246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleAnswerSubmit(state.directInputVal);
           }
         } else {
-          // Limit to 4 digits
           if (state.directInputVal.length < 4) {
             state.directInputVal += key;
           }
@@ -838,26 +1292,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reset All Data
     btnResetData.addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset all XP, high scores, and progress?')) {
+      if (confirm('Are you sure you want to reset all XP, high scores, matrix heatmap, and progress?')) {
         StorageManager.resetAll();
         closeStatsModal();
         syncPlayerHUD();
         syncLobbyStats();
+        buildMatrixGrid();
       }
     });
 
-    // Physical Keyboard Support
+    // Global Keydown
     window.addEventListener('keydown', handleGlobalKeydown);
   }
 
   function handleGlobalKeydown(e) {
-    // If modal is open, Esc closes it
+    if (!modalMatrix.classList.contains('hidden') && e.key === 'Escape') {
+      closeMatrixModal();
+      return;
+    }
+
     if (!modalStats.classList.contains('hidden') && e.key === 'Escape') {
       closeStatsModal();
       return;
     }
 
-    // Flashcard view keybindings
     if (!viewFlashcards.classList.contains('hidden')) {
       if (e.key === ' ' || e.key === 'Spacebar') {
         e.preventDefault();
@@ -870,10 +1328,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Quiz view keybindings
+    if (!viewBoss.classList.contains('hidden') && !state.isEvaluating) {
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const index = parseInt(e.key, 10) - 1;
+        const targetBtn = bossChoiceBtns[index];
+        if (targetBtn && targetBtn.dataset.answer) {
+          handleBossAnswerSubmit(targetBtn.dataset.answer);
+        }
+      }
+      return;
+    }
+
     if (!viewQuiz.classList.contains('hidden') && !state.isEvaluating) {
       if (state.inputStyle === 'choice') {
-        // Keys 1, 2, 3, 4 select options
         if (['1', '2', '3', '4'].includes(e.key)) {
           const index = parseInt(e.key, 10) - 1;
           const targetBtn = choiceBtns[index];
@@ -882,7 +1349,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else {
-        // Direct input typing
         if (/^[0-9]$/.test(e.key)) {
           if (state.directInputVal.length < 4) {
             SoundEngine.playClick();
@@ -916,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statTotalAnswered.textContent = stats.totalAnswered;
     statAccuracyRate.textContent = `${stats.accuracy}%`;
     statHighestStreak.textContent = stats.highestStreak;
-    statSurvivalBest.textContent = stats.highScores.survival || 0;
+    statBossDefeated.textContent = stats.bossStats ? stats.bossStats.totalBeaten : 0;
 
     recordBlitz30.textContent = stats.highScores.blitz_30 || 0;
     recordBlitz60.textContent = stats.highScores.blitz_60 || 0;
@@ -934,6 +1400,5 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  // Run App Init
   init();
 });
