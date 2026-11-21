@@ -3,7 +3,7 @@
  * Caches core app shell for fast offline gameplay
  */
 
-const CACHE_NAME = 'math-quest-v4';
+const CACHE_NAME = 'math-quest-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

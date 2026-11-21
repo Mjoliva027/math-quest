@@ -10,7 +10,7 @@ const ArcadeGames = (() => {
   // =========================================================================
   const MeteorBlaster = (() => {
     let canvas, ctx;
-    let waveEl, scoreEl, comboEl, shieldsEl;
+    let waveEl, scoreEl, comboEl, shieldsEl, pbChaserEl, stageEl;
     let pauseOverlay, btnPause, btnResume, btnExit;
     let inputValEl, btnClear;
     let quickChoiceBtns = [];
@@ -36,6 +36,9 @@ const ArcadeGames = (() => {
       spawnTimer: 0,
       spawnCount: 0,
       freezeUntil: 0,
+      targetPB: 0,
+      pbBeaten: false,
+      laserSkin: 'indigo',
       inputVal: '',
       meteors: [],
       lasers: [],
@@ -46,6 +49,45 @@ const ArcadeGames = (() => {
       callbacks: null,
     };
 
+    const LASER_SKINS = {
+      indigo: { turret: '#4f46e5', laser: '#6366f1', glow: '#818cf8' },
+      cyan: { turret: '#0891b2', laser: '#22d3ee', glow: '#67e8f9' },
+      solar: { turret: '#d97706', laser: '#fbbf24', glow: '#fde047' },
+      prism: { turret: '#ec4899', laser: '#a855f7', glow: '#38bdf8', prism: true },
+    };
+
+    const COMBO_CALLOUTS = {
+      3: '3× SHARP!',
+      5: '5× ON FIRE!',
+      8: '8× BLAZING!',
+      10: '10× UNSTOPPABLE!',
+      15: '15× LEGEND!',
+      20: '20× GODLIKE!',
+    };
+
+    function getSkinPalette(nowMs = Date.now()) {
+      const base = LASER_SKINS[state.laserSkin] || LASER_SKINS.indigo;
+      if (base.prism) {
+        const hue = Math.floor((nowMs / 10) % 360);
+        return {
+          turret: `hsl(${hue}, 85%, 58%)`,
+          laser: `hsl(${(hue + 45) % 360}, 92%, 62%)`,
+          glow: `hsl(${(hue + 90) % 360}, 95%, 70%)`,
+        };
+      }
+      return base;
+    }
+
+    function triggerShake() {
+      if (!stageEl) return;
+      stageEl.classList.remove('arena-shake');
+      void stageEl.offsetWidth;
+      stageEl.classList.add('arena-shake');
+      setTimeout(() => {
+        if (stageEl) stageEl.classList.remove('arena-shake');
+      }, 360);
+    }
+
     function bindElements() {
       if (bound) return;
       canvas = document.getElementById('meteor-canvas');
@@ -54,6 +96,8 @@ const ArcadeGames = (() => {
       scoreEl = document.getElementById('meteor-score');
       comboEl = document.getElementById('meteor-combo');
       shieldsEl = document.getElementById('meteor-shields');
+      pbChaserEl = document.getElementById('meteor-pb-chaser');
+      stageEl = document.getElementById('meteor-stage');
       pauseOverlay = document.getElementById('meteor-pause-overlay');
       btnPause = document.getElementById('btn-meteor-pause');
       btnResume = document.getElementById('btn-meteor-resume');
@@ -144,6 +188,20 @@ const ArcadeGames = (() => {
       if (waveEl) waveEl.textContent = `Wave ${state.wave}`;
       if (scoreEl) scoreEl.textContent = state.score;
       if (comboEl) comboEl.textContent = `x${state.combo}`;
+      if (pbChaserEl) {
+        if (state.targetPB > 0) {
+          pbChaserEl.classList.remove('hidden');
+          if (state.score > state.targetPB) {
+            pbChaserEl.textContent = '🏆 NEW PB!';
+            pbChaserEl.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-[10px] font-bold font-mono text-emerald-300';
+          } else {
+            pbChaserEl.textContent = `🔥 ${state.targetPB - state.score} to PB`;
+            pbChaserEl.className = 'px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-bold font-mono text-amber-300';
+          }
+        } else {
+          pbChaserEl.classList.add('hidden');
+        }
+      }
       if (shieldsEl) {
         shieldsEl.innerHTML = '';
         for (let i = 0; i < 3; i++) {
@@ -271,13 +329,14 @@ const ArcadeGames = (() => {
       const idx = state.meteors.indexOf(meteor);
       if (idx !== -1) state.meteors.splice(idx, 1);
 
+      const palette = getSkinPalette();
       const colors = {
-        normal: '#6366f1',
+        normal: palette.laser,
         cryo: '#22d3ee',
         nova: '#f59e0b',
         shield: '#10b981',
       };
-      const color = colors[meteor.kind] || '#6366f1';
+      const color = colors[meteor.kind] || palette.laser;
 
       state.lasers.push({
         x1: state.width / 2,
@@ -321,9 +380,21 @@ const ArcadeGames = (() => {
           state.popups.push({ x: state.width / 2, y: 60, text: '+1 SHIELD!', color: '#34d399', life: 1.1 });
         } else if (meteor.kind === 'nova') {
           state.popups.push({ x: state.width / 2, y: 60, text: 'NOVA BLAST!', color: '#fbbf24', life: 1.1 });
+          triggerShake();
           const remaining = [...state.meteors];
           remaining.forEach(other => destroyMeteor(other, false));
           state.score += remaining.length * 20;
+        }
+
+        if (COMBO_CALLOUTS[state.combo]) {
+          state.popups.push({ x: state.width / 2, y: 118, text: COMBO_CALLOUTS[state.combo], color: '#fde047', life: 1.05 });
+        }
+
+        if (state.targetPB > 0 && !state.pbBeaten && state.score > state.targetPB) {
+          state.pbBeaten = true;
+          state.popups.push({ x: state.width / 2, y: 40, text: '🏆 NEW RECORD!', color: '#34d399', life: 1.4 });
+          if (typeof Confetti !== 'undefined') Confetti.burst(35);
+          if (typeof SoundEngine !== 'undefined') SoundEngine.playLevelUp();
         }
 
         if (state.waveKills >= 6) {
@@ -483,6 +554,7 @@ const ArcadeGames = (() => {
             state.callbacks.onStatsAttempt(m.problem, false, null);
           }
           if (typeof SoundEngine !== 'undefined') SoundEngine.playBossAttack();
+          triggerShake();
           if (navigator.vibrate) navigator.vibrate([40, 30, 60]);
           syncHUD();
           syncQuickChoices();
@@ -564,7 +636,8 @@ const ArcadeGames = (() => {
       ctx.stroke();
 
       // Turret dot
-      ctx.fillStyle = '#4f46e5';
+      const palette = getSkinPalette(nowMs);
+      ctx.fillStyle = palette.turret;
       ctx.beginPath();
       ctx.arc(w / 2, h - 18, 8, Math.PI, 0);
       ctx.fill();
@@ -665,12 +738,15 @@ const ArcadeGames = (() => {
       }
     }
 
-    function start({ operation, difficulty, customTables, weakFacts, onStatsAttempt, onFinish, onExit }) {
+    function start({ operation, difficulty, customTables, weakFacts, targetPB = 0, laserSkin = 'indigo', onStatsAttempt, onFinish, onExit }) {
       bindElements();
       stop();
 
       state.config = { operation, difficulty, customTables, weakFacts };
       state.callbacks = { onStatsAttempt, onFinish, onExit };
+      state.targetPB = Number(targetPB) || 0;
+      state.pbBeaten = false;
+      state.laserSkin = LASER_SKINS[laserSkin] ? laserSkin : 'indigo';
       state.wave = 1;
       state.waveKills = 0;
       state.score = 0;

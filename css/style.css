@@ -764,3 +764,254 @@ html.theme-light #pvp-equation-card {
   background: rgba(255, 255, 255, 0.96) !important;
   border-color: #cbd5e1 !important;
 }
+
+/* ==========================================================================
+   ENGAGEMENT SUITE: SHAKE, COMBO CALLOUTS, EMOTES & AVATAR FRAMES
+   ========================================================================== */
+@keyframes arenaShake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, 2px); }
+  40% { transform: translate(4px, -2px); }
+  60% { transform: translate(-3px, -2px); }
+  80% { transform: translate(3px, 2px); }
+}
+
+.arena-shake {
+  animation: arenaShake 0.35s ease-in-out;
+}
+
+@keyframes comboPop {
+  0% { opacity: 0; transform: translateY(14px) scale(0.6); }
+  25% { opacity: 1; transform: translateY(-6px) scale(1.18); }
+  75% { opacity: 1; transform: translateY(-18px) scale(1); }
+  100% { opacity: 0; transform: translateY(-34px) scale(0.92); }
+}
+
+.combo-callout-badge {
+  position: absolute;
+  margin-top: -3.5rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 9999px;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+  pointer-events: none;
+  animation: comboPop 1s ease-out forwards;
+  z-index: 55;
+  white-space: nowrap;
+}
+
+@keyframes emotePop {
+  0% { opacity: 0; transform: translateY(8px) scale(0.7); }
+  15% { opacity: 1; transform: translateY(0) scale(1.1); }
+  80% { opacity: 1; transform: translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+
+.pvp-emote-bubble {
+  position: absolute;
+  top: 2px;
+  z-index: 45;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  animation: emotePop 1.7s ease-out forwards;
+}
+
+.pvp-emote-me { left: 8px; }
+.pvp-emote-opp { right: 8px; }
+
+.avatar-frame-gold {
+  box-shadow: 0 0 0 2px #fbbf24, 0 0 10px rgba(251, 191, 36, 0.6);
+}
+.avatar-frame-neon {
+  box-shadow: 0 0 0 2px #22d3ee, 0 0 12px rgba(34, 211, 238, 0.75);
+}
+.avatar-frame-flame {
+  box-shadow: 0 0 0 2px #fb923c, 0 0 12px rgba(239, 68, 68, 0.7);
+}
+.avatar-frame-cosmic {
+  box-shadow: 0 0 0 2px #a78bfa, 0 0 14px rgba(167, 139, 250, 0.8), 0 0 22px rgba(236, 72, 153, 0.4);
+}
+
+/* ==========================================================================
+   UNLOCKABLE THEMES (Star Shop): Synthwave, Nebula, Forest
+   ========================================================================== */
+html.theme-synthwave,
+html.theme-synthwave body {
+  background-color: #1a0b2e !important;
+  color: #fde7ff !important;
+}
+html.theme-synthwave header {
+  background-color: rgba(42, 12, 72, 0.92) !important;
+  border-color: #7c3aed !important;
+}
+html.theme-synthwave .glass-panel {
+  background: rgba(64, 18, 100, 0.62);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+}
+html.theme-synthwave .glass-card {
+  background: rgba(34, 10, 60, 0.92);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+}
+html.theme-synthwave .bg-slate-950,
+html.theme-synthwave .bg-slate-900,
+html.theme-synthwave .bg-slate-900\/95,
+html.theme-synthwave .bg-slate-900\/90,
+html.theme-synthwave .bg-slate-900\/60 {
+  background-color: #2a0f48 !important;
+}
+html.theme-synthwave .bg-slate-800,
+html.theme-synthwave .bg-slate-800\/90,
+html.theme-synthwave .bg-slate-800\/80,
+html.theme-synthwave .bg-slate-800\/70,
+html.theme-synthwave .bg-slate-800\/60 {
+  background-color: #3b1768 !important;
+}
+html.theme-synthwave .border-slate-800,
+html.theme-synthwave .border-slate-700,
+html.theme-synthwave .border-slate-700\/80,
+html.theme-synthwave .border-slate-700\/60 {
+  border-color: #7c3aed !important;
+}
+html.theme-synthwave .text-slate-400,
+html.theme-synthwave .text-slate-300 {
+  color: #e9c4ff !important;
+}
+html.theme-synthwave .text-indigo-300,
+html.theme-synthwave .text-indigo-400 {
+  color: #f472b6 !important;
+}
+html.theme-synthwave #btn-start-game,
+html.theme-synthwave .bg-indigo-600 {
+  background-image: linear-gradient(90deg, #db2777, #7c3aed) !important;
+  color: #ffffff !important;
+}
+
+html.theme-nebula,
+html.theme-nebula body {
+  background-color: #0d0a24 !important;
+  color: #e0e7ff !important;
+  background-image: radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.22), transparent 45%), radial-gradient(circle at 85% 80%, rgba(20, 184, 166, 0.16), transparent 45%);
+}
+html.theme-nebula header {
+  background-color: rgba(18, 12, 48, 0.92) !important;
+  border-color: #4338ca !important;
+}
+html.theme-nebula .glass-panel {
+  background: rgba(30, 24, 74, 0.68);
+  border: 1px solid rgba(129, 140, 248, 0.28);
+}
+html.theme-nebula .glass-card {
+  background: rgba(16, 12, 44, 0.92);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+html.theme-nebula .bg-slate-950,
+html.theme-nebula .bg-slate-900,
+html.theme-nebula .bg-slate-900\/95,
+html.theme-nebula .bg-slate-900\/90,
+html.theme-nebula .bg-slate-900\/60 {
+  background-color: #17123c !important;
+}
+html.theme-nebula .bg-slate-800,
+html.theme-nebula .bg-slate-800\/90,
+html.theme-nebula .bg-slate-800\/80,
+html.theme-nebula .bg-slate-800\/70,
+html.theme-nebula .bg-slate-800\/60 {
+  background-color: #241c5c !important;
+}
+html.theme-nebula .border-slate-800,
+html.theme-nebula .border-slate-700,
+html.theme-nebula .border-slate-700\/80,
+html.theme-nebula .border-slate-700\/60 {
+  border-color: #4f46e5 !important;
+}
+html.theme-nebula .text-slate-400,
+html.theme-nebula .text-slate-300 {
+  color: #c7d2fe !important;
+}
+
+html.theme-forest,
+html.theme-forest body {
+  background-color: #08140f !important;
+  color: #e7fdf0 !important;
+}
+html.theme-forest header {
+  background-color: rgba(10, 30, 22, 0.92) !important;
+  border-color: #047857 !important;
+}
+html.theme-forest .glass-panel {
+  background: rgba(16, 52, 38, 0.65);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+}
+html.theme-forest .glass-card {
+  background: rgba(8, 30, 22, 0.92);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+html.theme-forest .bg-slate-950,
+html.theme-forest .bg-slate-900,
+html.theme-forest .bg-slate-900\/95,
+html.theme-forest .bg-slate-900\/90,
+html.theme-forest .bg-slate-900\/60 {
+  background-color: #0e2a1f !important;
+}
+html.theme-forest .bg-slate-800,
+html.theme-forest .bg-slate-800\/90,
+html.theme-forest .bg-slate-800\/80,
+html.theme-forest .bg-slate-800\/70,
+html.theme-forest .bg-slate-800\/60 {
+  background-color: #15402f !important;
+}
+html.theme-forest .border-slate-800,
+html.theme-forest .border-slate-700,
+html.theme-forest .border-slate-700\/80,
+html.theme-forest .border-slate-700\/60 {
+  border-color: #059669 !important;
+}
+html.theme-forest .text-slate-400,
+html.theme-forest .text-slate-300 {
+  color: #bbf7d0 !important;
+}
+html.theme-forest .text-indigo-300,
+html.theme-forest .text-indigo-400 {
+  color: #6ee7b7 !important;
+}
+
+html.theme-synthwave #modal-shop,
+html.theme-nebula #modal-shop,
+html.theme-forest #modal-shop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Light theme support for engagement elements */
+html.theme-light #modal-shop {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+html.theme-light #lobby-ghost-banner {
+  background: linear-gradient(to right, #fdf4ff, #eef2ff) !important;
+  border-color: #e879f9 !important;
+}
+html.theme-light #results-next-hook {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+html.theme-light #lb-room-goal-box {
+  background: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+}
+html.theme-light .pvp-emote-btn {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+html.theme-light #btn-ghost-accept,
+html.theme-light #btn-results-ghost-share {
+  color: #ffffff !important;
+}

@@ -102,6 +102,7 @@ require('./math-engine.test.js');
 require('./storage.test.js');
 require('./leaderboard.test.js');
 require('./pvp.test.js');
+require('./engagement.test.js');
 
 const duration = Date.now() - startTime;
 console.log(`\n\x1b[1m----------------------------------------\x1b[0m`);

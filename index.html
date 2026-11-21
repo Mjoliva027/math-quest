@@ -87,6 +87,12 @@
 
       <!-- Upper-Right Controls & Player Profile Switcher -->
       <div class="flex items-center gap-1.5">
+        <!-- Star Shop Button -->
+        <button id="btn-shop-toggle" type="button" title="Star Shop" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-xs font-black text-amber-300 transition-all active:scale-95 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span id="nav-stars-count" class="font-mono">0</span>
+        </button>
+
         <!-- Desktop Header Controls (Vector SVGs) -->
         <div class="hidden md:flex items-center gap-1.5">
           <button id="btn-install-app" type="button" title="Install Math Quest App" class="hidden px-2.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-xs font-bold text-emerald-300 transition-all flex items-center gap-1">
@@ -170,6 +176,18 @@
          ================================================================== -->
     <section id="view-lobby" class="space-y-4 sm:space-y-5">
 
+      <!-- Ghost Challenge Banner -->
+      <div id="lobby-ghost-banner" class="hidden rounded-2xl bg-gradient-to-r from-fuchsia-950/80 to-indigo-950/70 border border-fuchsia-400/50 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-lg">
+        <div class="space-y-0.5 min-w-0">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-400/30">Ghost Challenge</span>
+          <p id="ghost-banner-text" class="text-xs sm:text-sm font-bold text-white break-words"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-ghost-accept" type="button" class="px-3.5 py-2 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 active:scale-95 text-white text-xs font-bold shadow">Accept Challenge</button>
+          <button id="btn-ghost-dismiss" type="button" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">Dismiss</button>
+        </div>
+      </div>
+
       <!-- Shared Teacher / Parent Assignment Banner -->
       <div id="lobby-shared-banner" class="hidden rounded-2xl bg-gradient-to-r from-indigo-950/90 to-cyan-950/70 border border-indigo-400/50 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-lg">
         <div class="space-y-0.5">
@@ -234,6 +252,19 @@
               Play Daily
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Math Companion Card -->
+      <div id="lobby-companion-card" class="glass-panel rounded-2xl p-3 sm:p-4 flex items-center gap-3 cursor-pointer active:scale-[0.99] transition-transform" role="button" tabindex="0" title="Tap to cheer with your companion">
+        <div id="companion-avatar" class="flex-shrink-0 w-16 h-16 rounded-2xl bg-slate-900/70 border border-slate-700 flex items-center justify-center"></div>
+        <div class="min-w-0 flex-1 space-y-0.5">
+          <div class="flex items-center gap-2">
+            <span id="companion-name" class="text-sm font-black text-white truncate">Spark Egg</span>
+            <span id="companion-stage" class="px-1.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-[9px] font-bold text-indigo-300">Stage 1/5</span>
+          </div>
+          <p id="companion-speech" class="text-[11px] sm:text-xs text-emerald-300 font-semibold"></p>
+          <p id="companion-goal" class="text-[10px] text-slate-400"></p>
         </div>
       </div>
 
@@ -524,6 +555,7 @@
               </svg>
               <span id="daily-streak-count">0 Day Streak</span>
             </span>
+            <span id="daily-streak-freeze-badge" title="Streak Freeze Shields protect your streak if you miss a day" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold">&#128737; <span id="daily-streak-freeze-count">0</span></span>
             <span class="text-xs font-bold text-slate-300">Daily Quests</span>
           </div>
           <span class="flex items-center gap-2">
@@ -608,6 +640,22 @@
               <button id="btn-quiz-exit" class="p-1.5 sm:p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95" title="Quit">
                 ✕
               </button>
+            </div>
+          </div>
+
+          <!-- Personal Best Chaser -->
+          <div id="quiz-pb-chaser" class="hidden self-start px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] sm:text-[11px] font-bold font-mono text-amber-300 w-fit"></div>
+
+          <!-- Ghost Challenge Pace Bar -->
+          <div id="quiz-ghost-bar-wrap" class="hidden space-y-1">
+            <div class="flex items-center justify-between text-[10px] font-bold">
+              <span class="text-emerald-300">You <span id="ghost-me-val" class="font-mono">0</span></span>
+              <span id="ghost-delta-text" class="font-mono text-slate-300"></span>
+              <span class="text-fuchsia-300"><span id="ghost-name-label">Ghost</span> <span id="ghost-ghost-val" class="font-mono">0</span></span>
+            </div>
+            <div class="relative h-2 rounded-full bg-slate-900/90 border border-slate-800 overflow-hidden">
+              <div id="ghost-bar-ghost" class="absolute inset-y-0 left-0 bg-fuchsia-500/60 rounded-full transition-all duration-300" style="width: 0%"></div>
+              <div id="ghost-bar-me" class="absolute inset-y-0 left-0 bg-emerald-400/80 rounded-full transition-all duration-300" style="width: 0%; height: 50%"></div>
             </div>
           </div>
 
@@ -755,6 +803,7 @@
             <h2 class="text-lg sm:text-xl font-black text-white">PvP Battle Arena</h2>
           </div>
           <div class="flex items-center gap-2">
+            <span id="pvp-rank-badge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold text-orange-300">&#127942; 0 · Bronze</span>
             <span id="pvp-record-badge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold text-amber-300">0W · 0L · 0 Streak</span>
             <button id="btn-pvp-lobby-exit" type="button" class="p-1.5 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
               Lobby ✕
@@ -869,6 +918,8 @@
         <!-- Format 1 HUD: HP Combat Duel -->
         <div id="pvp-duel-hud" class="glass-card rounded-2xl p-3.5 sm:p-4 border border-indigo-500/30 relative overflow-hidden">
           <div id="pvp-combat-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"></div>
+          <div id="pvp-me-emote-bubble" class="pvp-emote-bubble pvp-emote-me hidden"></div>
+          <div id="pvp-opp-emote-bubble" class="pvp-emote-bubble pvp-emote-opp hidden"></div>
           <div class="grid grid-cols-2 gap-3 items-center">
             <!-- Player Side -->
             <div class="space-y-1.5">
@@ -920,6 +971,8 @@
         <!-- Format 2 HUD: Online Tug-of-War -->
         <div id="pvp-tug-hud" class="hidden glass-card rounded-2xl p-3.5 sm:p-4 border border-amber-500/40 relative overflow-hidden space-y-2.5">
           <div id="pvp-tug-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"></div>
+          <div id="pvp-tug-me-emote-bubble" class="pvp-emote-bubble pvp-emote-me hidden"></div>
+          <div id="pvp-tug-opp-emote-bubble" class="pvp-emote-bubble pvp-emote-opp hidden"></div>
           <div class="flex items-center justify-between gap-2 text-xs">
             <div class="flex items-center gap-2 min-w-0">
               <div id="pvp-tug-me-avatar" class="w-8 h-8 rounded-xl bg-indigo-950/70 border border-indigo-400/50 flex items-center justify-center flex-shrink-0"></div>
@@ -958,6 +1011,15 @@
           <span id="pvp-op-label" class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold mb-1">× Multiply</span>
           <div id="pvp-equation-text" class="text-4xl sm:text-6xl font-black text-white font-mono py-1 select-none">8 × 7</div>
           <div id="pvp-status-text" class="text-xs text-slate-400 italic min-h-[1.25rem]"></div>
+        </div>
+
+        <!-- Quick Emotes (kid-safe presets) -->
+        <div id="pvp-emote-bar" class="flex flex-wrap items-center justify-center gap-1.5">
+          <button type="button" class="pvp-emote-btn px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95" data-emote="fast">&#9889; Fast!</button>
+          <button type="button" class="pvp-emote-btn px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95" data-emote="fire">&#128293; On Fire!</button>
+          <button type="button" class="pvp-emote-btn px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95" data-emote="shield">&#128737;&#65039; Blocked!</button>
+          <button type="button" class="pvp-emote-btn px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95" data-emote="gg">&#128079; GG!</button>
+          <button type="button" class="pvp-emote-btn px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95" data-emote="close">&#128517; Close!</button>
         </div>
 
         <!-- Choice Input -->
@@ -1177,6 +1239,15 @@
           </div>
         </div>
 
+        <div id="results-stars-badge" class="hidden mx-auto w-fit px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 font-mono font-bold text-xs"></div>
+
+        <div id="results-ghost-verdict" class="hidden p-2.5 rounded-2xl border text-xs font-bold"></div>
+
+        <div id="results-next-hook" class="hidden text-left p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-0.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 block">One More Round?</span>
+          <p id="results-next-hook-text" class="text-xs text-slate-200"></p>
+        </div>
+
         <!-- Daily Challenge Share Box -->
         <div id="results-daily-share-box" class="hidden bg-slate-900/80 rounded-2xl p-3.5 border border-cyan-500/30 space-y-2.5 text-center">
           <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-300 block">Daily Math Challenge Result</span>
@@ -1206,6 +1277,9 @@
             </svg>
             <span>Play Again</span>
           </button>
+          <button id="btn-results-ghost-share" type="button" class="hidden w-full py-2.5 rounded-xl bg-fuchsia-600/20 hover:bg-fuchsia-600/35 border border-fuchsia-500/40 active:scale-95 text-fuchsia-300 font-bold text-xs transition-all">
+            Challenge a Friend (Ghost Link)
+          </button>
           <div class="grid grid-cols-2 gap-2">
             <button id="btn-results-leaderboard" type="button" class="py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/35 border border-amber-500/40 active:scale-95 text-amber-300 font-bold text-xs transition-all">
               View Leaderboard
@@ -1233,6 +1307,7 @@
         <div class="flex items-center gap-2">
           <span id="meteor-wave" class="px-2.5 py-1 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-300 font-bold text-xs">Wave 1</span>
           <span id="meteor-combo" class="font-mono font-black text-amber-400 text-sm">x0</span>
+          <span id="meteor-pb-chaser" class="hidden px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-bold font-mono text-amber-300"></span>
         </div>
         <div class="flex items-center gap-1.5">
           <span class="text-[10px] text-slate-400 uppercase font-bold">Shields</span>
@@ -1249,7 +1324,7 @@
       </div>
 
       <!-- Canvas Stage -->
-      <div class="glass-card rounded-3xl overflow-hidden border border-sky-500/30 relative shadow-2xl">
+      <div id="meteor-stage" class="glass-card rounded-3xl overflow-hidden border border-sky-500/30 relative shadow-2xl">
         <canvas id="meteor-canvas"></canvas>
         <div id="meteor-pause-overlay" class="hidden absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6">
           <span class="text-xs font-bold uppercase tracking-widest text-sky-300">Meteor Blaster Paused</span>
@@ -1442,6 +1517,14 @@
           </div>
         </button>
 
+        <button id="btn-menu-shop" type="button" class="p-3.5 rounded-2xl bg-slate-800/90 border border-amber-500/40 text-left flex flex-col justify-between active:scale-95 col-span-2">
+          <svg class="w-5 h-5 text-amber-400 mb-1" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div>
+            <span class="font-bold text-white block">Star Shop</span>
+            <span class="text-[10px] text-slate-400">Avatars, frames, lasers, themes &amp; streak shields</span>
+          </div>
+        </button>
+
         <button id="btn-menu-leaderboard" type="button" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95 col-span-2">
           <svg class="w-5 h-5 text-amber-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45.98-.98 1.05A4 4 0 0 1 5 14.2V4h14v10.2a4 4 0 0 1-4.02 3.85c-.53-.07-.98-.5-.98-1.05v-2.34"/></svg>
           <div>
@@ -1494,10 +1577,13 @@
         <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg text-slate-400 active:scale-95 text-center" data-tab="all">
           Full 12×12
         </button>
+        <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg text-amber-300 active:scale-95 text-center" data-tab="stars">
+          &#11088; Stars
+        </button>
       </div>
 
       <!-- Selected Cell Callout & Instant Drill Button -->
-      <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2">
+      <div id="matrix-callout" class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <span class="text-xl sm:text-2xl font-mono text-indigo-400" id="matrix-info-factors">7 × 8</span>
           <div>
@@ -1511,6 +1597,14 @@
       </div>
 
       <!-- Grid Container -->
+      <div id="matrix-star-map" class="hidden flex-1 overflow-auto p-1 space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span class="text-amber-300">Table Star Map</span>
+          <span id="matrix-star-total" class="font-mono text-amber-300">0 / 33 &#11088;</span>
+        </div>
+        <p class="text-[10px] text-slate-400">&#11088; 80% accuracy &middot; &#11088;&#11088; 95% accuracy &middot; &#11088;&#11088;&#11088; 95% accuracy &amp; under 2.5s average</p>
+        <div id="matrix-star-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+      </div>
       <div class="flex-1 overflow-auto p-1 bg-slate-950/60 rounded-2xl border border-slate-800">
         <div id="matrix-grid-container" class="grid gap-1 min-w-[280px]">
           <!-- Injected via JS -->
@@ -1751,12 +1845,13 @@
       </div>
 
       <!-- Main Tabs -->
-      <div class="grid grid-cols-5 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+      <div class="grid grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-lb-tab="local">This Device</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="daily">Daily</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="blitz_60">Blitz 60s</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="survival">Survival</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="meteor">Meteor</button>
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="pvp">PvP</button>
       </div>
 
       <!-- Local Category Sub-Filter -->
@@ -1766,6 +1861,7 @@
         <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="blitz">Best Blitz</button>
         <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="survival">Survival</button>
         <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="meteor">Meteor</button>
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="pvp">PvP Ranks</button>
       </div>
 
       <!-- Online Classroom / Friend Room Code Bar -->
@@ -1773,6 +1869,18 @@
         <input id="input-lb-room-code" type="text" maxlength="12" placeholder="Room code (e.g. GRADE4B) or leave blank for Global" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500">
         <button id="btn-lb-apply-room" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">Join</button>
         <button id="btn-lb-clear-room" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold">Global</button>
+      </div>
+
+      <!-- Weekly Room Goal -->
+      <div id="lb-room-goal-box" class="hidden bg-slate-900/70 rounded-xl px-3 py-2 border border-emerald-500/30 space-y-1">
+        <div class="flex items-center justify-between text-[11px] font-bold">
+          <span id="lb-room-goal-title" class="text-emerald-300">Weekly Room Goal</span>
+          <span id="lb-room-goal-count" class="font-mono text-slate-200">0 / 500</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="lb-room-goal-bar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+        <span id="lb-room-goal-sub" class="text-[10px] text-slate-400 block"></span>
       </div>
 
       <!-- Status Banner -->
@@ -1789,6 +1897,36 @@
         <button id="btn-leaderboard-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">
           Done
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 6: STAR SHOP
+       ==================================================================== -->
+  <div id="modal-shop" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-3 border border-slate-700 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-white">Star Shop</h3>
+          <p class="text-[10px] text-slate-400">Earn stars from rounds, quests, Daily Challenge &amp; PvP</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono font-black text-xs">&#11088; <span id="shop-stars-balance">0</span></span>
+          <button id="btn-close-shop" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-5 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-shop-tab="avatars">Avatars</button>
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="frames">Frames</button>
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="lasers">Lasers</button>
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="themes">Themes</button>
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="consumables">Boosts</button>
+      </div>
+      <p id="shop-feedback" class="text-[11px] text-slate-400 min-h-[1rem]"></p>
+      <div id="shop-items-grid" class="flex-1 overflow-y-auto grid grid-cols-2 gap-2 pr-1 max-h-72"></div>
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button id="btn-shop-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">Done</button>
       </div>
     </div>
   </div>

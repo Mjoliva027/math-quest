@@ -8,12 +8,19 @@ const PvpArena = (() => {
   const POLL_INTERVAL_MS = 1200;
   const SEARCH_TIMEOUT_MS = 8000;
   const PRESENCE_INTERVAL_MS = 15000;
+  const EMOTE_LABELS = {
+    fast: '⚡ Fast!',
+    fire: '🔥 On Fire!',
+    shield: '🛡️ Blocked!',
+    gg: '👏 GG!',
+    close: '😅 Close!',
+  };
 
   let bound = false;
 
   // DOM References
   let lobbyPanel, battlePanel, resultOverlay;
-  let btnLobbyExit, recordBadge, formatDescEl;
+  let btnLobbyExit, recordBadge, rankBadge, formatDescEl;
   let onlineDotEl, onlineCountTextEl, onlineSubtextEl;
   let formatBtns = [];
   let btnFindMatch, btnVsAi, btnLocalTug;
@@ -25,6 +32,8 @@ const PvpArena = (() => {
   let duelHud, meAvatarEl, meNameEl, meHpTextEl, meHpBarEl, meShieldEl, meStreakEl;
   let oppAvatarEl, oppNameEl, oppBadgeEl, oppHpTextEl, oppHpBarEl, oppShieldEl, oppStreakEl, combatFxEl;
   let tugHud, tugMeAvatarEl, tugMeNameEl, tugMePullsEl, tugOppAvatarEl, tugOppNameEl, tugOppBadgeEl, tugOppPullsEl;
+  let meEmoteBubbleEl, oppEmoteBubbleEl, tugMeEmoteBubbleEl, tugOppEmoteBubbleEl;
+  let emoteBtns = [];
   let ropeLabelEl, ropeKnotEl, tugFxEl;
   let equationCard, opLabelEl, equationTextEl, statusTextEl;
   let inputChoiceWrap, choiceBtns = [];
@@ -53,11 +62,14 @@ const PvpArena = (() => {
     isStunned: false,
     stunUntil: 0,
     lastHandledEventTs: 0,
+    lastHandledEmoteTs: 0,
+    lastEmoteSentAt: 0,
     xpAwarded: false,
 
     // Online presence state (independent of match/search clearRuntimeTimers)
     onlineConfigured: false,
     onlineCount: null,
+    searchingCount: 0,
     presenceInterval: null,
     presenceController: null,
     presenceSeq: 0,
@@ -68,8 +80,11 @@ const PvpArena = (() => {
     searchFallbackTimeout: null,
     clockInterval: null,
     aiTimeout: null,
+    aiEmoteTimeout: null,
     stunTimeout: null,
     nextProbTimeout: null,
+    meEmoteTimer: null,
+    oppEmoteTimer: null,
   };
 
   function getOrCreatePlayerId() {
@@ -134,15 +149,21 @@ const PvpArena = (() => {
     clearTimeout(state.searchFallbackTimeout);
     clearInterval(state.clockInterval);
     clearTimeout(state.aiTimeout);
+    clearTimeout(state.aiEmoteTimeout);
     clearTimeout(state.stunTimeout);
     clearTimeout(state.nextProbTimeout);
+    clearTimeout(state.meEmoteTimer);
+    clearTimeout(state.oppEmoteTimer);
     state.pollInterval = null;
     state.searchCountdownInterval = null;
     state.searchFallbackTimeout = null;
     state.clockInterval = null;
     state.aiTimeout = null;
+    state.aiEmoteTimeout = null;
     state.stunTimeout = null;
     state.nextProbTimeout = null;
+    state.meEmoteTimer = null;
+    state.oppEmoteTimer = null;
   }
 
   function bindElements() {
@@ -154,6 +175,7 @@ const PvpArena = (() => {
 
     btnLobbyExit = document.getElementById('btn-pvp-lobby-exit');
     recordBadge = document.getElementById('pvp-record-badge');
+    rankBadge = document.getElementById('pvp-rank-badge');
     formatDescEl = document.getElementById('pvp-format-desc');
     onlineDotEl = document.getElementById('pvp-online-dot');
     onlineCountTextEl = document.getElementById('pvp-online-count-text');
@@ -207,6 +229,11 @@ const PvpArena = (() => {
     ropeLabelEl = document.getElementById('pvp-rope-label');
     ropeKnotEl = document.getElementById('pvp-rope-knot');
     tugFxEl = document.getElementById('pvp-tug-fx');
+    meEmoteBubbleEl = document.getElementById('pvp-me-emote-bubble');
+    oppEmoteBubbleEl = document.getElementById('pvp-opp-emote-bubble');
+    tugMeEmoteBubbleEl = document.getElementById('pvp-tug-me-emote-bubble');
+    tugOppEmoteBubbleEl = document.getElementById('pvp-tug-opp-emote-bubble');
+    emoteBtns = Array.from(document.querySelectorAll('.pvp-emote-btn'));
 
     equationCard = document.getElementById('pvp-equation-card');
     opLabelEl = document.getElementById('pvp-op-label');
@@ -370,6 +397,16 @@ const PvpArena = (() => {
       });
     }
 
+    emoteBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (state.phase !== 'playing' && state.phase !== 'finished') return;
+        const emoteId = btn.dataset.emote;
+        if (!EMOTE_LABELS[emoteId]) return;
+        if (typeof SoundEngine !== 'undefined') SoundEngine.playClick();
+        sendEmote(emoteId);
+      });
+    });
+
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden && state.active) {
@@ -390,10 +427,19 @@ const PvpArena = (() => {
   }
 
   function syncRecordBadge() {
-    if (!recordBadge) return;
     const stats = typeof StorageManager !== 'undefined' ? StorageManager.getStats() : null;
-    const pvp = (stats && stats.pvpStats) || { wins: 0, losses: 0, draws: 0, winStreak: 0 };
-    recordBadge.textContent = `${pvp.wins || 0}W · ${pvp.losses || 0}L · ${pvp.winStreak || 0} Streak`;
+    const pvp = (stats && stats.pvpStats) || { wins: 0, losses: 0, draws: 0, winStreak: 0, trophies: 0 };
+    if (recordBadge) {
+      recordBadge.textContent = `${pvp.wins || 0}W · ${pvp.losses || 0}L · ${pvp.winStreak || 0} Streak`;
+    }
+    if (rankBadge) {
+      const trophies = Math.max(0, Math.floor(Number(pvp.trophies) || 0));
+      const rank = typeof StorageManager !== 'undefined' && typeof StorageManager.getPvpRank === 'function'
+        ? StorageManager.getPvpRank(trophies)
+        : { name: 'Bronze', colorClass: 'text-orange-300' };
+      rankBadge.textContent = `🏆 ${trophies} · ${rank.name}`;
+      rankBadge.className = `px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold ${rank.colorClass}`;
+    }
   }
 
   function syncFormatSelectorUI() {
@@ -466,14 +512,19 @@ const PvpArena = (() => {
     }
   }
 
-  function renderOnlineStatus(status, count = 0) {
+  function renderOnlineStatus(status, count = 0, searching = 0) {
     if (!onlineDotEl || !onlineCountTextEl || !onlineSubtextEl) return;
     if (status === 'online') {
       const n = Math.max(0, Number(count) || 0);
+      const s = Math.max(0, Number(searching) || 0);
       onlineDotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0';
       onlineCountTextEl.className = 'text-xs font-bold text-emerald-300 truncate';
-      onlineCountTextEl.textContent = `${n} ${n === 1 ? 'player' : 'players'} online`;
-      onlineSubtextEl.textContent = n > 1 ? 'Rivals active now' : 'Only you right now · AI & Rooms ready';
+      onlineCountTextEl.textContent = s > 0
+        ? `${n} ${n === 1 ? 'player' : 'players'} online · ${s} searching`
+        : `${n} ${n === 1 ? 'player' : 'players'} online`;
+      onlineSubtextEl.textContent = s > 0
+        ? 'Human rival waiting now!'
+        : (n > 1 ? 'Rivals active now' : 'Only you right now · AI & Rooms ready');
       return;
     }
     if (status === 'offline') {
@@ -546,9 +597,11 @@ const PvpArena = (() => {
 
       if (res.ok && data && data.configured) {
         const count = Math.max(0, Number(data.onlineCount) || 0);
+        const searching = Math.max(0, Number(data.searchingCount) || 0);
         state.onlineConfigured = true;
         state.onlineCount = count;
-        renderOnlineStatus('online', count);
+        state.searchingCount = searching;
+        renderOnlineStatus('online', count, searching);
         return;
       }
 
@@ -619,6 +672,7 @@ const PvpArena = (() => {
       return {
         configured: Boolean(data.configured),
         onlineCount: Math.max(0, Number(data.onlineCount) || 0),
+        searchingCount: Math.max(0, Number(data.searchingCount) || 0),
       };
     } catch (err) {
       if (err && err.name === 'AbortError') {
@@ -863,7 +917,12 @@ const PvpArena = (() => {
     state.isEvaluating = false;
     state.isStunned = false;
     state.lastHandledEventTs = 0;
+    state.lastHandledEmoteTs = 0;
     state.xpAwarded = false;
+    if (meEmoteBubbleEl) meEmoteBubbleEl.classList.add('hidden');
+    if (oppEmoteBubbleEl) oppEmoteBubbleEl.classList.add('hidden');
+    if (tugMeEmoteBubbleEl) tugMeEmoteBubbleEl.classList.add('hidden');
+    if (tugOppEmoteBubbleEl) tugOppEmoteBubbleEl.classList.add('hidden');
 
     if (typeof MathEngine !== 'undefined' && typeof MathEngine.generateSeededDeck === 'function') {
       state.deck = MathEngine.generateSeededDeck({
@@ -942,9 +1001,85 @@ const PvpArena = (() => {
       renderEventFx(serverMatch.lastEvent);
     }
 
+    if (serverMatch.lastEmote && serverMatch.lastEmote.ts && serverMatch.lastEmote.ts > state.lastHandledEmoteTs) {
+      state.lastHandledEmoteTs = serverMatch.lastEmote.ts;
+      if (serverMatch.lastEmote.byOpp) {
+        showEmoteBubble('opp', serverMatch.lastEmote.emoteId);
+      }
+    }
+
     syncMatchHUD();
     if (serverMatch.status === 'finished') {
       finishMatch();
+    }
+  }
+
+  function triggerArenaShake() {
+    const hud = state.format === 'tug' ? tugHud : duelHud;
+    if (!hud) return;
+    hud.classList.remove('arena-shake');
+    void hud.offsetWidth;
+    hud.classList.add('arena-shake');
+    setTimeout(() => {
+      if (hud) hud.classList.remove('arena-shake');
+    }, 360);
+  }
+
+  function showEmoteBubble(who, emoteId) {
+    const label = EMOTE_LABELS[emoteId];
+    if (!label) return;
+    const isTug = state.format === 'tug';
+    const el = who === 'me'
+      ? (isTug ? tugMeEmoteBubbleEl : meEmoteBubbleEl)
+      : (isTug ? tugOppEmoteBubbleEl : oppEmoteBubbleEl);
+    if (!el) return;
+
+    el.textContent = label;
+    el.classList.remove('hidden');
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+
+    const timerKey = who === 'me' ? 'meEmoteTimer' : 'oppEmoteTimer';
+    clearTimeout(state[timerKey]);
+    state[timerKey] = setTimeout(() => {
+      if (el) el.classList.add('hidden');
+    }, 1750);
+  }
+
+  function scheduleAiEmote(emoteId) {
+    if (state.modeKind !== 'ai' || !state.active) return;
+    clearTimeout(state.aiEmoteTimeout);
+    const delay = 450 + Math.random() * 450;
+    state.aiEmoteTimeout = setTimeout(() => {
+      if (!state.active) return;
+      showEmoteBubble('opp', emoteId);
+    }, delay);
+  }
+
+  async function sendEmote(emoteId) {
+    if (!EMOTE_LABELS[emoteId]) return;
+    const now = Date.now();
+    if (now - state.lastEmoteSentAt < 1500) return;
+    state.lastEmoteSentAt = now;
+
+    showEmoteBubble('me', emoteId);
+
+    if (state.modeKind === 'online' && state.matchId) {
+      const res = await apiPost({
+        action: 'emote',
+        matchId: state.matchId,
+        playerId: state.playerId,
+        emoteId,
+      });
+      if (res.ok && res.data && res.data.match && res.data.match.lastEmote) {
+        state.lastHandledEmoteTs = Math.max(state.lastHandledEmoteTs, res.data.match.lastEmote.ts || 0);
+      }
+    } else if (state.modeKind === 'ai' && Math.random() < 0.45) {
+      const reply = state.phase === 'finished'
+        ? 'gg'
+        : (['fast', 'fire', 'close'][Math.floor(Math.random() * 3)]);
+      scheduleAiEmote(reply);
     }
   }
 
@@ -953,6 +1088,9 @@ const PvpArena = (() => {
     const isMe = Boolean(ev.byMe);
 
     if (ev.type === 'hit' || ev.type === 'crit') {
+      if (ev.type === 'crit' || !isMe) {
+        triggerArenaShake();
+      }
       if (isMe) {
         if (typeof SoundEngine !== 'undefined') {
           if (ev.type === 'crit') SoundEngine.playCritical();
@@ -963,6 +1101,9 @@ const PvpArena = (() => {
           oppAvatarEl.classList.add('pvp-avatar-hit');
           setTimeout(() => oppAvatarEl.classList.remove('pvp-avatar-hit'), 350);
         }
+        if (state.modeKind === 'ai' && ev.type === 'crit' && Math.random() < 0.35) {
+          scheduleAiEmote('close');
+        }
       } else {
         if (typeof SoundEngine !== 'undefined') SoundEngine.playBossAttack();
         spawnFx(combatFxEl, `RIVAL -${ev.amount} HP!`, '#fb7185');
@@ -970,10 +1111,17 @@ const PvpArena = (() => {
           meAvatarEl.classList.add('pvp-avatar-hit');
           setTimeout(() => meAvatarEl.classList.remove('pvp-avatar-hit'), 350);
         }
+        if (state.modeKind === 'ai' && ev.type === 'crit' && Math.random() < 0.35) {
+          scheduleAiEmote('fire');
+        }
       }
     } else if (ev.type === 'shield_blocked') {
       if (typeof SoundEngine !== 'undefined') SoundEngine.playShieldBlock();
+      triggerArenaShake();
       spawnFx(combatFxEl, 'SHIELD BLOCKED!', '#22d3ee');
+      if (state.modeKind === 'ai' && Math.random() < 0.45) {
+        scheduleAiEmote('shield');
+      }
     } else if (ev.type === 'pull' || ev.type === 'power_pull') {
       if (typeof SoundEngine !== 'undefined') {
         if (isMe) SoundEngine.playCorrect();
@@ -1004,12 +1152,19 @@ const PvpArena = (() => {
 
     if (timerEl) timerEl.textContent = `${m.timeLeft ?? 90}s`;
     const badgeLabel = state.modeKind === 'ai' ? 'AI RIVAL' : 'ONLINE';
+    const equippedFrame = (typeof StorageManager !== 'undefined' && typeof StorageManager.getShopState === 'function')
+      ? (StorageManager.getShopState().cosmetics.equippedFrame || 'none')
+      : 'none';
+    const frameClass = equippedFrame !== 'none' ? ` avatar-frame-${equippedFrame}` : '';
 
     if (state.format === 'tug') {
       if (duelHud) duelHud.classList.add('hidden');
       if (tugHud) tugHud.classList.remove('hidden');
 
-      if (tugMeAvatarEl) tugMeAvatarEl.innerHTML = getAvatarSvg(me.avatar);
+      if (tugMeAvatarEl) {
+        tugMeAvatarEl.className = `w-8 h-8 rounded-xl bg-indigo-950/70 border border-indigo-400/50 flex items-center justify-center flex-shrink-0${frameClass}`;
+        tugMeAvatarEl.innerHTML = getAvatarSvg(me.avatar);
+      }
       if (tugMeNameEl) tugMeNameEl.textContent = me.name || 'You';
       if (tugMePullsEl) tugMePullsEl.textContent = `${me.pulls || 0} pulls`;
 
@@ -1033,7 +1188,10 @@ const PvpArena = (() => {
     if (tugHud) tugHud.classList.add('hidden');
     if (duelHud) duelHud.classList.remove('hidden');
 
-    if (meAvatarEl) meAvatarEl.innerHTML = getAvatarSvg(me.avatar);
+    if (meAvatarEl) {
+      meAvatarEl.className = `w-9 h-9 rounded-xl bg-indigo-950/70 border border-indigo-400/50 flex items-center justify-center flex-shrink-0${frameClass}`;
+      meAvatarEl.innerHTML = getAvatarSvg(me.avatar);
+    }
     if (meNameEl) meNameEl.textContent = me.name || 'You';
     if (meHpTextEl) meHpTextEl.textContent = `${Math.max(0, me.hp ?? 100)} HP`;
     if (meHpBarEl) meHpBarEl.style.width = `${Math.max(0, Math.min(100, me.hp ?? 100))}%`;
@@ -1335,16 +1493,13 @@ const PvpArena = (() => {
         resultSummaryEl.textContent = `Your HP: ${Math.max(0, me.hp || 0)} vs ${oppName}: ${Math.max(0, opp.hp || 0)} HP (${me.correct || 0}/${me.answered || 0} accurate)`;
       }
     }
-    if (resultXpEl) {
-      resultXpEl.textContent = `+${xpGained} XP`;
-    }
     if (resultOverlay) {
       resultOverlay.classList.remove('hidden');
     }
-
+    let rewardSummary = null;
     if (!state.xpAwarded && state.callbacks && typeof state.callbacks.onMatchComplete === 'function') {
       state.xpAwarded = true;
-      state.callbacks.onMatchComplete({
+      rewardSummary = state.callbacks.onMatchComplete({
         outcome,
         format: m.format || state.format,
         xpGained,
@@ -1352,6 +1507,22 @@ const PvpArena = (() => {
         totalCount: me.answered || 0,
         maxStreak: me.maxStreak || 0,
       });
+    }
+    if (resultXpEl) {
+      if (rewardSummary && typeof rewardSummary === 'object') {
+        const parts = [`+${xpGained} XP`];
+        if (rewardSummary.starsEarned) parts.push(`+${rewardSummary.starsEarned}⭐`);
+        if (typeof rewardSummary.trophyDelta === 'number' && rewardSummary.trophyDelta !== 0) {
+          const sign = rewardSummary.trophyDelta > 0 ? '+' : '';
+          parts.push(`${sign}${rewardSummary.trophyDelta}🏆`);
+        }
+        resultXpEl.textContent = parts.join(' · ');
+      } else {
+        resultXpEl.textContent = `+${xpGained} XP`;
+      }
+    }
+    if (state.modeKind === 'ai' && Math.random() < 0.5) {
+      scheduleAiEmote('gg');
     }
     syncRecordBadge();
   }

@@ -16,12 +16,94 @@ const StorageManager = (() => {
     { id: 'owl', label: 'Scholar', svg: `<svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>` },
   ];
 
+  const RARE_AVATARS = [
+    { id: 'dragon', label: 'Dragon', cost: 60, svg: `<svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 4 6 6 6 10a6 6 0 0 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 0-6 2-9z"/></svg>` },
+    { id: 'crown', label: 'Crown', cost: 80, svg: `<svg class="w-4 h-4 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h20l-2-10-5 5-3-8-3 8-5-5z"/></svg>` },
+    { id: 'ninja', label: 'Ninja', cost: 100, svg: `<svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 11h18"/><path d="M8 11v2"/><path d="M16 11v2"/></svg>` },
+    { id: 'phoenix', label: 'Phoenix', cost: 120, svg: `<svg class="w-4 h-4 text-orange-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5-3-8-7-8-12 3 1 5 3 6 5 0-5 1-9 2-12 1 3 2 7 2 12 1-2 3-4 6-5 0 5-3 9-8 12z"/></svg>` },
+  ];
+
+  const ALL_AVATARS = [...PROFILE_AVATARS, ...RARE_AVATARS];
+
+  const SHOP_CATALOG = {
+    avatars: RARE_AVATARS.map(a => ({ id: a.id, name: a.label, cost: a.cost, desc: 'Rare hero avatar', svg: a.svg })),
+    frames: [
+      { id: 'none', name: 'No Frame', cost: 0, desc: 'Plain avatar' },
+      { id: 'gold', name: 'Golden Halo', cost: 45, desc: 'Shiny gold ring' },
+      { id: 'neon', name: 'Cyber Neon', cost: 65, desc: 'Glowing cyan ring' },
+      { id: 'flame', name: 'Inferno Ring', cost: 90, desc: 'Burning orange ring' },
+      { id: 'cosmic', name: 'Starlight Aura', cost: 130, desc: 'Cosmic violet aura' },
+    ],
+    lasers: [
+      { id: 'indigo', name: 'Classic Plasma', cost: 0, desc: 'Default Meteor Blaster laser' },
+      { id: 'cyan', name: 'Cryo Pulse', cost: 50, desc: 'Icy cyan laser' },
+      { id: 'solar', name: 'Solar Gold', cost: 75, desc: 'Blazing golden laser' },
+      { id: 'prism', name: 'Prism Rainbow', cost: 110, desc: 'Color-cycling rainbow laser' },
+    ],
+    themes: [
+      { id: 'dark', name: 'Dark Arcade', cost: 0, desc: 'Signature dark theme' },
+      { id: 'light', name: 'Daylight', cost: 0, desc: 'High-contrast light theme' },
+      { id: 'synthwave', name: 'Synthwave Neon', cost: 60, desc: 'Magenta and cyan neon night' },
+      { id: 'nebula', name: 'Space Nebula', cost: 80, desc: 'Deep cosmic violet' },
+      { id: 'forest', name: 'Emerald Forest', cost: 80, desc: 'Calm woodland green' },
+    ],
+    consumables: [
+      { id: 'streak_freeze', name: 'Streak Freeze Shield', cost: 40, max: 3, desc: 'Protects your Daily Streak if you miss one day' },
+    ],
+  };
+
+  const STARTER_AVATAR_IDS = PROFILE_AVATARS.map(a => a.id);
+  const FRAME_IDS = SHOP_CATALOG.frames.map(i => i.id);
+  const LASER_IDS = SHOP_CATALOG.lasers.map(i => i.id);
+  const THEME_IDS = SHOP_CATALOG.themes.map(i => i.id);
+  const RARE_AVATAR_IDS = RARE_AVATARS.map(a => a.id);
+  const MAX_STREAK_FREEZES = 3;
+  const LOCAL_ROOM_GOAL_TARGET = 500;
+
+  function sanitizeCosmetics(raw) {
+    const src = raw && typeof raw === 'object' ? raw : {};
+    const merge = (base, value, valid) => Array.from(new Set([
+      ...base,
+      ...(Array.isArray(value) ? value.filter(x => valid.includes(x)) : []),
+    ]));
+    const unlockedAvatars = merge([], src.unlockedAvatars, RARE_AVATAR_IDS);
+    const unlockedFrames = merge(['none'], src.unlockedFrames, FRAME_IDS);
+    const unlockedLasers = merge(['indigo'], src.unlockedLasers, LASER_IDS);
+    const unlockedThemes = merge(['dark', 'light'], src.unlockedThemes, THEME_IDS);
+    return {
+      unlockedAvatars,
+      unlockedFrames,
+      unlockedLasers,
+      unlockedThemes,
+      equippedFrame: unlockedFrames.includes(src.equippedFrame) ? src.equippedFrame : 'none',
+      equippedLaser: unlockedLasers.includes(src.equippedLaser) ? src.equippedLaser : 'indigo',
+    };
+  }
+
+  function sanitizeStars(value) {
+    const n = Math.floor(Number(value));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function sanitizeWeeklyRoomSolved(raw) {
+    const out = {};
+    if (raw && typeof raw === 'object') {
+      Object.keys(raw).slice(0, 40).forEach(k => {
+        const v = Math.floor(Number(raw[k]));
+        if (/^\d{4}-W\d{2}:[A-Z0-9]{3,12}$/.test(k) && Number.isFinite(v) && v > 0) {
+          out[k] = Math.min(v, 1000000);
+        }
+      });
+    }
+    return out;
+  }
+
   const ALLOWED_MODES = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards'];
   const ALLOWED_OPS = ['multiply', 'divide', 'missing', 'add', 'subtract', 'mixed'];
   const ALLOWED_DIFFS = ['easy', 'medium', 'hard'];
   const ALLOWED_DURATIONS = [30, 60, 120];
   const ALLOWED_INPUTS = ['choice', 'direct'];
-  const ALLOWED_THEMES = ['dark', 'light'];
+  const ALLOWED_THEMES = ['dark', 'light', 'synthwave', 'nebula', 'forest'];
 
   const DEFAULT_PREFERENCES = {
     mode: 'blitz',
@@ -187,11 +269,11 @@ const StorageManager = (() => {
   }
 
   function sanitizeAvatarId(avatarId) {
-    return PROFILE_AVATARS.some(a => a.id === avatarId) ? avatarId : 'knight';
+    return ALL_AVATARS.some(a => a.id === avatarId) ? avatarId : 'knight';
   }
 
   function getAvatarSvg(avatarId) {
-    const found = PROFILE_AVATARS.find(a => a.id === avatarId) || PROFILE_AVATARS[0];
+    const found = ALL_AVATARS.find(a => a.id === avatarId) || PROFILE_AVATARS[0];
     return found.svg;
   }
 
@@ -350,6 +432,7 @@ const StorageManager = (() => {
         draws: 0,
         winStreak: 0,
         bestWinStreak: 0,
+        trophies: 0,
       },
       matrixStats: {},
       masteredFlashcards: 0,
@@ -359,7 +442,14 @@ const StorageManager = (() => {
         count: 0,
         best: 0,
         lastDate: null,
+        freezes: 0,
+        lastFreezeUsedDate: null,
+        freezeNoticeDate: null,
+        lastFreezeAwardDate: null,
       },
+      stars: 0,
+      cosmetics: sanitizeCosmetics(null),
+      weeklyRoomSolved: {},
       dailyQuests: {
         date: null,
         items: [],
@@ -421,6 +511,9 @@ const StorageManager = (() => {
         },
         dailyChallenge: cloneDailyChallenge(parsed.dailyChallenge),
         preferences: sanitizePreferences(parsed.preferences),
+        stars: sanitizeStars(parsed.stars),
+        cosmetics: sanitizeCosmetics(parsed.cosmetics),
+        weeklyRoomSolved: sanitizeWeeklyRoomSolved(parsed.weeklyRoomSolved),
       };
     } catch (e) {
       console.warn('Failed to load Math Quest data from localStorage:', e);
@@ -527,36 +620,60 @@ const StorageManager = (() => {
     return getDateKey(prev);
   }
 
+  function parseDateKeyUtc(key) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof key === 'string' ? key : '');
+    if (!m) return null;
+    return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+
+  function getDayGap(fromKey, toKey) {
+    const a = parseDateKeyUtc(fromKey);
+    const b = parseDateKeyUtc(toKey);
+    if (a === null || b === null) return null;
+    return Math.round((b - a) / 86400000);
+  }
+
   function touchDailyStreakInData(data, dateObj = new Date()) {
     const today = getDateKey(dateObj);
     const yesterday = getYesterdayKey(dateObj);
     data.dailyStreak = data.dailyStreak || { count: 0, best: 0, lastDate: null };
+    const ds = data.dailyStreak;
 
-    if (data.dailyStreak.lastDate === today) {
-      return data.dailyStreak;
+    if (ds.lastDate === today) {
+      return ds;
     }
 
-    if (data.dailyStreak.lastDate === yesterday) {
-      data.dailyStreak.count = (data.dailyStreak.count || 0) + 1;
+    if (ds.lastDate === yesterday) {
+      ds.count = (ds.count || 0) + 1;
+    } else if (getDayGap(ds.lastDate, today) === 2 && (ds.freezes || 0) > 0 && (ds.count || 0) > 0) {
+      ds.freezes = ds.freezes - 1;
+      ds.count = (ds.count || 0) + 1;
+      ds.lastFreezeUsedDate = today;
+      ds.freezeNoticeDate = today;
     } else {
-      data.dailyStreak.count = 1;
+      ds.count = 1;
     }
 
-    data.dailyStreak.lastDate = today;
-    data.dailyStreak.best = Math.max(data.dailyStreak.best || 0, data.dailyStreak.count);
-    return data.dailyStreak;
+    ds.lastDate = today;
+    ds.best = Math.max(ds.best || 0, ds.count);
+    return ds;
   }
 
   function formatDailyStreak(ds, dateObj = new Date()) {
     const today = getDateKey(dateObj);
     const yesterday = getYesterdayKey(dateObj);
     const activeToday = ds.lastDate === today;
-    const count = (ds.lastDate === today || ds.lastDate === yesterday) ? (ds.count || 0) : 0;
+    const protectedByFreeze = !activeToday && ds.lastDate !== yesterday
+      && getDayGap(ds.lastDate, today) === 2 && (ds.freezes || 0) > 0 && (ds.count || 0) > 0;
+    const count = (ds.lastDate === today || ds.lastDate === yesterday || protectedByFreeze) ? (ds.count || 0) : 0;
     return {
       count,
       best: ds.best || 0,
       lastDate: ds.lastDate || null,
       activeToday,
+      freezes: ds.freezes || 0,
+      protectedByFreeze,
+      freezeSavedToday: ds.lastFreezeUsedDate === today,
     };
   }
 
@@ -647,10 +764,28 @@ const StorageManager = (() => {
       }
     });
 
+    const starsEarned = newlyCompleted.length * 15;
+    if (starsEarned > 0) {
+      data.stars = sanitizeStars(data.stars) + starsEarned;
+    }
+
+    let freezeAwarded = false;
+    const todayKey = getDateKey(dateObj);
+    const allDone = data.dailyQuests.items.length > 0 && data.dailyQuests.items.every(q => q.claimed);
+    if (allDone && data.dailyStreak.lastFreezeAwardDate !== todayKey) {
+      data.dailyStreak.lastFreezeAwardDate = todayKey;
+      if ((data.dailyStreak.freezes || 0) < MAX_STREAK_FREEZES) {
+        data.dailyStreak.freezes = (data.dailyStreak.freezes || 0) + 1;
+        freezeAwarded = true;
+      }
+    }
+
     saveData(data);
 
     return {
       newlyCompleted,
+      starsEarned,
+      freezeAwarded,
       quests: formatDailyQuests(data.dailyQuests),
       dailyStreak: formatDailyStreak(data.dailyStreak, dateObj),
     };
@@ -695,6 +830,33 @@ const StorageManager = (() => {
     };
   }
 
+  const PVP_RANKS = [
+    { id: 'bronze', name: 'Bronze', minTrophies: 0, colorClass: 'text-orange-300' },
+    { id: 'silver', name: 'Silver', minTrophies: 100, colorClass: 'text-slate-200' },
+    { id: 'gold', name: 'Gold', minTrophies: 250, colorClass: 'text-amber-300' },
+    { id: 'diamond', name: 'Diamond', minTrophies: 500, colorClass: 'text-cyan-300' },
+    { id: 'legend', name: 'Legend', minTrophies: 800, colorClass: 'text-fuchsia-300' },
+  ];
+
+  function getPvpRank(trophies) {
+    const t = Math.max(0, Math.floor(Number(trophies) || 0));
+    let idx = 0;
+    PVP_RANKS.forEach((r, i) => {
+      if (t >= r.minTrophies) idx = i;
+    });
+    const rank = PVP_RANKS[idx];
+    const next = PVP_RANKS[idx + 1] || null;
+    return {
+      id: rank.id,
+      name: rank.name,
+      colorClass: rank.colorClass,
+      minTrophies: rank.minTrophies,
+      trophies: t,
+      nextTrophies: next ? next.minTrophies : null,
+      nextName: next ? next.name : null,
+    };
+  }
+
   function recordPvpResult({ outcome = 'draw', format = 'duel' } = {}) {
     const data = getData();
     data.pvpStats = data.pvpStats || {
@@ -703,23 +865,41 @@ const StorageManager = (() => {
       draws: 0,
       winStreak: 0,
       bestWinStreak: 0,
+      trophies: 0,
     };
+
+    const prevTrophies = Math.max(0, Math.floor(Number(data.pvpStats.trophies) || 0));
+    let trophyDelta = 5;
+    let starsEarned = 8;
 
     if (outcome === 'win') {
       data.pvpStats.wins = (data.pvpStats.wins || 0) + 1;
       data.pvpStats.winStreak = (data.pvpStats.winStreak || 0) + 1;
       data.pvpStats.bestWinStreak = Math.max(data.pvpStats.bestWinStreak || 0, data.pvpStats.winStreak);
+      trophyDelta = 25;
+      starsEarned = 15;
     } else if (outcome === 'loss') {
       data.pvpStats.losses = (data.pvpStats.losses || 0) + 1;
       data.pvpStats.winStreak = 0;
+      trophyDelta = -10;
+      starsEarned = 5;
     } else {
       data.pvpStats.draws = (data.pvpStats.draws || 0) + 1;
     }
 
+    data.pvpStats.trophies = Math.max(0, prevTrophies + trophyDelta);
+    data.stars = sanitizeStars(data.stars) + starsEarned;
+
     touchDailyStreakInData(data);
     data.lastPlayed = new Date().toISOString();
     saveData(data);
-    return { ...data.pvpStats, format };
+    return {
+      ...data.pvpStats,
+      format,
+      trophyDelta: data.pvpStats.trophies - prevTrophies,
+      starsEarned,
+      rank: getPvpRank(data.pvpStats.trophies),
+    };
   }
 
   function recordMatrixAttempt(num1, num2, isCorrect, responseTimeMs = null) {
@@ -819,6 +999,7 @@ const StorageManager = (() => {
 
     return {
       xp: data.xp,
+      stars: sanitizeStars(data.stars),
       levelInfo: getLevelInfo(data.xp),
       totalAnswered: data.totalAnswered,
       totalCorrect: data.totalCorrect,
@@ -958,6 +1139,8 @@ const StorageManager = (() => {
       let mastered = 0;
       let attempts = 0;
       let correct = 0;
+      let totalTimeMs = 0;
+      let timedAttempts = 0;
 
       for (let c = 1; c <= 12; c++) {
         const key = `${Math.min(t, c)}x${Math.max(t, c)}`;
@@ -966,6 +1149,8 @@ const StorageManager = (() => {
           tested++;
           attempts += stat.attempts;
           correct += stat.correct || 0;
+          totalTimeMs += stat.totalTimeMs || 0;
+          timedAttempts += stat.timedAttempts || 0;
           if (stat.attempts >= 2 && (stat.correct / stat.attempts) >= 0.8) {
             mastered++;
           }
@@ -973,6 +1158,18 @@ const StorageManager = (() => {
       }
 
       const accuracy = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+      const avgSeconds = timedAttempts > 0
+        ? Number((totalTimeMs / timedAttempts / 1000).toFixed(1))
+        : null;
+      let stars = 0;
+      if (tested >= 10 && accuracy >= 95 && avgSeconds !== null && avgSeconds <= 2.5) {
+        stars = 3;
+      } else if (tested >= 10 && accuracy >= 95) {
+        stars = 2;
+      } else if (tested >= 6 && accuracy >= 80) {
+        stars = 1;
+      }
+
       let status = 'untested';
       if (tested > 0) {
         if (mastered >= 10 || (tested === 12 && accuracy >= 80)) {
@@ -991,6 +1188,8 @@ const StorageManager = (() => {
         attempts,
         correct,
         accuracy,
+        avgSeconds,
+        stars,
         progressPercent: Math.round((mastered / 12) * 100),
         status,
       };
@@ -1236,6 +1435,9 @@ const StorageManager = (() => {
           ...(parsed.pvpStats && typeof parsed.pvpStats === 'object' ? parsed.pvpStats : {}),
         },
         dailyChallenge: cloneDailyChallenge(parsed.dailyChallenge),
+        stars: sanitizeStars(parsed.stars),
+        cosmetics: sanitizeCosmetics(parsed.cosmetics),
+        weeklyRoomSolved: sanitizeWeeklyRoomSolved(parsed.weeklyRoomSolved),
       };
     } catch (e) {
       return createDefaultData();
@@ -1255,6 +1457,11 @@ const StorageManager = (() => {
       const meteorBest = hs.meteor || 0;
       const survivalBest = hs.survival || 0;
       const survivalBestFloor = d.survivalBestFloor || 0;
+      const pvpData = d.pvpStats || {};
+      const pvpTrophies = Math.max(0, Math.floor(Number(pvpData.trophies) || 0));
+      const pvpWins = pvpData.wins || 0;
+      const pvpLosses = pvpData.losses || 0;
+      const pvpRank = getPvpRank(pvpTrophies);
       const dailyEntry = (d.dailyChallenge && d.dailyChallenge.history && d.dailyChallenge.history[dateKey])
         ? { ...d.dailyChallenge.history[dateKey] }
         : null;
@@ -1272,6 +1479,9 @@ const StorageManager = (() => {
         subtext = survivalBestFloor > 0
           ? `Floor ${survivalBestFloor} · Lvl ${level}`
           : `Best Survival · Lvl ${level}`;
+      } else if (category === 'pvp') {
+        value = pvpTrophies;
+        subtext = `${pvpRank.name} · ${pvpWins}W/${pvpLosses}L`;
       } else if (category === 'daily') {
         value = dailyEntry ? dailyEntry.correct : 0;
         subtext = dailyEntry
@@ -1293,12 +1503,21 @@ const StorageManager = (() => {
         survivalBest,
         survivalBestFloor,
         dailyEntry,
+        pvpTrophies,
+        pvpWins,
+        pvpRank,
+        frame: (d.cosmetics && d.cosmetics.equippedFrame) || 'none',
         value,
         subtext,
       };
     });
 
     rows.sort((a, b) => {
+      if (category === 'pvp') {
+        if (b.pvpTrophies !== a.pvpTrophies) return b.pvpTrophies - a.pvpTrophies;
+        if (b.pvpWins !== a.pvpWins) return b.pvpWins - a.pvpWins;
+        return b.xp - a.xp;
+      }
       if (category === 'meteor') {
         if (b.meteorBest !== a.meteorBest) return b.meteorBest - a.meteorBest;
         return b.xp - a.xp;
@@ -1330,6 +1549,296 @@ const StorageManager = (() => {
     });
 
     return rows;
+  }
+
+  // ---------------------------------------------------------------------
+  // Stars, Star Shop & Cosmetics
+  // ---------------------------------------------------------------------
+  function addStars(amount) {
+    const gained = Math.max(0, Math.round(Number(amount) || 0));
+    const data = getData();
+    data.stars = sanitizeStars(data.stars) + gained;
+    saveData(data);
+    return { stars: data.stars, gained };
+  }
+
+  function isCosmeticOwned(data, category, itemId) {
+    const c = data.cosmetics || sanitizeCosmetics(null);
+    if (category === 'avatars') return STARTER_AVATAR_IDS.includes(itemId) || c.unlockedAvatars.includes(itemId);
+    if (category === 'frames') return c.unlockedFrames.includes(itemId);
+    if (category === 'lasers') return c.unlockedLasers.includes(itemId);
+    if (category === 'themes') return c.unlockedThemes.includes(itemId);
+    return false;
+  }
+
+  function getShopState() {
+    const data = getData();
+    const active = getActiveProfile();
+    return {
+      stars: sanitizeStars(data.stars),
+      freezes: (data.dailyStreak && data.dailyStreak.freezes) || 0,
+      maxFreezes: MAX_STREAK_FREEZES,
+      cosmetics: sanitizeCosmetics(data.cosmetics),
+      equippedTheme: sanitizePreferences(data.preferences).theme,
+      equippedAvatar: active.avatar,
+      catalog: SHOP_CATALOG,
+    };
+  }
+
+  function applyEquip(data, category, itemId) {
+    if (category === 'frames') {
+      data.cosmetics.equippedFrame = itemId;
+    } else if (category === 'lasers') {
+      data.cosmetics.equippedLaser = itemId;
+    } else if (category === 'themes') {
+      data.preferences = sanitizePreferences({ ...(data.preferences || {}), theme: itemId });
+    }
+  }
+
+  function purchaseShopItem(category, itemId) {
+    const list = SHOP_CATALOG[category];
+    const item = Array.isArray(list) ? list.find(i => i.id === itemId) : null;
+    if (!item) return { success: false, error: 'Unknown shop item', shopState: getShopState() };
+
+    const data = getData();
+    data.cosmetics = sanitizeCosmetics(data.cosmetics);
+    data.dailyStreak = data.dailyStreak || { count: 0, best: 0, lastDate: null };
+    const stars = sanitizeStars(data.stars);
+
+    if (category === 'consumables') {
+      if ((data.dailyStreak.freezes || 0) >= (item.max || MAX_STREAK_FREEZES)) {
+        return { success: false, error: 'You already hold the maximum Streak Freezes', shopState: getShopState() };
+      }
+      if (stars < item.cost) {
+        return { success: false, error: 'Not enough stars', shopState: getShopState() };
+      }
+      data.stars = stars - item.cost;
+      data.dailyStreak.freezes = (data.dailyStreak.freezes || 0) + 1;
+      saveData(data);
+      return { success: true, shopState: getShopState() };
+    }
+
+    if (isCosmeticOwned(data, category, itemId)) {
+      return { success: false, error: 'Already unlocked', shopState: getShopState() };
+    }
+    if (stars < item.cost) {
+      return { success: false, error: 'Not enough stars', shopState: getShopState() };
+    }
+
+    data.stars = stars - item.cost;
+    if (category === 'avatars') data.cosmetics.unlockedAvatars.push(itemId);
+    if (category === 'frames') data.cosmetics.unlockedFrames.push(itemId);
+    if (category === 'lasers') data.cosmetics.unlockedLasers.push(itemId);
+    if (category === 'themes') data.cosmetics.unlockedThemes.push(itemId);
+    applyEquip(data, category, itemId);
+    data.cosmetics = sanitizeCosmetics(data.cosmetics);
+    saveData(data);
+    if (category === 'avatars') {
+      renameProfile(getProfileRegistry().activeId, null, itemId);
+    }
+    return { success: true, shopState: getShopState() };
+  }
+
+  function equipCosmetic(category, itemId) {
+    if (!['avatars', 'frames', 'lasers', 'themes'].includes(category)) {
+      return { success: false, error: 'Unknown category', shopState: getShopState() };
+    }
+    const data = getData();
+    data.cosmetics = sanitizeCosmetics(data.cosmetics);
+    if (!isCosmeticOwned(data, category, itemId)) {
+      return { success: false, error: 'Item is locked', shopState: getShopState() };
+    }
+    applyEquip(data, category, itemId);
+    saveData(data);
+    if (category === 'avatars') {
+      renameProfile(getProfileRegistry().activeId, null, itemId);
+    }
+    return { success: true, shopState: getShopState() };
+  }
+
+  function getUnlockedAvatars() {
+    const data = getData();
+    return ALL_AVATARS.filter(a => isCosmeticOwned(data, 'avatars', a.id));
+  }
+
+  // ---------------------------------------------------------------------
+  // Math Companion
+  // ---------------------------------------------------------------------
+  const COMPANION_STAGES = [
+    {
+      stage: 1, id: 'egg', name: 'Spark Egg',
+      svg: `<svg class="w-14 h-14" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="36" rx="16" ry="21" fill="#fde68a" stroke="#f59e0b" stroke-width="3"/><circle cx="26" cy="30" r="3" fill="#f59e0b"/><circle cx="38" cy="42" r="4" fill="#f59e0b"/><circle cx="36" cy="28" r="2" fill="#f59e0b"/></svg>`,
+      goal: 'Hatch it: play a round, reach Level 2, or master a table!',
+    },
+    {
+      stage: 2, id: 'hatchling', name: 'Bit Hatchling',
+      svg: `<svg class="w-14 h-14" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="17" fill="#5eead4" stroke="#0d9488" stroke-width="3"/><path d="M14 24l8 6-10 4z" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><circle cx="26" cy="31" r="3" fill="#0f172a"/><circle cx="38" cy="31" r="3" fill="#0f172a"/><path d="M27 40q5 5 10 0" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+      goal: 'Evolve: master 3 tables or reach Level 4!',
+    },
+    {
+      stage: 3, id: 'fox', name: 'Prism Fox',
+      svg: `<svg class="w-14 h-14" viewBox="0 0 64 64" fill="none"><path d="M10 10l14 12h16l14-12 4 26a22 22 0 0 1-48 0z" fill="#fb923c" stroke="#c2410c" stroke-width="3" stroke-linejoin="round"/><path d="M24 44h16l-8 10z" fill="#fff7ed"/><circle cx="25" cy="34" r="3" fill="#0f172a"/><circle cx="39" cy="34" r="3" fill="#0f172a"/><circle cx="32" cy="45" r="2.5" fill="#0f172a"/></svg>`,
+      goal: 'Evolve: master 6 tables or reach Level 6!',
+    },
+    {
+      stage: 4, id: 'owl', name: 'Astro Owl',
+      svg: `<svg class="w-14 h-14" viewBox="0 0 64 64" fill="none"><path d="M14 14l10 6h16l10-6v26a18 18 0 0 1-36 0z" fill="#a78bfa" stroke="#6d28d9" stroke-width="3" stroke-linejoin="round"/><circle cx="25" cy="32" r="7" fill="#fff"/><circle cx="39" cy="32" r="7" fill="#fff"/><circle cx="25" cy="32" r="3" fill="#0f172a"/><circle cx="39" cy="32" r="3" fill="#0f172a"/><path d="M29 41l3 5 3-5z" fill="#fbbf24"/></svg>`,
+      goal: 'Evolve: master 10 tables or reach Level 8!',
+    },
+    {
+      stage: 5, id: 'dragon', name: 'Celestial Dragon',
+      svg: `<svg class="w-14 h-14" viewBox="0 0 64 64" fill="none"><path d="M6 20l14 8M58 20l-14 8" stroke="#34d399" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="18" fill="#34d399" stroke="#047857" stroke-width="3"/><path d="M22 20l-4-10 10 6M42 20l4-10-10 6" fill="#fde047" stroke="#ca8a04" stroke-width="2" stroke-linejoin="round"/><circle cx="25" cy="33" r="3" fill="#0f172a"/><circle cx="39" cy="33" r="3" fill="#0f172a"/><path d="M26 44q6 5 12 0" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+      goal: 'Fully evolved! Keep your streak alive to keep it happy.',
+    },
+  ];
+
+  function getCompanionState(dateObj = new Date()) {
+    const data = getData();
+    const mastery = getTableMastery();
+    let masteredTables = 0;
+    for (let t = 1; t <= 12; t++) {
+      if (mastery[t].status === 'mastered') masteredTables++;
+    }
+    const level = getLevelForXP(data.xp || 0);
+    const streak = formatDailyStreak(data.dailyStreak || { count: 0, best: 0, lastDate: null }, dateObj);
+
+    let stageNum = 1;
+    if (masteredTables >= 10 || level >= 8) stageNum = 5;
+    else if (masteredTables >= 6 || level >= 6) stageNum = 4;
+    else if (masteredTables >= 3 || level >= 4) stageNum = 3;
+    else if (masteredTables >= 1 || level >= 2 || streak.count >= 3) stageNum = 2;
+
+    const def = COMPANION_STAGES[stageNum - 1];
+    let mood = 'sleepy';
+    if (streak.activeToday) mood = streak.count >= 3 ? 'hyped' : 'happy';
+
+    const cheerLines = {
+      sleepy: ['Zzz... play a round to wake me up!', 'I miss you! Let us do some math.'],
+      happy: ['Nice work today!', 'Every fact you learn makes me stronger!'],
+      hyped: ['You are on fire! Keep that streak going!', 'Unstoppable! I am so proud of you!'],
+    }[mood];
+
+    return {
+      stage: def.stage,
+      id: def.id,
+      name: def.name,
+      mood,
+      svg: def.svg,
+      nextGoalText: def.goal,
+      cheerLines,
+      masteredTables,
+      level,
+    };
+  }
+
+  // ---------------------------------------------------------------------
+  // Weekly Room Goal (local offline fallback)
+  // ---------------------------------------------------------------------
+  function getIsoWeekKey(dateObj = new Date()) {
+    const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+  }
+
+  function cleanRoomCode(room) {
+    const cleaned = String(room || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 12);
+    return cleaned.length >= 3 ? cleaned : '';
+  }
+
+  function recordLocalRoomProgress(room, solved, dateObj = new Date()) {
+    const code = cleanRoomCode(room);
+    const amount = Math.max(0, Math.min(200, Math.floor(Number(solved) || 0)));
+    if (!code || amount <= 0) return null;
+    const data = getData();
+    const key = `${getIsoWeekKey(dateObj)}:${code}`;
+    const weekly = sanitizeWeeklyRoomSolved(data.weeklyRoomSolved);
+    weekly[key] = (weekly[key] || 0) + amount;
+    const keys = Object.keys(weekly).sort();
+    if (keys.length > 12) {
+      keys.slice(0, keys.length - 12).forEach(k => delete weekly[k]);
+    }
+    data.weeklyRoomSolved = weekly;
+    saveData(data);
+    return getLocalRoomGoal(code, dateObj);
+  }
+
+  function getLocalRoomGoal(room, dateObj = new Date()) {
+    const code = cleanRoomCode(room);
+    const weekKey = getIsoWeekKey(dateObj);
+    if (!code) {
+      return { room: '', weekKey, solved: 0, target: LOCAL_ROOM_GOAL_TARGET, contributors: 0, percent: 0 };
+    }
+    const key = `${weekKey}:${code}`;
+    let solved = 0;
+    let contributors = 0;
+    getProfileRegistry().list.forEach(p => {
+      const d = getDataForProfile(p.id);
+      const v = Number((d.weeklyRoomSolved || {})[key]) || 0;
+      if (v > 0) {
+        solved += v;
+        contributors++;
+      }
+    });
+    return {
+      room: code,
+      weekKey,
+      solved,
+      target: LOCAL_ROOM_GOAL_TARGET,
+      contributors,
+      percent: Math.min(100, Math.round((solved / LOCAL_ROOM_GOAL_TARGET) * 100)),
+    };
+  }
+
+  // ---------------------------------------------------------------------
+  // Smart "One More Round" Hook
+  // ---------------------------------------------------------------------
+  function getNextRoundHook(context = {}) {
+    const data = getData();
+    const today = getDateKey();
+
+    const quests = (data.dailyQuests && data.dailyQuests.date === today && Array.isArray(data.dailyQuests.items))
+      ? data.dailyQuests.items
+      : [];
+    for (const q of quests) {
+      const remaining = (q.target || 0) - (q.progress || 0);
+      if (!q.claimed && remaining > 0 && remaining <= 5) {
+        return {
+          type: 'quest',
+          text: `Only ${remaining} more for "${q.title}" (+${q.rewardXP} XP + 15 stars)!`,
+        };
+      }
+    }
+
+    const scoreKey = context.scoreKey || '';
+    const best = (data.highScores && data.highScores[scoreKey]) || 0;
+    const score = Number(context.score) || 0;
+    if (scoreKey && best > 0 && score > 0 && score < best && best - score <= 60) {
+      return { type: 'pb', text: `Just ${best - score} pts away from your personal best!` };
+    }
+
+    const stars = sanitizeStars(data.stars);
+    let affordable = null;
+    ['avatars', 'frames', 'lasers', 'themes'].forEach(cat => {
+      SHOP_CATALOG[cat].forEach(item => {
+        if (item.cost > 0 && item.cost <= stars && !isCosmeticOwned(data, cat, item.id)) {
+          if (!affordable || item.cost > affordable.cost) affordable = item;
+        }
+      });
+    });
+    if (affordable) {
+      return { type: 'shop', text: `You have ${stars} stars — unlock "${affordable.name}" in the Star Shop!` };
+    }
+
+    const lockedAch = ACHIEVEMENT_DEFINITIONS.find(def => !(data.achievements || []).includes(def.id));
+    if (lockedAch) {
+      return { type: 'achievement', text: `Next badge: ${lockedAch.title} — ${lockedAch.desc}.` };
+    }
+
+    const companion = getCompanionState();
+    return { type: 'companion', text: `${companion.name}: ${companion.nextGoalText}` };
   }
 
   function exportDataJSON() {
@@ -1372,6 +1881,9 @@ const StorageManager = (() => {
         },
         dailyChallenge: cloneDailyChallenge(parsed.dailyChallenge),
         preferences: sanitizePreferences(parsed.preferences),
+        stars: sanitizeStars(parsed.stars),
+        cosmetics: sanitizeCosmetics(parsed.cosmetics),
+        weeklyRoomSolved: sanitizeWeeklyRoomSolved(parsed.weeklyRoomSolved),
         lastPlayed: Date.now(),
       };
 
@@ -1384,6 +1896,21 @@ const StorageManager = (() => {
 
   return {
     PROFILE_AVATARS,
+    ALL_AVATARS,
+    SHOP_CATALOG,
+    PVP_RANKS,
+    COMPANION_STAGES,
+    getPvpRank,
+    addStars,
+    getShopState,
+    purchaseShopItem,
+    equipCosmetic,
+    getUnlockedAvatars,
+    getCompanionState,
+    getIsoWeekKey,
+    recordLocalRoomProgress,
+    getLocalRoomGoal,
+    getNextRoundHook,
     getProfiles,
     getActiveProfile,
     createProfile,

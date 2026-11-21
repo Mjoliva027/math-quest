@@ -6,8 +6,9 @@
  *   UPSTASH_REDIS_REST_TOKEN
  */
 
-const ALLOWED_BOARDS = ['daily', 'blitz_30', 'blitz_60', 'blitz_120', 'meteor', 'survival'];
-const ALLOWED_AVATARS = ['knight', 'wizard', 'star', 'rocket', 'shield', 'owl'];
+const ALLOWED_BOARDS = ['daily', 'blitz_30', 'blitz_60', 'blitz_120', 'meteor', 'survival', 'pvp'];
+const ALLOWED_AVATARS = ['knight', 'wizard', 'star', 'rocket', 'shield', 'owl', 'dragon', 'crown', 'ninja', 'phoenix'];
+const ROOM_GOAL_TARGET = 500;
 
 const SCORE_CAPS = {
   blitz_30: 6000,
@@ -15,6 +16,7 @@ const SCORE_CAPS = {
   blitz_120: 24000,
   meteor: 50000,
   survival: 50000,
+  pvp: 50000,
 };
 
 const HERO_ADJECTIVES = [
@@ -110,6 +112,40 @@ function buildBoardKey(board, dateKey, room) {
     return `mq:lb:daily:${resolvedDate}:${roomScope}`;
   }
   return `mq:lb:${board}:${roomScope}`;
+}
+
+function getIsoWeekKey(dateObj = new Date()) {
+  const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+function buildRoomGoalKeys(room, weekKey) {
+  return {
+    countKey: `mq:roomgoal:${weekKey}:${room}:count`,
+    membersKey: `mq:roomgoal:${weekKey}:${room}:members`,
+  };
+}
+
+function validateRoomProgress(body) {
+  if (!body || typeof body !== 'object') {
+    return { valid: false, error: 'Request body must be JSON object' };
+  }
+  const room = normalizeRoomCode(body.room);
+  if (!room) {
+    return { valid: false, error: 'Room code must be 3-12 alphanumeric characters' };
+  }
+  const solved = Number(body.solved);
+  if (!Number.isInteger(solved) || solved < 1 || solved > 200) {
+    return { valid: false, error: 'Solved count must be between 1 and 200' };
+  }
+  const clientId = typeof body.clientId === 'string'
+    ? body.clientId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32)
+    : '';
+  return { valid: true, data: { room, solved, clientId: clientId || 'anon' } };
 }
 
 function validateScoreSubmission(body) {
@@ -218,17 +254,17 @@ async function redisCommand(commandArgs) {
   return payload ? payload.result : null;
 }
 
-async function checkRateLimit(req) {
+async function checkRateLimit(req, prefix = 'mq:rl:', max = 20) {
   const forwarded = req.headers && req.headers['x-forwarded-for'];
   const ipRaw = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'anon';
   const safeIp = ipRaw.replace(/[^A-Za-z0-9.:_-]/g, '').slice(0, 48) || 'anon';
-  const rlKey = `mq:rl:${safeIp}`;
+  const rlKey = `${prefix}${safeIp}`;
 
   const count = await redisCommand(['INCR', rlKey]);
   if (Number(count) === 1) {
     await redisCommand(['EXPIRE', rlKey, 600]);
   }
-  return Number(count) <= 20;
+  return Number(count) <= max;
 }
 
 function sendJson(res, statusCode, body) {
@@ -267,6 +303,34 @@ async function handler(req, res) {
 
   if (req.method === 'GET') {
     const query = req.query || {};
+
+    if (query.action === 'room_goal') {
+      const goalRoom = normalizeRoomCode(query.room);
+      const weekKey = getIsoWeekKey(new Date());
+      if (!goalRoom) {
+        return sendJson(res, 400, { configured: isConfigured, error: 'Room code required', target: ROOM_GOAL_TARGET });
+      }
+      if (!isConfigured) {
+        return sendJson(res, 200, { configured: false, room: goalRoom, weekKey, solved: 0, target: ROOM_GOAL_TARGET, contributors: 0 });
+      }
+      try {
+        const keys = buildRoomGoalKeys(goalRoom, weekKey);
+        const [solvedRaw, contributorsRaw] = await Promise.all([
+          redisCommand(['GET', keys.countKey]),
+          redisCommand(['SCARD', keys.membersKey]),
+        ]);
+        return sendJson(res, 200, {
+          configured: true,
+          room: goalRoom,
+          weekKey,
+          solved: Math.max(0, Math.floor(Number(solvedRaw) || 0)),
+          target: ROOM_GOAL_TARGET,
+          contributors: Math.max(0, Math.floor(Number(contributorsRaw) || 0)),
+        });
+      } catch (err) {
+        return sendJson(res, 500, { configured: true, error: 'Failed to load room goal', target: ROOM_GOAL_TARGET });
+      }
+    }
     const board = ALLOWED_BOARDS.includes(query.board) ? query.board : 'daily';
     const room = normalizeRoomCode(query.room);
     if (room === null) {
@@ -314,12 +378,38 @@ async function handler(req, res) {
     }
 
     try {
-      const allowed = await checkRateLimit(req);
+      const body = await parseJsonBody(req);
+      const isRoomProgress = Boolean(body && typeof body === 'object' && body.action === 'room_progress');
+
+      const allowed = isRoomProgress
+        ? await checkRateLimit(req, 'mq:rl:room:', 60)
+        : await checkRateLimit(req);
       if (!allowed) {
         return sendJson(res, 429, { configured: true, error: 'Too many submissions. Please wait a bit.' });
       }
 
-      const body = await parseJsonBody(req);
+      if (isRoomProgress) {
+        const progress = validateRoomProgress(body);
+        if (!progress.valid) {
+          return sendJson(res, 400, { configured: true, error: progress.error });
+        }
+        const weekKey = getIsoWeekKey(new Date());
+        const keys = buildRoomGoalKeys(progress.data.room, weekKey);
+        const solvedTotal = await redisCommand(['INCRBY', keys.countKey, progress.data.solved]);
+        await redisCommand(['EXPIRE', keys.countKey, 14 * 86400]);
+        await redisCommand(['SADD', keys.membersKey, progress.data.clientId]);
+        await redisCommand(['EXPIRE', keys.membersKey, 14 * 86400]);
+        const contributors = await redisCommand(['SCARD', keys.membersKey]);
+        return sendJson(res, 200, {
+          configured: true,
+          room: progress.data.room,
+          weekKey,
+          solved: Math.max(0, Math.floor(Number(solvedTotal) || 0)),
+          target: ROOM_GOAL_TARGET,
+          contributors: Math.max(0, Math.floor(Number(contributors) || 0)),
+        });
+      }
+
       const validation = validateScoreSubmission(body);
       if (!validation.valid) {
         return sendJson(res, 400, { configured: true, error: validation.error });
@@ -331,8 +421,10 @@ async function handler(req, res) {
         name: d.name,
         avatar: d.avatar,
         clientId: d.clientId,
-        ts: Date.now(),
       };
+      if (d.board !== 'pvp') {
+        memberObj.ts = Date.now();
+      }
       if (d.board === 'daily') {
         memberObj.correct = d.correct;
         memberObj.total = d.total;
@@ -359,6 +451,12 @@ async function handler(req, res) {
 }
 
 handler.validateScoreSubmission = validateScoreSubmission;
+handler.ALLOWED_BOARDS = ALLOWED_BOARDS;
+handler.ALLOWED_AVATARS = ALLOWED_AVATARS;
+handler.ROOM_GOAL_TARGET = ROOM_GOAL_TARGET;
+handler.getIsoWeekKey = getIsoWeekKey;
+handler.buildRoomGoalKeys = buildRoomGoalKeys;
+handler.validateRoomProgress = validateRoomProgress;
 handler.sanitizeNickname = sanitizeNickname;
 handler.normalizeRoomCode = normalizeRoomCode;
 handler.computeCompositeScore = computeCompositeScore;

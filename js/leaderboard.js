@@ -152,6 +152,68 @@ const LeaderboardClient = (() => {
     }
   }
 
+  async function fetchRoomGoal({ room = '' } = {}) {
+    const cleanRoom = normalizeRoomCode(room);
+    if (cleanRoom.length < 3 || typeof fetch !== 'function') {
+      return { configured: false };
+    }
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
+    try {
+      const res = await fetch(`./api/leaderboard?action=room_goal&room=${encodeURIComponent(cleanRoom)}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: controller ? controller.signal : undefined,
+      });
+      if (!res.ok) return { configured: false };
+      const data = await res.json();
+      if (!data || !data.configured) return { configured: false };
+      return {
+        configured: true,
+        room: data.room || cleanRoom,
+        weekKey: data.weekKey || '',
+        solved: Math.max(0, Number(data.solved) || 0),
+        target: Math.max(1, Number(data.target) || 500),
+        contributors: Math.max(0, Number(data.contributors) || 0),
+      };
+    } catch (e) {
+      return { configured: false };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function reportRoomProgress({ room = '', solved = 0 } = {}) {
+    const cleanRoom = normalizeRoomCode(room);
+    const count = Math.max(0, Math.min(200, Math.floor(Number(solved) || 0)));
+    if (cleanRoom.length < 3 || count < 1 || typeof fetch !== 'function') {
+      return { submitted: false, configured: false };
+    }
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
+    try {
+      const res = await fetch('./api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ action: 'room_progress', room: cleanRoom, solved: count, clientId: getClientId() }),
+        signal: controller ? controller.signal : undefined,
+      });
+      if (!res.ok) return { submitted: false, configured: false };
+      const data = await res.json();
+      return {
+        submitted: Boolean(data && data.configured),
+        configured: Boolean(data && data.configured),
+        solved: data ? Number(data.solved) || 0 : 0,
+        target: data ? Number(data.target) || 500 : 500,
+        contributors: data ? Number(data.contributors) || 0 : 0,
+      };
+    } catch (e) {
+      return { submitted: false, configured: false };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
   return {
     generateHeroName,
     normalizeRoomCode,
@@ -159,6 +221,8 @@ const LeaderboardClient = (() => {
     getLocalBoard,
     fetchOnlineBoard,
     submitOnlineScore,
+    fetchRoomGoal,
+    reportRoomProgress,
   };
 })();
 

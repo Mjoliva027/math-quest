@@ -27,7 +27,7 @@ Math Quest features a streamlined **6-card inline mode selector** (responsive gr
    * Awards a **+50 Bonus XP** first-completion reward and generates a **Wordle-style emoji share grid** (`🟩`/`🟥`, time, and streak).
 
 2. **⚔️ PvP Arena (Online 1v1 HP Battle, Online Tug-of-War & 2P Local):**
-   * **Find Online Match:** Queue up on Vercel + Upstash Redis (`/api/match`) for real-time **1v1 HP Battles** (100 HP, `<2.5s` Critical Strikes, 5-Streak Shield) OR **Online Tug-of-War** (pull the shared rope 6 steps to win with `+2` Power Pulls)!
+   * **Find Online Match:** Queue up on Vercel + Upstash Redis (`/api/match`) with live online & searching player counts, **PvP Trophy Ranks** (*Bronze → Legend*), **Quick Emotes**, and real-time **1v1 HP Battles** or **Online Tug-of-War**.
    * **8-Second AI Rival Fallback:** If playing offline, locally, or when no human opponent is waiting, an adaptive AI Rival automatically steps in so you can battle anytime.
    * **Friend Room Codes & Invite Links:** Create a 6-letter Room Code or share `?mode=pvp&code=XXXXXX&format=duel|tug` to duel friends directly.
    * **Same-Device 2P Tug-of-War:** Launch split-screen offline 2-player duels (`A/S/D/F` vs `J/K/L/;` + **Flip Top 180°**) right from the PvP Hub.
@@ -74,11 +74,16 @@ Math Quest supports **Hybrid Leaderboards**:
 
 ---
 
-## 👥 Multi-Player Profiles, Themes & Sharing (Zero Backend)
+## 👥 Multi-Player Profiles, Star Shop, Companion & Sharing
 
+* **Star Shop, Cosmetics & Streak Freeze:** Earn Stars from rounds, Daily Quests, Daily Challenge, and PvP matches to unlock rare avatars, glowing avatar frames, Meteor Blaster laser skins, extra themes (*Synthwave*, *Nebula*, *Forest*), and **Streak Freeze Shields**.
+* **Evolving Math Companion:** Hatch and evolve a 5-stage pet in the lobby as you level up and master multiplication tables.
+* **Async Ghost Challenge Links:** Share `?ghost=1&...` links from Speed Blitz or Daily Challenge results so friends can race your exact problem deck against a live pace bar.
+* **Weekly Collaborative Room Goals:** Joining any Room Code on Leaderboards tracks shared weekly team progress (`500` equations solved together).
+* **3-Star Table Mastery Map:** View `0–3` stars per table (`×2`–`×12`) in the 12×12 Grid modal based on accuracy and sub-2.5s speed fluency.
 * **Local Player Profiles:** Switch, create, or remove separate learner profiles on shared family tablets or classroom devices without overwriting streaks or 12×12 heatmaps.
 * **Shareable Teacher / Parent Practice Links:** Click **Copy Practice Link** in Customize Practice to generate URL parameters (`?mode=...&op=...&diff=...&tables=...&input=...&dur=...`) that pre-configure a shared assignment.
-* **Dark & Daylight Classroom Themes:** Toggle between the signature dark arcade theme and a high-contrast light theme persisted per profile.
+* **Dark & Daylight Classroom Themes:** Toggle between the signature dark arcade theme, high-contrast light theme, and unlockable shop themes persisted per profile.
 * **Parent / Teacher Progress Snapshot:** View facts mastered out of 78 (`1×1`–`12×12`), mastered tables, average response speed, and top focus facts inside Career Stats, with **Print / Save PDF** support.
 
 ---

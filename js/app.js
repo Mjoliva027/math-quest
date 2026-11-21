@@ -93,6 +93,19 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingConfirmCallback: null,
     pendingPvpCode: '',
     pendingPvpFormat: '',
+
+    // Engagement Suite State
+    runTargetPB: 0,
+    pbBeatenThisRun: false,
+    roundStarsEarned: 0,
+    lastBlitzSeed: '',
+    ghostChallenge: null,
+    activeGhostRun: null,
+    ghostDeck: [],
+    ghostDeckIndex: 0,
+    shopTab: 'avatars',
+    companionCheerIdx: 0,
+    streakFreezeToastShown: false,
   };
 
   // =========================================================================
@@ -103,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnProfileSwitcher = document.getElementById('btn-profile-switcher');
   const navProfileAvatar = document.getElementById('nav-profile-avatar');
   const navProfileName = document.getElementById('nav-profile-name');
+  const btnShopToggle = document.getElementById('btn-shop-toggle');
+  const navStarsCount = document.getElementById('nav-stars-count');
+  const btnMenuShop = document.getElementById('btn-menu-shop');
   const btnInstallApp = document.getElementById('btn-install-app');
   const btnLeaderboardToggle = document.getElementById('btn-leaderboard-toggle');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
@@ -155,6 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewTug = document.getElementById('view-tug');
 
   // Lobby Elements
+  const lobbyGhostBanner = document.getElementById('lobby-ghost-banner');
+  const ghostBannerText = document.getElementById('ghost-banner-text');
+  const btnGhostAccept = document.getElementById('btn-ghost-accept');
+  const btnGhostDismiss = document.getElementById('btn-ghost-dismiss');
+  const lobbyCompanionCard = document.getElementById('lobby-companion-card');
+  const companionAvatar = document.getElementById('companion-avatar');
+  const companionName = document.getElementById('companion-name');
+  const companionStage = document.getElementById('companion-stage');
+  const companionSpeech = document.getElementById('companion-speech');
+  const companionGoal = document.getElementById('companion-goal');
+  const dailyStreakFreezeCount = document.getElementById('daily-streak-freeze-count');
   const lobbySharedBanner = document.getElementById('lobby-shared-banner');
   const sharedBannerText = document.getElementById('shared-banner-text');
   const btnSharedStart = document.getElementById('btn-shared-start');
@@ -199,6 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Quiz Arena Elements
   const quizFeverWrapper = document.getElementById('quiz-fever-wrapper');
   const quizFeverBar = document.getElementById('quiz-fever-bar');
+  const quizPbChaser = document.getElementById('quiz-pb-chaser');
+  const quizGhostBarWrap = document.getElementById('quiz-ghost-bar-wrap');
+  const ghostMeVal = document.getElementById('ghost-me-val');
+  const ghostDeltaText = document.getElementById('ghost-delta-text');
+  const ghostNameLabel = document.getElementById('ghost-name-label');
+  const ghostGhostVal = document.getElementById('ghost-ghost-val');
+  const ghostBarGhost = document.getElementById('ghost-bar-ghost');
+  const ghostBarMe = document.getElementById('ghost-bar-me');
   const quizStreakCount = document.getElementById('quiz-streak-count');
   const quizFlameIcon = document.getElementById('quiz-flame-icon');
   const quizMultiplierBadge = document.getElementById('quiz-multiplier-badge');
@@ -267,6 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsXP = document.getElementById('results-xp');
   const resultsLevelUpBanner = document.getElementById('results-levelup-banner');
   const resultsLevelUpNum = document.getElementById('results-levelup-num');
+  const resultsStarsBadge = document.getElementById('results-stars-badge');
+  const resultsGhostVerdict = document.getElementById('results-ghost-verdict');
+  const resultsNextHook = document.getElementById('results-next-hook');
+  const resultsNextHookText = document.getElementById('results-next-hook-text');
+  const btnResultsGhostShare = document.getElementById('btn-results-ghost-share');
   const resultsDailyShareBox = document.getElementById('results-daily-share-box');
   const resultsDailyGrid = document.getElementById('results-daily-grid');
   const btnResultsShareDaily = document.getElementById('btn-results-share-daily');
@@ -283,7 +323,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseMatrix = document.getElementById('btn-close-matrix');
   const btnMatrixCloseAction = document.getElementById('btn-matrix-close-action');
   const matrixTabBtns = document.querySelectorAll('.matrix-tab-btn');
+  const matrixCallout = document.getElementById('matrix-callout');
   const matrixGridContainer = document.getElementById('matrix-grid-container');
+  const matrixStarMap = document.getElementById('matrix-star-map');
+  const matrixStarTotal = document.getElementById('matrix-star-total');
+  const matrixStarGrid = document.getElementById('matrix-star-grid');
   const matrixInfoFactors = document.getElementById('matrix-info-factors');
   const matrixInfoProduct = document.getElementById('matrix-info-product');
   const matrixInfoStatus = document.getElementById('matrix-info-status');
@@ -345,6 +389,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLbClearRoom = document.getElementById('btn-lb-clear-room');
   const lbStatusBanner = document.getElementById('lb-status-banner');
   const leaderboardRows = document.getElementById('leaderboard-rows');
+  const lbRoomGoalBox = document.getElementById('lb-room-goal-box');
+  const lbRoomGoalTitle = document.getElementById('lb-room-goal-title');
+  const lbRoomGoalCount = document.getElementById('lb-room-goal-count');
+  const lbRoomGoalBar = document.getElementById('lb-room-goal-bar');
+  const lbRoomGoalSub = document.getElementById('lb-room-goal-sub');
+
+  // Star Shop Modal Elements
+  const modalShop = document.getElementById('modal-shop');
+  const btnCloseShop = document.getElementById('btn-close-shop');
+  const btnShopDone = document.getElementById('btn-shop-done');
+  const shopStarsBalance = document.getElementById('shop-stars-balance');
+  const shopTabBtns = document.querySelectorAll('.shop-tab-btn');
+  const shopFeedback = document.getElementById('shop-feedback');
+  const shopItemsGrid = document.getElementById('shop-items-grid');
 
   // Confirmation Dialog & Toasts
   const modalConfirm = document.getElementById('modal-confirm');
@@ -408,7 +466,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (res && res.configured) {
       const count = Math.max(0, Number(res.onlineCount) || 0);
-      lobbyPvpOnlineBadge.textContent = count > 0 ? `● ${count} Online · 2P` : '0 Online · 2P';
+      const searching = Math.max(0, Number(res.searchingCount) || 0);
+      if (searching > 0) {
+        lobbyPvpOnlineBadge.textContent = `● ${count} Online · ${searching} Waiting`;
+      } else {
+        lobbyPvpOnlineBadge.textContent = count > 0 ? `● ${count} Online · 2P` : '0 Online · 2P';
+      }
       lobbyPvpOnlineBadge.className = count > 0
         ? 'text-emerald-400 font-semibold'
         : 'text-amber-400 font-semibold';
@@ -504,19 +567,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyTheme(theme) {
-    const resolved = theme === 'light' ? 'light' : 'dark';
+    const allowed = ['dark', 'light', 'synthwave', 'nebula', 'forest'];
+    const resolved = allowed.includes(theme) ? theme : 'dark';
     state.theme = resolved;
-    document.documentElement.classList.toggle('theme-light', resolved === 'light');
+    const root = document.documentElement;
+    root.classList.remove('theme-light', 'theme-synthwave', 'theme-nebula', 'theme-forest');
+    if (resolved !== 'dark') {
+      root.classList.add(`theme-${resolved}`);
+    }
     const iconHtml = resolved === 'light' ? SVG_ICONS.themeLight : SVG_ICONS.themeDark;
+    const labels = { dark: 'Dark', light: 'Light', synthwave: 'Synthwave', nebula: 'Nebula', forest: 'Forest' };
     if (themeIconWrapper) themeIconWrapper.innerHTML = iconHtml;
     if (menuThemeIconWrapper) menuThemeIconWrapper.innerHTML = iconHtml;
-    if (menuThemeStatus) menuThemeStatus.textContent = resolved === 'light' ? 'Light' : 'Dark';
+    if (menuThemeStatus) menuThemeStatus.textContent = labels[resolved] || 'Dark';
   }
 
   function syncProfileUI() {
     const active = StorageManager.getActiveProfile();
+    const shop = StorageManager.getShopState();
+    const frame = (shop && shop.cosmetics && shop.cosmetics.equippedFrame) || 'none';
     if (navProfileName) navProfileName.textContent = active.name;
-    if (navProfileAvatar) navProfileAvatar.innerHTML = active.svg;
+    if (navProfileAvatar) {
+      navProfileAvatar.className = `w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0${frame !== 'none' ? ` avatar-frame-${frame}` : ''}`;
+      navProfileAvatar.innerHTML = active.svg;
+    }
   }
 
   function refreshActiveProfileUI() {
@@ -616,10 +690,60 @@ document.addEventListener('DOMContentLoaded', () => {
       hasShared = true;
     }
 
-    if (hasShared && !state.pendingPvpCode && lobbySharedBanner && sharedBannerText) {
+    if (params.get('ghost') === '1') {
+      const ghostMode = params.get('mode') === 'daily' ? 'daily' : 'blitz';
+      const rawName = (params.get('gname') || 'Friend')
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\x00-\x1F\x7F]/g, '')
+        .trim()
+        .slice(0, 18) || 'Friend';
+      const rawSeed = (params.get('seed') || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      const rawDate = params.get('date') || '';
+      const dateKey = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : StorageManager.getDateKey();
+      const gscore = Math.max(0, Math.min(50000, parseInt(params.get('gscore') || '0', 10) || 0));
+      const gcorrect = Math.max(0, Math.min(15, parseInt(params.get('gcorrect') || '0', 10) || 0));
+      const gtime = Math.max(1, Math.min(1800, parseInt(params.get('gtime') || '30', 10) || 30));
+      const op = allowedOps.includes(params.get('op')) ? params.get('op') : 'multiply';
+      const diff = allowedDiffs.includes(params.get('diff')) ? params.get('diff') : 'medium';
+      const durParsed = parseInt(params.get('dur') || '30', 10);
+      const dur = allowedDurs.includes(durParsed) ? durParsed : 30;
+
+      if (ghostMode === 'daily' || (rawSeed.length >= 3 && gscore > 0)) {
+        state.ghostChallenge = { mode: ghostMode, gname: rawName, seed: rawSeed, date: dateKey, gscore, gcorrect, gtime, op, diff, dur };
+        if (lobbyGhostBanner && ghostBannerText) {
+          ghostBannerText.textContent = ghostMode === 'daily'
+            ? `${rawName} scored ${gcorrect}/15 in ${gtime}s on Daily (${dateKey}) — beat their run!`
+            : `${rawName} scored ${gscore} pts in ${dur}s Speed Blitz — beat their ghost!`;
+          lobbyGhostBanner.classList.remove('hidden');
+        }
+      }
+    }
+
+    if (hasShared && !state.pendingPvpCode && !state.ghostChallenge && lobbySharedBanner && sharedBannerText) {
       sharedBannerText.textContent = parts.join(' · ');
       lobbySharedBanner.classList.remove('hidden');
     }
+  }
+
+  function buildGhostChallengeURL() {
+    const profile = StorageManager.getActiveProfile();
+    const params = new URLSearchParams();
+    params.set('ghost', '1');
+    params.set('gname', profile.name.slice(0, 18));
+    if (state.mode === 'daily') {
+      params.set('mode', 'daily');
+      params.set('date', state.dailyDateKey || StorageManager.getDateKey());
+      params.set('gcorrect', String(state.correctCount));
+      params.set('gtime', String(Math.max(1, state.lastDailyTimeSeconds || state.dailyElapsedSeconds || 1)));
+    } else {
+      params.set('mode', 'blitz');
+      params.set('op', state.operation);
+      params.set('diff', state.difficulty);
+      params.set('dur', String(state.blitzDuration || 30));
+      params.set('seed', state.lastBlitzSeed || `bl_${Date.now().toString(36)}`);
+      params.set('gscore', String(state.score));
+    }
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
   }
 
   function buildShareablePracticeURL() {
@@ -783,6 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navPlayerIcon) navPlayerIcon.innerHTML = info.icon;
     navXPBar.style.width = `${info.progressPercent}%`;
     navXPText.textContent = `${info.xp} XP`;
+    if (navStarsCount) navStarsCount.textContent = data.stars || 0;
   }
 
   function isTableOperation(op) {
@@ -811,15 +936,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleQuestUpdates(metrics) {
     const res = StorageManager.updateDailyQuestProgress(metrics);
+    if (res.starsEarned > 0) {
+      state.roundStarsEarned += res.starsEarned;
+    }
     if (res.newlyCompleted && res.newlyCompleted.length > 0) {
       res.newlyCompleted.forEach((q, idx) => {
         state.roundXPGained += q.rewardXP;
         setTimeout(() => {
           SoundEngine.playLevelUp();
-          spawnFloatingXP(`Quest Done: ${q.title} (+${q.rewardXP} XP)`, true);
+          spawnFloatingXP(`Quest Done: ${q.title} (+${q.rewardXP} XP + 15⭐)`, true);
         }, idx * 500);
       });
       syncPlayerHUD();
+    }
+    if (res.freezeAwarded) {
+      showToast('All 3 Daily Quests complete! Earned +1 Streak Freeze Shield!', 'success');
+      syncDailyPanel();
     }
   }
 
@@ -838,6 +970,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (dailyStreakCount) {
       dailyStreakCount.textContent = `${streak.count} Day Streak`;
+    }
+    if (dailyStreakFreezeCount) {
+      dailyStreakFreezeCount.textContent = streak.freezes || 0;
+    }
+    if (streak.freezeSavedToday && !state.streakFreezeToastShown) {
+      state.streakFreezeToastShown = true;
+      showToast('Streak Freeze Shield saved your Daily Streak!', 'info');
     }
     if (dailyQuestsSummary) {
       dailyQuestsSummary.textContent = `${quests.completedCount}/${quests.totalCount} Done`;
@@ -921,6 +1060,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSettingsSummaryPill();
   }
 
+  function syncCompanionCard() {
+    if (!lobbyCompanionCard) return;
+    const c = StorageManager.getCompanionState();
+    if (companionAvatar) companionAvatar.innerHTML = c.svg;
+    if (companionName) companionName.textContent = c.name;
+    if (companionStage) companionStage.textContent = `Stage ${c.stage}/5`;
+    if (companionGoal) companionGoal.textContent = c.nextGoalText;
+    if (companionSpeech && c.cheerLines && c.cheerLines.length > 0) {
+      companionSpeech.textContent = c.cheerLines[state.companionCheerIdx % c.cheerLines.length];
+    }
+  }
+
   function syncLobbyStats() {
     const mistakes = StorageManager.getMistakes();
     if (mistakes.length > 0) {
@@ -931,6 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderTableChips();
+    syncCompanionCard();
     syncRecommendedQuest();
     syncDailyChallengeCard();
     syncDailyPanel();
@@ -967,11 +1119,16 @@ document.addEventListener('DOMContentLoaded', () => {
         barWidth = Math.max(30, m.accuracy);
       }
 
+      const starsHtml = (i >= 2 && m.stars > 0)
+        ? `<span class="text-[8px] leading-none text-amber-300 mt-0.5">${'★'.repeat(m.stars)}</span>`
+        : '';
+
       chip.innerHTML = `
         <span>${i}×</span>
         <span class="table-mastery-bar">
           <span class="block h-full rounded-full ${barColor}" style="width: ${barWidth}%"></span>
         </span>
+        ${starsHtml}
       `;
 
       chip.addEventListener('click', () => {
@@ -1052,6 +1209,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentData = StorageManager.getData();
     state.roundStartLevel = StorageManager.getLevelInfo(currentData.xp).level;
     state.roundXPGained = 0;
+    state.roundStarsEarned = 0;
+    state.lastBlitzSeed = `bl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+
+    if (state.activeGhostRun && state.activeGhostRun.mode !== state.mode) {
+      state.activeGhostRun = null;
+    }
 
     state.score = 0;
     state.streak = 0;
@@ -1075,12 +1238,20 @@ document.addEventListener('DOMContentLoaded', () => {
     disableFeverMode();
 
     if (state.mode === 'daily') {
-      state.dailyDateKey = StorageManager.getDateKey();
+      state.dailyDateKey = (state.activeGhostRun && state.activeGhostRun.date) || StorageManager.getDateKey();
       state.dailyDeck = MathEngine.generateDailyChallenge(state.dailyDateKey, 15);
       state.dailyIndex = 0;
       state.dailyResults = [];
       state.dailyElapsedSeconds = 0;
       state.dailyStartTime = Date.now();
+    } else if (state.mode === 'blitz' && state.activeGhostRun && state.activeGhostRun.seed) {
+      state.ghostDeck = MathEngine.generateSeededDeck({
+        seed: state.activeGhostRun.seed,
+        operation: state.activeGhostRun.op || state.operation,
+        difficulty: state.activeGhostRun.diff || state.difficulty,
+        count: 80,
+      });
+      state.ghostDeckIndex = 0;
     }
 
     if (state.mode === 'pvp' && typeof PvpArena !== 'undefined') {
@@ -1121,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
           handleQuestUpdates({ answered: 1, fastCorrect: (isCorrect && rt < 3000) ? 1 : 0 });
         },
         onMatchComplete: ({ outcome, format, xpGained, correctCount, totalCount, maxStreak }) => {
-          StorageManager.recordPvpResult({ outcome, format });
+          const pvpRes = StorageManager.recordPvpResult({ outcome, format });
           if (xpGained > 0) {
             StorageManager.addXP(xpGained);
           }
@@ -1144,7 +1315,25 @@ document.addEventListener('DOMContentLoaded', () => {
               }, i * 650);
             });
           }
+          if (typeof LeaderboardClient !== 'undefined' && pvpRes && pvpRes.trophies > 0) {
+            const prof = StorageManager.getActiveProfile();
+            LeaderboardClient.submitOnlineScore({
+              board: 'pvp',
+              room: state.leaderboardRoom,
+              name: prof.name,
+              avatar: prof.avatar,
+              score: pvpRes.trophies,
+              wins: pvpRes.wins,
+            });
+          }
+          if (state.leaderboardRoom && correctCount > 0) {
+            StorageManager.recordLocalRoomProgress(state.leaderboardRoom, correctCount);
+            if (typeof LeaderboardClient !== 'undefined') {
+              LeaderboardClient.reportRoomProgress({ room: state.leaderboardRoom, solved: correctCount });
+            }
+          }
           syncPlayerHUD();
+          return pvpRes;
         },
         onToast: (msg, type) => showToast(msg, type),
         onExit: () => showView('view-lobby'),
@@ -1152,12 +1341,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state.mode === 'flashcards') {
       startFlashcards();
     } else if (state.mode === 'meteor' && typeof ArcadeGames !== 'undefined') {
+      const meteorStats = StorageManager.getStats();
+      const shopState = StorageManager.getShopState();
       showView('view-meteor');
       ArcadeGames.MeteorBlaster.start({
         operation: state.operation,
         difficulty: state.difficulty,
         customTables: isTableOperation(state.operation) ? state.customTables : [],
         weakFacts: StorageManager.getWeakFacts(state.operation),
+        targetPB: (meteorStats.highScores && meteorStats.highScores.meteor) || 0,
+        laserSkin: (shopState.cosmetics && shopState.cosmetics.equippedLaser) || 'indigo',
         onStatsAttempt: (prob, isCorrect, rt) => {
           const factors = prob.matrixFactors || (prob.operation === 'multiply' ? [prob.num1, prob.num2] : null);
           if (factors && factors.length === 2) {
@@ -1317,8 +1510,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // Untimed, mistake drill
     }
 
+    const hs = StorageManager.getStats().highScores || {};
+    if (state.mode === 'blitz') state.runTargetPB = hs[`blitz_${state.blitzDuration}`] || 0;
+    else if (state.mode === 'survival') state.runTargetPB = hs.survival || 0;
+    else if (state.mode === 'endless') state.runTargetPB = hs.endless || 0;
+    else state.runTargetPB = 0;
+    state.pbBeatenThisRun = false;
+
     updateScoreDisplay();
     updateStreakDisplay();
+    updateQuizPbChaser();
+    updateGhostPaceBar();
     setupInputLayout();
     loadNextProblem();
   }
@@ -1340,6 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.isPaused) return;
       state.timeLeft--;
       hudTimerVal.textContent = state.timeLeft;
+      updateGhostPaceBar();
 
       if (state.timeLeft <= 5 && state.timeLeft > 0) {
         SoundEngine.playTick();
@@ -1367,6 +1570,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.isPaused) return;
       state.dailyElapsedSeconds++;
       if (hudDailyElapsed) hudDailyElapsed.textContent = `${state.dailyElapsedSeconds}s`;
+      updateGhostPaceBar();
     }, 1000);
   }
 
@@ -1577,12 +1781,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetDifficulty = state.mode === 'survival'
           ? MathEngine.getSurvivalFloorConfig(state.survivalFloor).difficulty
           : state.difficulty;
-        state.currentProblem = MathEngine.generateProblem({
-          operation: state.operation,
-          difficulty: targetDifficulty,
-          customTables: isTableOperation(state.operation) ? state.customTables : [],
-          weakFacts: StorageManager.getWeakFacts(state.operation),
-        });
+        if (state.mode === 'blitz' && state.activeGhostRun && state.ghostDeck.length > 0) {
+          state.currentProblem = state.ghostDeck[state.ghostDeckIndex % state.ghostDeck.length];
+          state.ghostDeckIndex++;
+        } else {
+          state.currentProblem = MathEngine.generateProblem({
+            operation: state.operation,
+            difficulty: targetDifficulty,
+            customTables: isTableOperation(state.operation) ? state.customTables : [],
+            weakFacts: StorageManager.getWeakFacts(state.operation),
+          });
+        }
       }
     }
 
@@ -1726,13 +1935,15 @@ document.addEventListener('DOMContentLoaded', () => {
         state.survivalFloor++;
         state.roundXPGained += 25;
         StorageManager.addXP(25);
+        StorageManager.addStars(5);
+        state.roundStarsEarned += 5;
         if ((state.survivalFloor - 1) % 3 === 0) {
           state.survivalSkipLeft++;
         }
         updateSurvivalFloorUI();
         Confetti.burst(35);
         setTimeout(() => {
-          spawnFloatingXP(`FLOOR ${state.survivalFloor}! +25 XP`, true);
+          spawnFloatingXP(`FLOOR ${state.survivalFloor}! +25 XP +5⭐`, true);
         }, 160);
       }
       if (state.streak > 0 && state.streak % 10 === 0 && state.hearts < 3) {
@@ -1778,6 +1989,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateScoreDisplay();
     updateStreakDisplay();
+    updateQuizPbChaser();
+    updateGhostPaceBar();
+    if (state.runTargetPB > 0 && !state.pbBeatenThisRun && state.score > state.runTargetPB) {
+      state.pbBeatenThisRun = true;
+      SoundEngine.playLevelUp();
+      Confetti.burst(40);
+      spawnFloatingXP('🏆 NEW HIGH SCORE!', true);
+    }
+    spawnComboCallout(state.streak);
     syncPlayerHUD();
 
     state.pendingTimeout = setTimeout(loadNextProblem, 320);
@@ -1843,6 +2063,80 @@ document.addEventListener('DOMContentLoaded', () => {
     if (streak >= 6) return 2.0;
     if (streak >= 3) return 1.5;
     return 1.0;
+  }
+
+  function updateQuizPbChaser() {
+    if (!quizPbChaser) return;
+    if (state.runTargetPB > 0 && ['blitz', 'survival', 'endless'].includes(state.mode)) {
+      quizPbChaser.classList.remove('hidden');
+      if (state.score > state.runTargetPB) {
+        quizPbChaser.textContent = '🏆 NEW PB!';
+        quizPbChaser.className = 'self-start px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-[10px] sm:text-[11px] font-bold font-mono text-emerald-300 w-fit';
+      } else {
+        quizPbChaser.textContent = `🔥 ${state.runTargetPB - state.score} to PB`;
+        quizPbChaser.className = 'self-start px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] sm:text-[11px] font-bold font-mono text-amber-300 w-fit';
+      }
+    } else {
+      quizPbChaser.classList.add('hidden');
+    }
+  }
+
+  function updateGhostPaceBar() {
+    if (!quizGhostBarWrap) return;
+    const g = state.activeGhostRun;
+    if (!g || (state.mode !== 'blitz' && state.mode !== 'daily')) {
+      quizGhostBarWrap.classList.add('hidden');
+      return;
+    }
+    quizGhostBarWrap.classList.remove('hidden');
+    if (ghostNameLabel) ghostNameLabel.textContent = g.gname;
+
+    if (state.mode === 'blitz') {
+      const dur = Math.max(1, state.blitzDuration || g.dur || 30);
+      const frac = Math.min(1, Math.max(0, (dur - Math.max(0, state.timeLeft)) / dur));
+      const ghostNow = Math.round(g.gscore * frac);
+      const maxScale = Math.max(g.gscore, state.score, 20);
+      if (ghostMeVal) ghostMeVal.textContent = state.score;
+      if (ghostGhostVal) ghostGhostVal.textContent = `${ghostNow}/${g.gscore}`;
+      if (ghostBarGhost) ghostBarGhost.style.width = `${Math.min(100, Math.round((ghostNow / maxScale) * 100))}%`;
+      if (ghostBarMe) ghostBarMe.style.width = `${Math.min(100, Math.round((state.score / maxScale) * 100))}%`;
+      const diff = state.score - ghostNow;
+      if (ghostDeltaText) {
+        ghostDeltaText.textContent = diff >= 0 ? `+${diff} ahead` : `${diff} behind`;
+        ghostDeltaText.className = diff >= 0 ? 'font-mono text-emerald-300' : 'font-mono text-rose-300';
+      }
+    } else {
+      const total = Math.max(1, state.dailyDeck.length || 15);
+      const ghostPace = Math.min(g.gcorrect, Math.round(g.gcorrect * (state.dailyElapsedSeconds / Math.max(1, g.gtime))));
+      if (ghostMeVal) ghostMeVal.textContent = `${state.correctCount}/${total}`;
+      if (ghostGhostVal) ghostGhostVal.textContent = `${ghostPace}/${g.gcorrect}`;
+      if (ghostBarGhost) ghostBarGhost.style.width = `${Math.min(100, Math.round((ghostPace / total) * 100))}%`;
+      if (ghostBarMe) ghostBarMe.style.width = `${Math.min(100, Math.round((state.correctCount / total) * 100))}%`;
+      const diff = state.correctCount - ghostPace;
+      if (ghostDeltaText) {
+        ghostDeltaText.textContent = diff >= 0 ? `+${diff} ahead` : `${diff} behind`;
+        ghostDeltaText.className = diff >= 0 ? 'font-mono text-emerald-300' : 'font-mono text-rose-300';
+      }
+    }
+  }
+
+  const QUIZ_COMBO_CALLOUTS = {
+    3: '3× SHARP!',
+    5: '5× ON FIRE!',
+    8: '8× BLAZING!',
+    10: '10× UNSTOPPABLE!',
+    15: '15× MATH LEGEND!',
+    20: '20× GODLIKE!',
+  };
+
+  function spawnComboCallout(streak) {
+    const label = QUIZ_COMBO_CALLOUTS[streak];
+    if (!label || !quizFloatingContainer) return;
+    const el = document.createElement('div');
+    el.className = 'combo-callout-badge';
+    el.textContent = label;
+    quizFloatingContainer.appendChild(el);
+    setTimeout(() => el.remove(), 1050);
   }
 
   function updateScoreDisplay() {
@@ -2057,6 +2351,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 12x12 MULTIPLICATION MATRIX EXPLORER (SEGMENTED ON MOBILE)
   // =========================================================================
   function buildMatrixGrid() {
+    const gridScrollWrap = matrixGridContainer ? matrixGridContainer.parentElement : null;
+    if (state.matrixTab === 'stars') {
+      if (matrixCallout) matrixCallout.classList.add('hidden');
+      if (gridScrollWrap) gridScrollWrap.classList.add('hidden');
+      if (matrixStarMap) matrixStarMap.classList.remove('hidden');
+      renderMatrixStarMap();
+      return;
+    }
+
+    if (matrixCallout) matrixCallout.classList.remove('hidden');
+    if (gridScrollWrap) gridScrollWrap.classList.remove('hidden');
+    if (matrixStarMap) matrixStarMap.classList.add('hidden');
+
     matrixGridContainer.innerHTML = '';
     const matrixStats = StorageManager.getMatrixStats();
 
@@ -2159,6 +2466,64 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMatrixDrillRow.textContent = `Table of ${row}`;
   }
 
+  function renderMatrixStarMap() {
+    if (!matrixStarGrid) return;
+    matrixStarGrid.innerHTML = '';
+    const mastery = StorageManager.getTableMastery();
+    let totalStars = 0;
+
+    for (let t = 2; t <= 12; t++) {
+      const m = mastery[t] || { stars: 0, accuracy: 0, avgSeconds: null, tested: 0 };
+      const stars = m.stars || 0;
+      totalStars += stars;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = `p-2.5 rounded-2xl border text-left transition-all active:scale-95 ${
+        stars === 3
+          ? 'bg-amber-500/15 border-amber-400/50'
+          : stars > 0
+            ? 'bg-indigo-950/40 border-indigo-500/40'
+            : 'bg-slate-800/70 border-slate-700/70'
+      }`;
+
+      const top = document.createElement('div');
+      top.className = 'flex items-center justify-between mb-1';
+      const title = document.createElement('span');
+      title.className = 'text-sm font-black text-white font-mono';
+      title.textContent = `${t}× Table`;
+      const starSpan = document.createElement('span');
+      starSpan.className = 'text-xs text-amber-300';
+      starSpan.textContent = `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
+      top.appendChild(title);
+      top.appendChild(starSpan);
+
+      const meta = document.createElement('span');
+      meta.className = 'text-[10px] text-slate-400 block';
+      if (m.tested > 0) {
+        meta.textContent = m.avgSeconds !== null ? `${m.accuracy}% · ${m.avgSeconds}s avg` : `${m.accuracy}% (${m.tested}/12)`;
+      } else {
+        meta.textContent = 'Tap to practice';
+      }
+
+      card.appendChild(top);
+      card.appendChild(meta);
+      card.addEventListener('click', () => {
+        SoundEngine.playClick();
+        closeMatrixModal();
+        state.operation = 'multiply';
+        state.customTables = [t];
+        syncLobbySelectors();
+        startGame('blitz');
+      });
+      matrixStarGrid.appendChild(card);
+    }
+
+    if (matrixStarTotal) {
+      matrixStarTotal.textContent = `${totalStars} / 33 ⭐`;
+    }
+  }
+
   function openMatrixModal() {
     SoundEngine.playClick();
     buildMatrixGrid();
@@ -2240,6 +2605,80 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsAccuracy.textContent = accuracyText;
     resultsXP.textContent = `+${gainedXP} XP`;
 
+    // Award round Stars
+    let baseStars = 0;
+    if (state.mode === 'daily') {
+      baseStars = state.correctCount >= 12 ? 20 : 12;
+    } else if (state.mode === 'blitz' || state.mode === 'survival' || state.mode === 'meteor') {
+      if (state.correctCount > 0) {
+        baseStars = Math.max(3, Math.min(25, Math.floor(state.correctCount / 2) + (state.score >= 250 ? 5 : 2)));
+      }
+    } else if (state.correctCount >= 3 || state.totalCount >= 5) {
+      baseStars = 5;
+    }
+    if (baseStars > 0) {
+      StorageManager.addStars(baseStars);
+      state.roundStarsEarned += baseStars;
+    }
+
+    // Evaluate Ghost Challenge Verdict
+    if (resultsGhostVerdict) {
+      if (state.activeGhostRun && state.activeGhostRun.mode === state.mode) {
+        const g = state.activeGhostRun;
+        let won = false;
+        let msg = '';
+        if (state.mode === 'daily') {
+          const myTime = Math.max(1, state.lastDailyTimeSeconds || state.dailyElapsedSeconds || 1);
+          won = state.correctCount > g.gcorrect || (state.correctCount === g.gcorrect && myTime < g.gtime);
+          msg = won
+            ? `Ghost Defeated! You beat ${g.gname} (${state.correctCount}/15 in ${myTime}s vs ${g.gcorrect}/15 in ${g.gtime}s) +15⭐!`
+            : `Close Call! ${g.gname} finished ${g.gcorrect}/15 in ${g.gtime}s — try again!`;
+        } else {
+          won = state.score > g.gscore;
+          msg = won
+            ? `Ghost Defeated! You beat ${g.gname}'s ${g.gscore} pts with ${state.score} pts +15⭐!`
+            : `So Close! ${g.gname} scored ${g.gscore} pts — challenge again!`;
+        }
+        if (won) {
+          StorageManager.addStars(15);
+          state.roundStarsEarned += 15;
+        }
+        resultsGhostVerdict.textContent = msg;
+        resultsGhostVerdict.className = won
+          ? 'p-2.5 rounded-2xl border text-xs font-bold bg-emerald-950/50 border-emerald-400/50 text-emerald-300'
+          : 'p-2.5 rounded-2xl border text-xs font-bold bg-rose-950/40 border-rose-400/40 text-rose-200';
+        resultsGhostVerdict.classList.remove('hidden');
+      } else {
+        resultsGhostVerdict.classList.add('hidden');
+      }
+      state.activeGhostRun = null;
+    }
+
+    if (resultsStarsBadge) {
+      if (state.roundStarsEarned > 0) {
+        resultsStarsBadge.textContent = `+${state.roundStarsEarned} ⭐ Stars Earned`;
+        resultsStarsBadge.classList.remove('hidden');
+      } else {
+        resultsStarsBadge.classList.add('hidden');
+      }
+    }
+
+    if (btnResultsGhostShare) {
+      const canShareGhost = (state.mode === 'blitz' && state.score > 0) || (state.mode === 'daily' && state.totalCount >= 15);
+      btnResultsGhostShare.classList.toggle('hidden', !canShareGhost);
+    }
+
+    if (resultsNextHook && resultsNextHookText) {
+      const scoreKey = state.mode === 'blitz' ? `blitz_${state.blitzDuration}` : state.mode;
+      const hook = StorageManager.getNextRoundHook({ scoreKey, score: state.score });
+      if (hook && hook.text) {
+        resultsNextHookText.textContent = hook.text;
+        resultsNextHook.classList.remove('hidden');
+      } else {
+        resultsNextHook.classList.add('hidden');
+      }
+    }
+
     const replaySpan = btnResultsReplay && btnResultsReplay.querySelector('span');
     if (replaySpan) {
       replaySpan.textContent = (state.mode === 'mistake_drill' && StorageManager.getMistakes().length === 0)
@@ -2305,6 +2744,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function submitScoreToOnlineLeaderboardIfEligible() {
+    if (state.leaderboardRoom && state.correctCount > 0) {
+      StorageManager.recordLocalRoomProgress(state.leaderboardRoom, state.correctCount);
+      if (typeof LeaderboardClient !== 'undefined') {
+        LeaderboardClient.reportRoomProgress({
+          room: state.leaderboardRoom,
+          solved: state.correctCount,
+        });
+      }
+    }
+
     if (typeof LeaderboardClient === 'undefined') return;
     let board = null;
     if (state.mode === 'daily' && state.totalCount >= 15) {
@@ -2497,10 +2946,92 @@ document.addEventListener('DOMContentLoaded', () => {
       showView('view-lobby');
     });
 
+    // Star Shop Triggers & Actions
+    if (btnShopToggle) btnShopToggle.addEventListener('click', openShopModal);
+    if (btnMenuShop) {
+      btnMenuShop.addEventListener('click', () => {
+        if (modalMobileMenu) modalMobileMenu.classList.add('hidden');
+        openShopModal();
+      });
+    }
+    if (btnCloseShop) btnCloseShop.addEventListener('click', closeShopModal);
+    if (btnShopDone) btnShopDone.addEventListener('click', closeShopModal);
+    if (modalShop) {
+      modalShop.addEventListener('click', (e) => {
+        if (e.target === modalShop) closeShopModal();
+      });
+    }
+    shopTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        SoundEngine.playClick();
+        state.shopTab = btn.dataset.shopTab || 'avatars';
+        if (shopFeedback) shopFeedback.textContent = '';
+        renderShopModal();
+      });
+    });
+
+    // Companion Tap-to-Cheer
+    if (lobbyCompanionCard) {
+      const cheerCompanion = () => {
+        SoundEngine.playClick();
+        state.companionCheerIdx++;
+        syncCompanionCard();
+        lobbyCompanionCard.classList.add('animate-correct');
+        setTimeout(() => lobbyCompanionCard.classList.remove('animate-correct'), 350);
+      };
+      lobbyCompanionCard.addEventListener('click', cheerCompanion);
+      lobbyCompanionCard.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          cheerCompanion();
+        }
+      });
+    }
+
+    // Ghost Challenge Banner & Results Share
+    if (btnGhostAccept) {
+      btnGhostAccept.addEventListener('click', () => {
+        if (!state.ghostChallenge) return;
+        SoundEngine.playClick();
+        const g = state.ghostChallenge;
+        state.activeGhostRun = { ...g };
+        if (lobbyGhostBanner) lobbyGhostBanner.classList.add('hidden');
+        if (g.mode === 'daily') {
+          startGame('daily');
+        } else {
+          state.operation = g.op || 'multiply';
+          state.difficulty = g.diff || 'medium';
+          state.blitzDuration = g.dur || 30;
+          syncLobbySelectors();
+          syncDurationUI();
+          startGame('blitz');
+        }
+      });
+    }
+    if (btnGhostDismiss) {
+      btnGhostDismiss.addEventListener('click', () => {
+        SoundEngine.playClick();
+        state.ghostChallenge = null;
+        if (lobbyGhostBanner) lobbyGhostBanner.classList.add('hidden');
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
+    }
+    if (btnResultsGhostShare) {
+      btnResultsGhostShare.addEventListener('click', () => {
+        SoundEngine.playClick();
+        const url = buildGhostChallengeURL();
+        copyTextToClipboard(url, (ok) => {
+          showToast(ok ? 'Ghost Challenge link copied — send it to a friend!' : 'Could not copy Ghost link.', ok ? 'success' : 'error');
+        });
+      });
+    }
+
     // Theme Toggles (Desktop & Mobile)
     const handleThemeToggle = () => {
       SoundEngine.playClick();
-      const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+      const nextTheme = state.theme === 'light' ? 'dark' : 'light';
       applyTheme(nextTheme);
       persistPreferences();
     };
@@ -3037,6 +3568,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (modalShop && !modalShop.classList.contains('hidden')) {
+      if (e.key === 'Escape') closeShopModal();
+      return;
+    }
+
     if (modalLeaderboard && !modalLeaderboard.classList.contains('hidden')) {
       if (e.key === 'Escape') closeLeaderboardModal();
       return;
@@ -3124,7 +3660,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderProfileAvatarPicker() {
     if (!profileAvatarPicker) return;
     profileAvatarPicker.innerHTML = '';
-    StorageManager.PROFILE_AVATARS.forEach(av => {
+    const unlocked = StorageManager.getUnlockedAvatars();
+    unlocked.forEach(av => {
       const btn = document.createElement('button');
       btn.type = 'button';
       const isSelected = av.id === state.selectedNewAvatar;
@@ -3234,8 +3771,148 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getAvatarSvgById(avatarId) {
-    const found = (StorageManager.PROFILE_AVATARS || []).find(a => a.id === avatarId);
-    return found ? found.svg : (StorageManager.PROFILE_AVATARS[0] ? StorageManager.PROFILE_AVATARS[0].svg : '');
+    const list = StorageManager.ALL_AVATARS || StorageManager.PROFILE_AVATARS || [];
+    const found = list.find(a => a.id === avatarId);
+    return found ? found.svg : (list[0] ? list[0].svg : '');
+  }
+
+  function renderShopModal() {
+    if (!shopItemsGrid) return;
+    const shop = StorageManager.getShopState();
+    const tab = state.shopTab || 'avatars';
+
+    if (shopStarsBalance) shopStarsBalance.textContent = shop.stars;
+    shopTabBtns.forEach(btn => {
+      const active = btn.dataset.shopTab === tab;
+      btn.className = active
+        ? 'shop-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white'
+        : 'shop-tab-btn py-1.5 rounded-lg text-slate-400';
+    });
+
+    shopItemsGrid.innerHTML = '';
+    const items = (shop.catalog && shop.catalog[tab]) || [];
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'p-3 rounded-2xl bg-slate-800/75 border border-slate-700/70 flex flex-col justify-between gap-2';
+
+      const head = document.createElement('div');
+      head.className = 'flex items-center gap-2';
+      if (item.svg) {
+        const iconBox = document.createElement('span');
+        iconBox.className = 'w-8 h-8 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = item.svg;
+        head.appendChild(iconBox);
+      }
+      const meta = document.createElement('div');
+      meta.className = 'min-w-0';
+      const titleEl = document.createElement('span');
+      titleEl.className = 'text-xs font-bold text-white block truncate';
+      titleEl.textContent = item.name;
+      const descEl = document.createElement('span');
+      descEl.className = 'text-[10px] text-slate-400 block leading-tight';
+      descEl.textContent = item.desc;
+      meta.appendChild(titleEl);
+      meta.appendChild(descEl);
+      head.appendChild(meta);
+      card.appendChild(head);
+
+      const actionBtn = document.createElement('button');
+      actionBtn.type = 'button';
+
+      let isOwned = false;
+      let isEquipped = false;
+      if (tab === 'avatars') {
+        isOwned = shop.cosmetics.unlockedAvatars.includes(item.id);
+        isEquipped = shop.equippedAvatar === item.id;
+      } else if (tab === 'frames') {
+        isOwned = shop.cosmetics.unlockedFrames.includes(item.id);
+        isEquipped = shop.cosmetics.equippedFrame === item.id;
+      } else if (tab === 'lasers') {
+        isOwned = shop.cosmetics.unlockedLasers.includes(item.id);
+        isEquipped = shop.cosmetics.equippedLaser === item.id;
+      } else if (tab === 'themes') {
+        isOwned = shop.cosmetics.unlockedThemes.includes(item.id);
+        isEquipped = shop.equippedTheme === item.id;
+      }
+
+      if (tab === 'consumables') {
+        const atMax = shop.freezes >= (item.max || 3);
+        const canAfford = shop.stars >= item.cost;
+        actionBtn.className = atMax || !canAfford
+          ? 'w-full py-1.5 rounded-xl bg-slate-700 text-slate-400 text-[11px] font-bold cursor-not-allowed'
+          : 'w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black active:scale-95';
+        actionBtn.textContent = atMax
+          ? `Max Held (${shop.freezes}/${item.max || 3})`
+          : `Buy · ${item.cost} ⭐ (${shop.freezes}/${item.max || 3})`;
+        actionBtn.disabled = atMax;
+        actionBtn.addEventListener('click', () => {
+          const res = StorageManager.purchaseShopItem('consumables', item.id);
+          if (res.success) {
+            SoundEngine.playLevelUp();
+            if (shopFeedback) shopFeedback.textContent = 'Streak Freeze Shield added!';
+            syncPlayerHUD();
+            syncDailyPanel();
+            renderShopModal();
+          } else if (shopFeedback) {
+            SoundEngine.playWrong();
+            shopFeedback.textContent = res.error || 'Could not buy item.';
+          }
+        });
+      } else if (isEquipped) {
+        actionBtn.className = 'w-full py-1.5 rounded-xl bg-emerald-600/25 border border-emerald-400/50 text-emerald-300 text-[11px] font-bold';
+        actionBtn.textContent = 'Equipped ✓';
+        actionBtn.disabled = true;
+      } else if (isOwned) {
+        actionBtn.className = 'w-full py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold active:scale-95';
+        actionBtn.textContent = 'Equip';
+        actionBtn.addEventListener('click', () => {
+          SoundEngine.playClick();
+          const res = StorageManager.equipCosmetic(tab, item.id);
+          if (res.success) {
+            if (tab === 'themes') applyTheme(item.id);
+            syncProfileUI();
+            if (shopFeedback) shopFeedback.textContent = `Equipped ${item.name}!`;
+            renderShopModal();
+          }
+        });
+      } else {
+        const canAfford = shop.stars >= item.cost;
+        actionBtn.className = canAfford
+          ? 'w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black active:scale-95'
+          : 'w-full py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 text-[11px] font-bold';
+        actionBtn.textContent = `Unlock · ${item.cost} ⭐`;
+        actionBtn.addEventListener('click', () => {
+          const res = StorageManager.purchaseShopItem(tab, item.id);
+          if (res.success) {
+            SoundEngine.playLevelUp();
+            if (tab === 'themes') applyTheme(item.id);
+            syncProfileUI();
+            syncPlayerHUD();
+            if (shopFeedback) shopFeedback.textContent = `Unlocked & equipped ${item.name}!`;
+            renderShopModal();
+          } else {
+            SoundEngine.playWrong();
+            if (shopFeedback) shopFeedback.textContent = res.error || 'Not enough stars!';
+          }
+        });
+      }
+
+      card.appendChild(actionBtn);
+      shopItemsGrid.appendChild(card);
+    });
+  }
+
+  function openShopModal() {
+    if (!modalShop) return;
+    SoundEngine.playClick();
+    if (shopFeedback) shopFeedback.textContent = '';
+    renderShopModal();
+    modalShop.classList.remove('hidden');
+  }
+
+  function closeShopModal() {
+    if (modalShop) modalShop.classList.add('hidden');
   }
 
   function renderLeaderboardRows(rows, emptyMessage) {
@@ -3275,7 +3952,8 @@ document.addEventListener('DOMContentLoaded', () => {
       rankBadge.textContent = `#${rank}`;
 
       const avatarWrap = document.createElement('span');
-      avatarWrap.className = 'w-7 h-7 rounded-lg bg-slate-900/80 border border-slate-700 flex items-center justify-center flex-shrink-0';
+      const frame = entry.frame && entry.frame !== 'none' ? ` avatar-frame-${entry.frame}` : '';
+      avatarWrap.className = `w-7 h-7 rounded-lg bg-slate-900/80 border border-slate-700 flex items-center justify-center flex-shrink-0${frame}`;
       avatarWrap.innerHTML = entry.svg || getAvatarSvgById(entry.avatar);
 
       const textWrap = document.createElement('div');
@@ -3305,6 +3983,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function renderRoomGoalBanner(goalData, isOnline = false) {
+    if (!lbRoomGoalBox) return;
+    if (!state.leaderboardRoom || !goalData) {
+      lbRoomGoalBox.classList.add('hidden');
+      return;
+    }
+    lbRoomGoalBox.classList.remove('hidden');
+    const solved = Math.max(0, Number(goalData.solved) || 0);
+    const target = Math.max(1, Number(goalData.target) || 500);
+    const pct = Math.min(100, Math.round((solved / target) * 100));
+    const contributors = Math.max(0, Number(goalData.contributors) || 0);
+    if (lbRoomGoalTitle) {
+      lbRoomGoalTitle.textContent = `Room ${state.leaderboardRoom} · Weekly Goal (${goalData.weekKey || StorageManager.getIsoWeekKey()})`;
+    }
+    if (lbRoomGoalCount) {
+      lbRoomGoalCount.textContent = `${solved} / ${target} (${pct}%)`;
+    }
+    if (lbRoomGoalBar) {
+      lbRoomGoalBar.style.width = `${pct}%`;
+    }
+    if (lbRoomGoalSub) {
+      lbRoomGoalSub.textContent = solved >= target
+        ? `Weekly team target crushed by ${contributors || 1} player(s)!`
+        : `${contributors || 0} contributor(s) · ${isOnline ? 'Shared Online Room' : 'This Device Room'}`;
+    }
+  }
+
   async function renderLeaderboardModal() {
     const tab = state.leaderboardTab || 'local';
 
@@ -3318,6 +4023,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tab === 'local') {
       if (lbLocalFilterRow) lbLocalFilterRow.classList.remove('hidden');
       if (lbRoomBar) lbRoomBar.classList.add('hidden');
+      renderRoomGoalBanner(state.leaderboardRoom ? StorageManager.getLocalRoomGoal(state.leaderboardRoom) : null, false);
 
       lbLocalCatBtns.forEach(btn => {
         const active = btn.dataset.localCat === state.leaderboardLocalCat;
@@ -3335,6 +4041,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.leaderboardLocalCat === 'blitz') displayValue = `${r.blitzBest} pts`;
         else if (state.leaderboardLocalCat === 'survival') displayValue = `${r.survivalBest} pts`;
         else if (state.leaderboardLocalCat === 'meteor') displayValue = `${r.meteorBest} pts`;
+        else if (state.leaderboardLocalCat === 'pvp') displayValue = `${r.pvpTrophies || 0} 🏆`;
         else if (state.leaderboardLocalCat === 'daily') {
           displayValue = r.dailyEntry ? `${r.dailyEntry.correct}/${r.dailyEntry.total}` : '—';
         }
@@ -3353,6 +4060,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputLbRoomCode) inputLbRoomCode.value = state.leaderboardRoom || '';
     if (lbStatusBanner) lbStatusBanner.textContent = 'Loading online leaderboard...';
     renderLeaderboardRows([], 'Fetching latest scores...');
+    if (!state.leaderboardRoom) {
+      renderRoomGoalBanner(null, false);
+    }
 
     if (typeof LeaderboardClient === 'undefined') {
       if (lbStatusBanner) lbStatusBanner.textContent = 'Online leaderboard client unavailable.';
@@ -3360,11 +4070,22 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const res = await LeaderboardClient.fetchOnlineBoard({
-      board: tab,
-      dateKey: StorageManager.getDateKey(),
-      room: state.leaderboardRoom,
-    });
+    const [res, roomGoalRes] = await Promise.all([
+      LeaderboardClient.fetchOnlineBoard({
+        board: tab,
+        dateKey: StorageManager.getDateKey(),
+        room: state.leaderboardRoom,
+      }),
+      state.leaderboardRoom ? LeaderboardClient.fetchRoomGoal({ room: state.leaderboardRoom }) : Promise.resolve(null),
+    ]);
+
+    if (state.leaderboardRoom) {
+      if (roomGoalRes && roomGoalRes.configured) {
+        renderRoomGoalBanner(roomGoalRes, true);
+      } else {
+        renderRoomGoalBanner(StorageManager.getLocalRoomGoal(state.leaderboardRoom), false);
+      }
+    }
 
     if (!res.configured) {
       if (lbStatusBanner) {
@@ -3387,6 +4108,11 @@ document.addEventListener('DOMContentLoaded', () => {
       let subtext = '';
       if (tab === 'meteor' && entry.wave) subtext = `Wave ${entry.wave}`;
       else if (tab === 'survival' && entry.floor) subtext = `Floor ${entry.floor}`;
+      else if (tab === 'pvp') {
+        const rank = StorageManager.getPvpRank(entry.score);
+        displayValue = `${entry.score} 🏆`;
+        subtext = `${rank.name} Tier`;
+      }
       if (tab === 'daily') {
         displayValue = `${entry.correct}/${entry.total || 15}`;
         subtext = `${entry.timeSeconds}s`;

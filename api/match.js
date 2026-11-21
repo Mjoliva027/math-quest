@@ -11,7 +11,12 @@ const crypto = require('crypto');
 const ALLOWED_FORMATS = ['duel', 'tug'];
 const ALLOWED_OPS = ['multiply', 'divide', 'missing', 'add', 'subtract', 'mixed'];
 const ALLOWED_DIFFS = ['easy', 'medium', 'hard'];
-const ALLOWED_AVATARS = ['knight', 'wizard', 'star', 'rocket', 'shield', 'owl'];
+const ALLOWED_AVATARS = ['knight', 'wizard', 'star', 'rocket', 'shield', 'owl', 'dragon', 'crown', 'ninja', 'phoenix'];
+const ALLOWED_EMOTES = ['fast', 'fire', 'shield', 'gg', 'close'];
+const MIN_EMOTE_COOLDOWN_MS = 1500;
+const SEARCHING_KEY = 'mq:pvp:searching';
+const SEARCHING_WINDOW_MS = 30000;
+const SEARCHING_TTL_SECONDS = 90;
 
 const MATCH_DURATION_MS = 90000;
 const DUEL_START_HP = 100;
@@ -122,6 +127,7 @@ function makePlayerState(raw = {}) {
     answered: 0,
     pulls: 0,
     lastActionAt: 0,
+    lastEmoteAt: 0,
   };
 }
 
@@ -299,6 +305,30 @@ function applyPlayerAction(match, { playerId, correct, responseTimeMs = 3500, no
   return { match, accepted: true, event, reason: null };
 }
 
+function applyPlayerEmote(match, { playerId, emoteId, nowMs = Date.now() } = {}) {
+  if (!match) return { match: null, accepted: false, reason: 'missing_match' };
+  if (match.status !== 'active' && match.status !== 'finished') {
+    return { match, accepted: false, reason: 'match_not_active' };
+  }
+  if (!ALLOWED_EMOTES.includes(emoteId)) {
+    return { match, accepted: false, reason: 'invalid_emote' };
+  }
+
+  let side = null;
+  if (match.p1 && match.p1.playerId === playerId) side = 'p1';
+  else if (match.p2 && match.p2.playerId === playerId) side = 'p2';
+  if (!side) return { match, accepted: false, reason: 'not_in_match' };
+
+  const player = match[side];
+  if (player.lastEmoteAt > 0 && nowMs - player.lastEmoteAt < MIN_EMOTE_COOLDOWN_MS) {
+    return { match, accepted: false, reason: 'cooldown' };
+  }
+
+  player.lastEmoteAt = nowMs;
+  match.lastEmote = { emoteId, by: side, ts: nowMs };
+  return { match, accepted: true, reason: null };
+}
+
 function sanitizePublicPlayer(p) {
   if (!p) return null;
   return {
@@ -364,6 +394,14 @@ function buildPublicMatchView(match, viewerPlayerId, nowMs = Date.now()) {
     winnerOutcome,
     finishReason: match.finishReason,
     lastEvent,
+    lastEmote: (match.lastEmote && ALLOWED_EMOTES.includes(match.lastEmote.emoteId))
+      ? {
+        emoteId: match.lastEmote.emoteId,
+        byMe: match.lastEmote.by === mySide,
+        byOpp: match.lastEmote.by === oppSide,
+        ts: match.lastEmote.ts,
+      }
+      : null,
     me: sanitizePublicPlayer(meRaw),
     opponent: sanitizePublicPlayer(oppRaw),
   };
@@ -462,6 +500,47 @@ async function removeOnlinePresence(playerId, exec = redisCommand) {
   return true;
 }
 
+function buildSearchingAddCommands(playerId, nowMs = Date.now()) {
+  const cleanId = sanitizePlayerId(playerId);
+  if (!cleanId) return null;
+  return [
+    ['ZADD', SEARCHING_KEY, nowMs, cleanId],
+    ['ZREMRANGEBYSCORE', SEARCHING_KEY, '-inf', nowMs - SEARCHING_WINDOW_MS],
+    ['EXPIRE', SEARCHING_KEY, SEARCHING_TTL_SECONDS],
+  ];
+}
+
+function buildSearchingCountCommand(nowMs = Date.now()) {
+  return ['ZCOUNT', SEARCHING_KEY, nowMs - SEARCHING_WINDOW_MS, '+inf'];
+}
+
+function buildSearchingRemoveCommand(playerId) {
+  const cleanId = sanitizePlayerId(playerId);
+  if (!cleanId) return null;
+  return ['ZREM', SEARCHING_KEY, cleanId];
+}
+
+async function recordSearchingPlayer(playerId, nowMs = Date.now(), exec = redisCommand) {
+  const cmds = buildSearchingAddCommands(playerId, nowMs);
+  if (!cmds) return false;
+  for (const cmd of cmds) {
+    await exec(cmd);
+  }
+  return true;
+}
+
+async function removeSearchingPlayer(playerId, exec = redisCommand) {
+  const cmd = buildSearchingRemoveCommand(playerId);
+  if (!cmd) return false;
+  await exec(cmd);
+  return true;
+}
+
+async function getSearchingCount(nowMs = Date.now(), exec = redisCommand) {
+  const count = await exec(buildSearchingCountCommand(nowMs));
+  return normalizeOnlineCount(count);
+}
+
 async function checkRateLimit(req) {
   const forwarded = req.headers && req.headers['x-forwarded-for'];
   const ipRaw = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'anon';
@@ -516,14 +595,18 @@ async function handler(req, res) {
         return sendJson(res, 200, { configured: false, onlineCount: 0 });
       }
       try {
-        const onlineCount = await getOnlinePresenceCount(Date.now());
+        const [onlineCount, searchingCount] = await Promise.all([
+          getOnlinePresenceCount(Date.now()),
+          getSearchingCount(Date.now()),
+        ]);
         return sendJson(res, 200, {
           configured: true,
           onlineCount,
+          searchingCount,
           windowSeconds: Math.round(PRESENCE_WINDOW_MS / 1000),
         });
       } catch (err) {
-        return sendJson(res, 500, { configured: true, onlineCount: 0, error: 'Failed to load online count' });
+        return sendJson(res, 500, { configured: true, onlineCount: 0, searchingCount: 0, error: 'Failed to load online count' });
       }
     }
 
@@ -583,15 +666,18 @@ async function handler(req, res) {
 
       if (action === 'presence') {
         const onlineCount = await recordOnlinePresence(playerId, nowMs);
+        const searchingCount = await getSearchingCount(nowMs);
         return sendJson(res, 200, {
           configured: true,
           onlineCount,
+          searchingCount,
           windowSeconds: Math.round(PRESENCE_WINDOW_MS / 1000),
         });
       }
 
       if (action === 'leave_presence') {
         await removeOnlinePresence(playerId);
+        await removeSearchingPlayer(playerId);
         return sendJson(res, 200, { configured: true, removed: true });
       }
 
@@ -627,6 +713,8 @@ async function handler(req, res) {
           });
           await saveMatchToRedis(match);
           await redisCommand(['SET', `mq:pvp:ticket:${matchedWaiter.playerId}`, match.matchId, 'EX', 60]);
+          await removeSearchingPlayer(playerId);
+          await removeSearchingPlayer(matchedWaiter.playerId);
           return sendJson(res, 200, {
             configured: true,
             matched: true,
@@ -644,6 +732,7 @@ async function handler(req, res) {
         };
         await redisCommand(['RPUSH', queueKey, JSON.stringify(queueEntry)]);
         await redisCommand(['EXPIRE', queueKey, 45]);
+        await recordSearchingPlayer(playerId, nowMs);
         return sendJson(res, 200, { configured: true, matched: false, queued: true });
       }
 
@@ -668,6 +757,7 @@ async function handler(req, res) {
       if (action === 'cancel_queue') {
         await redisCommand(['DEL', `mq:pvp:ticket:${playerId}`]);
         await redisCommand(['SET', `mq:pvp:cancelled:${playerId}`, '1', 'EX', 30]);
+        await removeSearchingPlayer(playerId);
         return sendJson(res, 200, { configured: true, cancelled: true });
       }
 
@@ -759,6 +849,31 @@ async function handler(req, res) {
         });
       }
 
+      if (action === 'emote') {
+        const matchId = sanitizeMatchId(body.matchId);
+        if (!matchId) {
+          return sendJson(res, 400, { configured: true, error: 'Invalid matchId' });
+        }
+        const match = await loadMatchFromRedis(matchId);
+        if (!match) {
+          return sendJson(res, 404, { configured: true, error: 'Match not found' });
+        }
+        const result = applyPlayerEmote(match, {
+          playerId,
+          emoteId: String(body.emoteId || ''),
+          nowMs,
+        });
+        if (result.accepted) {
+          await saveMatchToRedis(match);
+        }
+        return sendJson(res, 200, {
+          configured: true,
+          accepted: result.accepted,
+          reason: result.reason,
+          match: buildPublicMatchView(match, playerId, nowMs),
+        });
+      }
+
       if (action === 'forfeit') {
         const matchId = sanitizeMatchId(body.matchId);
         if (!matchId) {
@@ -798,6 +913,18 @@ async function handler(req, res) {
 }
 
 handler.ALLOWED_FORMATS = ALLOWED_FORMATS;
+handler.ALLOWED_AVATARS = ALLOWED_AVATARS;
+handler.ALLOWED_EMOTES = ALLOWED_EMOTES;
+handler.MIN_EMOTE_COOLDOWN_MS = MIN_EMOTE_COOLDOWN_MS;
+handler.SEARCHING_KEY = SEARCHING_KEY;
+handler.SEARCHING_WINDOW_MS = SEARCHING_WINDOW_MS;
+handler.applyPlayerEmote = applyPlayerEmote;
+handler.buildSearchingAddCommands = buildSearchingAddCommands;
+handler.buildSearchingCountCommand = buildSearchingCountCommand;
+handler.buildSearchingRemoveCommand = buildSearchingRemoveCommand;
+handler.recordSearchingPlayer = recordSearchingPlayer;
+handler.removeSearchingPlayer = removeSearchingPlayer;
+handler.getSearchingCount = getSearchingCount;
 handler.MATCH_DURATION_MS = MATCH_DURATION_MS;
 handler.TUG_WIN_THRESHOLD = TUG_WIN_THRESHOLD;
 handler.PRESENCE_KEY = PRESENCE_KEY;
