@@ -6,6 +6,7 @@
 const StorageManager = (() => {
   const STORAGE_KEY = 'math_quest_player_data';
   const PROFILES_KEY = 'math_quest_profiles';
+  const ONBOARDED_KEY = 'math_quest_onboarded';
 
   const PROFILE_AVATARS = [
     { id: 'knight', label: 'Knight', svg: `<svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>` },
@@ -50,12 +51,24 @@ const StorageManager = (() => {
     consumables: [
       { id: 'streak_freeze', name: 'Streak Freeze Shield', cost: 40, max: 3, desc: 'Protects your Daily Streak if you miss one day' },
     ],
+    audio: [
+      { id: 'bgm_classic', kind: 'bgm', name: 'Classic Chiptune', cost: 0, desc: '8-bit arcade melody' },
+      { id: 'bgm_synthwave', kind: 'bgm', name: 'Synthwave Arp', cost: 55, desc: 'Neon night synth lead' },
+      { id: 'bgm_boss', kind: 'bgm', name: 'Boss Battle Rush', cost: 70, desc: 'Fast combat ostinato' },
+      { id: 'bgm_lofi', kind: 'bgm', name: 'Crystal Study', cost: 65, desc: 'Calm pentatonic chimes' },
+      { id: 'sfx_classic', kind: 'sfx', name: 'Classic Chime', cost: 0, desc: 'Cheerful triad chime' },
+      { id: 'sfx_coin', kind: 'sfx', name: '8-Bit Retro Coin', cost: 45, desc: 'Arcade coin pickup sound' },
+      { id: 'sfx_laser', kind: 'sfx', name: 'Cyber Laser SFX', cost: 60, desc: 'Sci-fi harmonic zap' },
+    ],
   };
 
   const STARTER_AVATAR_IDS = PROFILE_AVATARS.map(a => a.id);
   const FRAME_IDS = SHOP_CATALOG.frames.map(i => i.id);
   const LASER_IDS = SHOP_CATALOG.lasers.map(i => i.id);
   const THEME_IDS = SHOP_CATALOG.themes.map(i => i.id);
+  const AUDIO_IDS = SHOP_CATALOG.audio.map(i => i.id);
+  const AUDIO_BGM_IDS = SHOP_CATALOG.audio.filter(i => i.kind === 'bgm').map(i => i.id);
+  const AUDIO_SFX_IDS = SHOP_CATALOG.audio.filter(i => i.kind === 'sfx').map(i => i.id);
   const RARE_AVATAR_IDS = RARE_AVATARS.map(a => a.id);
   const MAX_STREAK_FREEZES = 3;
   const LOCAL_ROOM_GOAL_TARGET = 500;
@@ -70,14 +83,36 @@ const StorageManager = (() => {
     const unlockedFrames = merge(['none'], src.unlockedFrames, FRAME_IDS);
     const unlockedLasers = merge(['indigo'], src.unlockedLasers, LASER_IDS);
     const unlockedThemes = merge(['dark', 'light'], src.unlockedThemes, THEME_IDS);
+    const unlockedAudio = merge(['bgm_classic', 'sfx_classic'], src.unlockedAudio, AUDIO_IDS);
     return {
       unlockedAvatars,
       unlockedFrames,
       unlockedLasers,
       unlockedThemes,
+      unlockedAudio,
       equippedFrame: unlockedFrames.includes(src.equippedFrame) ? src.equippedFrame : 'none',
       equippedLaser: unlockedLasers.includes(src.equippedLaser) ? src.equippedLaser : 'indigo',
+      equippedBgm: (unlockedAudio.includes(src.equippedBgm) && AUDIO_BGM_IDS.includes(src.equippedBgm)) ? src.equippedBgm : 'bgm_classic',
+      equippedSfx: (unlockedAudio.includes(src.equippedSfx) && AUDIO_SFX_IDS.includes(src.equippedSfx)) ? src.equippedSfx : 'sfx_classic',
     };
+  }
+
+  function sanitizeDailyHistory(raw) {
+    const out = {};
+    if (raw && typeof raw === 'object') {
+      Object.keys(raw).sort().slice(-30).forEach(k => {
+        const v = raw[k];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(k) && v && typeof v === 'object') {
+          out[k] = {
+            solved: Math.max(0, Math.floor(Number(v.solved) || 0)),
+            correct: Math.max(0, Math.floor(Number(v.correct) || 0)),
+            totalTimeMs: Math.max(0, Math.floor(Number(v.totalTimeMs) || 0)),
+            timedCount: Math.max(0, Math.floor(Number(v.timedCount) || 0)),
+          };
+        }
+      });
+    }
+    return out;
   }
 
   function sanitizeStars(value) {
@@ -98,7 +133,7 @@ const StorageManager = (() => {
     return out;
   }
 
-  const ALLOWED_MODES = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards'];
+  const ALLOWED_MODES = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'boss_raid'];
   const ALLOWED_OPS = ['multiply', 'divide', 'missing', 'add', 'subtract', 'mixed'];
   const ALLOWED_DIFFS = ['easy', 'medium', 'hard'];
   const ALLOWED_DURATIONS = [30, 60, 120];
@@ -188,6 +223,13 @@ const StorageManager = (() => {
       icon: `<svg class="w-5 h-5 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
       check: (data) => (data.masteredFlashcards >= 15),
     },
+    {
+      id: 'boss_slayer',
+      title: 'Boss Slayer',
+      desc: 'Defeat an RPG Math Boss',
+      icon: `<svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>`,
+      check: (data) => (data.bossesDefeated || 0) >= 1,
+    },
   ];
 
   const DEFAULT_DATA = {
@@ -202,8 +244,10 @@ const StorageManager = (() => {
       survival: 0,
       endless: 0,
       meteor: 0,
+      boss: 0,
     },
     survivalBestFloor: 0,
+    bossesDefeated: 0,
     pvpStats: {
       wins: 0,
       losses: 0,
@@ -334,7 +378,32 @@ const StorageManager = (() => {
     };
   }
 
+  function needsProfileSetup() {
+    try {
+      if (localStorage.getItem(ONBOARDED_KEY) === '1') return false;
+      if (localStorage.getItem(PROFILES_KEY) !== null) return false;
+      const d = getData();
+      return (d.totalAnswered || 0) === 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markProfileSetupDone() {
+    try {
+      localStorage.setItem(ONBOARDED_KEY, '1');
+    } catch (e) {}
+  }
+
+  function completeProfileSetup(name, avatarId = 'knight') {
+    const active = getActiveProfile();
+    const res = renameProfile(active.id, name || active.name, avatarId);
+    markProfileSetupDone();
+    return res;
+  }
+
   function createProfile(name, avatarId = 'knight') {
+    markProfileSetupDone();
     const reg = getProfileRegistry();
     if (reg.list.length >= 12) {
       return { success: false, error: 'Maximum 12 profiles reached' };
@@ -424,8 +493,10 @@ const StorageManager = (() => {
         survival: 0,
         endless: 0,
         meteor: 0,
+        boss: 0,
       },
       survivalBestFloor: 0,
+      bossesDefeated: 0,
       pvpStats: {
         wins: 0,
         losses: 0,
@@ -448,8 +519,11 @@ const StorageManager = (() => {
         lastFreezeAwardDate: null,
       },
       stars: 0,
+      xpBoostRounds: 0,
+      dailyChest: { unlockedDate: null, claimedDate: null, totalClaimed: 0 },
       cosmetics: sanitizeCosmetics(null),
       weeklyRoomSolved: {},
+      dailyHistory: {},
       dailyQuests: {
         date: null,
         items: [],
@@ -512,8 +586,16 @@ const StorageManager = (() => {
         dailyChallenge: cloneDailyChallenge(parsed.dailyChallenge),
         preferences: sanitizePreferences(parsed.preferences),
         stars: sanitizeStars(parsed.stars),
+        xpBoostRounds: sanitizeStars(parsed.xpBoostRounds),
+        bossesDefeated: sanitizeStars(parsed.bossesDefeated),
+        dailyChest: {
+          unlockedDate: (parsed.dailyChest && parsed.dailyChest.unlockedDate) || null,
+          claimedDate: (parsed.dailyChest && parsed.dailyChest.claimedDate) || null,
+          totalClaimed: sanitizeStars(parsed.dailyChest && parsed.dailyChest.totalClaimed),
+        },
         cosmetics: sanitizeCosmetics(parsed.cosmetics),
         weeklyRoomSolved: sanitizeWeeklyRoomSolved(parsed.weeklyRoomSolved),
+        dailyHistory: sanitizeDailyHistory(parsed.dailyHistory),
       };
     } catch (e) {
       console.warn('Failed to load Math Quest data from localStorage:', e);
@@ -791,7 +873,7 @@ const StorageManager = (() => {
     };
   }
 
-  function recordGameResult({ mode, duration = null, score = 0, streak = 0, correct = 0, total = 0, floor = 0 }) {
+  function recordGameResult({ mode, duration = null, score = 0, streak = 0, correct = 0, total = 0, floor = 0, bossesSlain = 0 }) {
     const data = getData();
 
     data.totalAnswered += total;
@@ -799,6 +881,18 @@ const StorageManager = (() => {
     data.highestStreak = Math.max(data.highestStreak, streak);
     data.lastPlayed = new Date().toISOString();
     touchDailyStreakInData(data);
+
+    const todayKey = getDateKey();
+    data.dailyChest = data.dailyChest || { unlockedDate: null, claimedDate: null, totalClaimed: 0 };
+    if (total > 0 || correct > 0 || score > 0) {
+      data.dailyChest.unlockedDate = todayKey;
+    }
+    data.dailyHistory = sanitizeDailyHistory(data.dailyHistory);
+    if (!data.dailyHistory[todayKey]) {
+      data.dailyHistory[todayKey] = { solved: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+    }
+    data.dailyHistory[todayKey].solved += Math.max(0, Math.floor(Number(total) || 0));
+    data.dailyHistory[todayKey].correct += Math.max(0, Math.floor(Number(correct) || 0));
 
     let newHighScore = false;
     let scoreKey = null;
@@ -814,6 +908,11 @@ const StorageManager = (() => {
       scoreKey = 'endless';
     } else if (mode === 'meteor') {
       scoreKey = 'meteor';
+    } else if (mode === 'boss_raid' || mode === 'boss') {
+      scoreKey = 'boss';
+      if (Number(bossesSlain) > 0) {
+        data.bossesDefeated = (data.bossesDefeated || 0) + Math.floor(Number(bossesSlain));
+      }
     }
 
     if (scoreKey && score > (data.highScores[scoreKey] || 0)) {
@@ -889,6 +988,9 @@ const StorageManager = (() => {
 
     data.pvpStats.trophies = Math.max(0, prevTrophies + trophyDelta);
     data.stars = sanitizeStars(data.stars) + starsEarned;
+    const todayKey = getDateKey();
+    data.dailyChest = data.dailyChest || { unlockedDate: null, claimedDate: null, totalClaimed: 0 };
+    data.dailyChest.unlockedDate = todayKey;
 
     touchDailyStreakInData(data);
     data.lastPlayed = new Date().toISOString();
@@ -902,25 +1004,42 @@ const StorageManager = (() => {
     };
   }
 
-  function recordMatrixAttempt(num1, num2, isCorrect, responseTimeMs = null) {
+  function recordMatrixAttempt(num1, num2, isCorrect, responseTimeMs = null, nowMs = Date.now()) {
     const data = getData();
     const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
     data.matrixStats = data.matrixStats || {};
 
     if (!data.matrixStats[key]) {
-      data.matrixStats[key] = { attempts: 0, correct: 0, totalTimeMs: 0, timedAttempts: 0 };
+      data.matrixStats[key] = { attempts: 0, correct: 0, totalTimeMs: 0, timedAttempts: 0, box: 1, lastTestedAt: 0 };
     } else {
       data.matrixStats[key].totalTimeMs = data.matrixStats[key].totalTimeMs || 0;
       data.matrixStats[key].timedAttempts = data.matrixStats[key].timedAttempts || 0;
+      data.matrixStats[key].box = data.matrixStats[key].box || 1;
     }
 
-    data.matrixStats[key].attempts++;
+    const stat = data.matrixStats[key];
+    stat.attempts++;
     if (isCorrect) {
-      data.matrixStats[key].correct++;
+      stat.correct++;
+      if (stat.attempts >= 2) {
+        stat.box = Math.min(4, (stat.box || 1) + 1);
+      }
+    } else {
+      stat.box = 1;
     }
+    stat.lastTestedAt = nowMs;
+
     if (typeof responseTimeMs === 'number' && responseTimeMs > 0 && responseTimeMs <= 30000) {
-      data.matrixStats[key].totalTimeMs += Math.round(responseTimeMs);
-      data.matrixStats[key].timedAttempts++;
+      stat.totalTimeMs += Math.round(responseTimeMs);
+      stat.timedAttempts++;
+
+      const todayKey = getDateKey(new Date(nowMs));
+      data.dailyHistory = sanitizeDailyHistory(data.dailyHistory);
+      if (!data.dailyHistory[todayKey]) {
+        data.dailyHistory[todayKey] = { solved: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+      }
+      data.dailyHistory[todayKey].totalTimeMs += Math.round(responseTimeMs);
+      data.dailyHistory[todayKey].timedCount++;
     }
 
     saveData(data);
@@ -1000,6 +1119,8 @@ const StorageManager = (() => {
     return {
       xp: data.xp,
       stars: sanitizeStars(data.stars),
+      xpBoostRounds: sanitizeStars(data.xpBoostRounds),
+      bossesDefeated: sanitizeStars(data.bossesDefeated),
       levelInfo: getLevelInfo(data.xp),
       totalAnswered: data.totalAnswered,
       totalCorrect: data.totalCorrect,
@@ -1316,6 +1437,15 @@ const StorageManager = (() => {
     }
 
     touchDailyStreakInData(data, dateObj);
+    const todayKey = getDateKey(dateObj);
+    data.dailyChest = data.dailyChest || { unlockedDate: null, claimedDate: null, totalClaimed: 0 };
+    data.dailyChest.unlockedDate = todayKey;
+    data.dailyHistory = sanitizeDailyHistory(data.dailyHistory);
+    if (!data.dailyHistory[todayKey]) {
+      data.dailyHistory[todayKey] = { solved: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+    }
+    data.dailyHistory[todayKey].solved += Math.max(0, Math.floor(Number(total) || 0));
+    data.dailyHistory[todayKey].correct += Math.max(0, Math.floor(Number(correct) || 0));
     if (bonusXP > 0) {
       data.xp = Math.max(0, (data.xp || 0) + bonusXP);
     }
@@ -1436,8 +1566,16 @@ const StorageManager = (() => {
         },
         dailyChallenge: cloneDailyChallenge(parsed.dailyChallenge),
         stars: sanitizeStars(parsed.stars),
+        xpBoostRounds: sanitizeStars(parsed.xpBoostRounds),
+        bossesDefeated: sanitizeStars(parsed.bossesDefeated),
+        dailyChest: {
+          unlockedDate: (parsed.dailyChest && parsed.dailyChest.unlockedDate) || null,
+          claimedDate: (parsed.dailyChest && parsed.dailyChest.claimedDate) || null,
+          totalClaimed: sanitizeStars(parsed.dailyChest && parsed.dailyChest.totalClaimed),
+        },
         cosmetics: sanitizeCosmetics(parsed.cosmetics),
         weeklyRoomSolved: sanitizeWeeklyRoomSolved(parsed.weeklyRoomSolved),
+        dailyHistory: sanitizeDailyHistory(parsed.dailyHistory),
       };
     } catch (e) {
       return createDefaultData();
@@ -1568,6 +1706,7 @@ const StorageManager = (() => {
     if (category === 'frames') return c.unlockedFrames.includes(itemId);
     if (category === 'lasers') return c.unlockedLasers.includes(itemId);
     if (category === 'themes') return c.unlockedThemes.includes(itemId);
+    if (category === 'audio') return c.unlockedAudio.includes(itemId);
     return false;
   }
 
@@ -1592,6 +1731,9 @@ const StorageManager = (() => {
       data.cosmetics.equippedLaser = itemId;
     } else if (category === 'themes') {
       data.preferences = sanitizePreferences({ ...(data.preferences || {}), theme: itemId });
+    } else if (category === 'audio') {
+      if (AUDIO_BGM_IDS.includes(itemId)) data.cosmetics.equippedBgm = itemId;
+      if (AUDIO_SFX_IDS.includes(itemId)) data.cosmetics.equippedSfx = itemId;
     }
   }
 
@@ -1630,6 +1772,7 @@ const StorageManager = (() => {
     if (category === 'frames') data.cosmetics.unlockedFrames.push(itemId);
     if (category === 'lasers') data.cosmetics.unlockedLasers.push(itemId);
     if (category === 'themes') data.cosmetics.unlockedThemes.push(itemId);
+    if (category === 'audio') data.cosmetics.unlockedAudio.push(itemId);
     applyEquip(data, category, itemId);
     data.cosmetics = sanitizeCosmetics(data.cosmetics);
     saveData(data);
@@ -1640,7 +1783,7 @@ const StorageManager = (() => {
   }
 
   function equipCosmetic(category, itemId) {
-    if (!['avatars', 'frames', 'lasers', 'themes'].includes(category)) {
+    if (!['avatars', 'frames', 'lasers', 'themes', 'audio'].includes(category)) {
       return { success: false, error: 'Unknown category', shopState: getShopState() };
     }
     const data = getData();
@@ -1841,6 +1984,211 @@ const StorageManager = (() => {
     return { type: 'companion', text: `${companion.name}: ${companion.nextGoalText}` };
   }
 
+  // ---------------------------------------------------------------------
+  // Spaced-Repetition Memory Vault (Leitner Boxes 1-4)
+  // ---------------------------------------------------------------------
+  const BOX_INTERVALS_MS = {
+    1: 1 * 86400000,
+    2: 3 * 86400000,
+    3: 7 * 86400000,
+    4: 14 * 86400000,
+  };
+
+  function getDueMemoryFacts(nowMs = Date.now(), max = 12) {
+    const data = getData();
+    const matrix = data.matrixStats || {};
+    const due = [];
+
+    for (let r = 1; r <= 12; r++) {
+      for (let c = r; c <= 12; c++) {
+        const key = `${r}x${c}`;
+        const stat = matrix[key];
+        if (!stat || !stat.attempts) continue;
+        const box = stat.box || 1;
+        const interval = BOX_INTERVALS_MS[box] || BOX_INTERVALS_MS[1];
+        const elapsed = nowMs - (stat.lastTestedAt || 0);
+        const acc = (stat.correct || 0) / stat.attempts;
+        if (elapsed >= interval || acc < 0.75) {
+          due.push({
+            key,
+            num1: r,
+            num2: c,
+            box,
+            accuracy: Math.round(acc * 100),
+            elapsedDays: Math.floor(elapsed / 86400000),
+          });
+        }
+      }
+    }
+
+    due.sort((a, b) => (a.box - b.box) || (a.accuracy - b.accuracy));
+    return due.slice(0, max);
+  }
+
+  function getMemoryVaultSummary(nowMs = Date.now()) {
+    const data = getData();
+    const matrix = data.matrixStats || {};
+    const boxes = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    let tested = 0;
+
+    for (let r = 1; r <= 12; r++) {
+      for (let c = r; c <= 12; c++) {
+        const stat = matrix[`${r}x${c}`];
+        if (stat && stat.attempts > 0) {
+          tested++;
+          const b = Math.max(1, Math.min(4, stat.box || 1));
+          boxes[b]++;
+        }
+      }
+    }
+
+    const due = getDueMemoryFacts(nowMs, 15);
+    return { dueCount: due.length, testedCount: tested, boxes, dueFacts: due };
+  }
+
+  // ---------------------------------------------------------------------
+  // Daily Mystery Chest & 2x XP Boost
+  // ---------------------------------------------------------------------
+  function getDailyChestStatus(dateObj = new Date()) {
+    const data = getData();
+    const today = getDateKey(dateObj);
+    const chest = data.dailyChest || { unlockedDate: null, claimedDate: null, totalClaimed: 0 };
+    const unlocked = chest.unlockedDate === today || (data.dailyChallenge && data.dailyChallenge.lastDate === today);
+    const claimed = chest.claimedDate === today;
+    return {
+      today,
+      ready: unlocked && !claimed,
+      claimed,
+      unlocked,
+      totalClaimed: chest.totalClaimed || 0,
+      xpBoostRounds: sanitizeStars(data.xpBoostRounds),
+    };
+  }
+
+  function claimDailyMysteryChest(dateObj = new Date(), rng = Math.random) {
+    const data = getData();
+    const today = getDateKey(dateObj);
+    data.dailyChest = data.dailyChest || { unlockedDate: null, claimedDate: null, totalClaimed: 0 };
+    const isUnlocked = data.dailyChest.unlockedDate === today || (data.dailyChallenge && data.dailyChallenge.lastDate === today);
+    if (!isUnlocked) {
+      return { success: false, error: 'Complete one round today to unlock the Daily Mystery Chest!' };
+    }
+    if (data.dailyChest.claimedDate === today) {
+      return { success: false, error: 'Daily Mystery Chest already claimed today!' };
+    }
+
+    data.dailyChest.claimedDate = today;
+    data.dailyChest.totalClaimed = (data.dailyChest.totalClaimed || 0) + 1;
+
+    const roll = rng();
+    let reward;
+    if (roll < 0.45) {
+      const stars = 25 + Math.floor(rng() * 26);
+      data.stars = sanitizeStars(data.stars) + stars;
+      reward = { type: 'stars', amount: stars, label: `+${stars} ⭐ Bonus Stars!` };
+    } else if (roll < 0.80) {
+      const rounds = 2;
+      data.xpBoostRounds = sanitizeStars(data.xpBoostRounds) + rounds;
+      data.stars = sanitizeStars(data.stars) + 15;
+      reward = { type: 'xp_boost', rounds, stars: 15, label: '2× XP Boost (next 2 rounds) + 15 ⭐!' };
+    } else {
+      data.dailyStreak = data.dailyStreak || { count: 0, best: 0, lastDate: null, freezes: 0 };
+      if ((data.dailyStreak.freezes || 0) < MAX_STREAK_FREEZES) {
+        data.dailyStreak.freezes = (data.dailyStreak.freezes || 0) + 1;
+        reward = { type: 'freeze', amount: 1, label: '+1 🛡️ Streak Freeze Shield!' };
+      } else {
+        data.stars = sanitizeStars(data.stars) + 45;
+        reward = { type: 'stars', amount: 45, label: '+45 ⭐ Bonus Stars!' };
+      }
+    }
+
+    saveData(data);
+    return { success: true, reward, status: getDailyChestStatus(dateObj) };
+  }
+
+  function consumeXpBoostRound() {
+    const data = getData();
+    const current = sanitizeStars(data.xpBoostRounds);
+    if (current <= 0) return { boosted: false, remaining: 0 };
+    data.xpBoostRounds = current - 1;
+    saveData(data);
+    return { boosted: true, remaining: data.xpBoostRounds };
+  }
+
+  // ---------------------------------------------------------------------
+  // 12 Collectible Hero Cards Album
+  // ---------------------------------------------------------------------
+  const HERO_CARDS = [
+    { table: 1, title: 'Unit Spark', color: 'from-slate-600 to-slate-800' },
+    { table: 2, title: 'Twin Knight', color: 'from-emerald-600 to-teal-800' },
+    { table: 3, title: 'Tri-Force Mage', color: 'from-cyan-600 to-blue-800' },
+    { table: 4, title: 'Quad Paladin', color: 'from-indigo-600 to-violet-800' },
+    { table: 5, title: 'Penta Ranger', color: 'from-amber-500 to-orange-700' },
+    { table: 6, title: 'Hexa Alchemist', color: 'from-purple-600 to-fuchsia-800' },
+    { table: 7, title: 'Lucky Sevens', color: 'from-rose-600 to-pink-800' },
+    { table: 8, title: 'Octa Titan', color: 'from-sky-500 to-indigo-800' },
+    { table: 9, title: 'Nine-Tail Sage', color: 'from-orange-500 to-red-800' },
+    { table: 10, title: 'Deca Commander', color: 'from-teal-500 to-emerald-800' },
+    { table: 11, title: 'Mirror Duelist', color: 'from-violet-500 to-purple-900' },
+    { table: 12, title: 'Dozen Sovereign', color: 'from-yellow-500 to-amber-700' },
+  ];
+
+  function getHeroCardsAlbum() {
+    const mastery = getTableMastery();
+    let unlockedCount = 0;
+    let holoCount = 0;
+    const cards = HERO_CARDS.map(def => {
+      const m = mastery[def.table] || { stars: 0, status: 'untested', accuracy: 0, tested: 0 };
+      const unlocked = m.stars >= 1 || m.status === 'mastered';
+      const holo = m.stars >= 3;
+      if (unlocked) unlockedCount++;
+      if (holo) holoCount++;
+      return {
+        ...def,
+        stars: m.stars || 0,
+        accuracy: m.accuracy || 0,
+        unlocked,
+        holo,
+      };
+    });
+    return { cards, unlockedCount, holoCount, totalCount: cards.length };
+  }
+
+  // ---------------------------------------------------------------------
+  // 7-Day Activity & Speed Analytics Chart
+  // ---------------------------------------------------------------------
+  function getRecentActivityChart(days = 7, dateObj = new Date()) {
+    const data = getData();
+    const history = sanitizeDailyHistory(data.dailyHistory);
+    const out = [];
+    let totalSolved7d = 0;
+    let totalTimedMs = 0;
+    let totalTimedCount = 0;
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() - i);
+      const key = getDateKey(d);
+      const entry = history[key] || { solved: 0, correct: 0, totalTimeMs: 0, timedCount: 0 };
+      const accuracy = entry.solved > 0 ? Math.round((entry.correct / entry.solved) * 100) : 0;
+      const avgSeconds = entry.timedCount > 0 ? Number((entry.totalTimeMs / entry.timedCount / 1000).toFixed(1)) : null;
+      totalSolved7d += entry.solved;
+      totalTimedMs += entry.totalTimeMs || 0;
+      totalTimedCount += entry.timedCount || 0;
+      out.push({
+        dateKey: key,
+        label: dayNames[d.getDay()],
+        solved: entry.solved,
+        correct: entry.correct,
+        accuracy,
+        avgSeconds,
+      });
+    }
+
+    const avgSpeed7d = totalTimedCount > 0 ? Number((totalTimedMs / totalTimedCount / 1000).toFixed(1)) : null;
+    return { days: out, totalSolved7d, avgSpeed7d };
+  }
+
   function exportDataJSON() {
     const data = getData();
     return JSON.stringify(data, null, 2);
@@ -1900,6 +2248,17 @@ const StorageManager = (() => {
     SHOP_CATALOG,
     PVP_RANKS,
     COMPANION_STAGES,
+    HERO_CARDS,
+    needsProfileSetup,
+    markProfileSetupDone,
+    completeProfileSetup,
+    getDueMemoryFacts,
+    getMemoryVaultSummary,
+    getDailyChestStatus,
+    claimDailyMysteryChest,
+    consumeXpBoostRound,
+    getHeroCardsAlbum,
+    getRecentActivityChart,
     getPvpRank,
     addStars,
     getShopState,

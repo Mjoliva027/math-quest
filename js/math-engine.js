@@ -272,6 +272,65 @@ const MathEngine = (() => {
     return shuffle([answer, ...chosen], rng);
   }
 
+  function getMentalTrick(op, num1, num2, answer, extra = {}) {
+    if (op === OPERATIONS.MULTIPLY) {
+      const a = Math.min(num1, num2);
+      const b = Math.max(num1, num2);
+      if (a === 7 && b === 8) return '5-6-7-8 Rule: 56 = 7 × 8!';
+      if (a === 6 && b === 8) return 'Rhyme Trick: 6 × 8 is 48!';
+      if (a === 7 && b === 7) return 'Square Trick: 7 × 7 = 49 (one less than 50)!';
+      if (a === 9 || b === 9) {
+        const other = a === 9 ? b : a;
+        return `9s Trick: (10 × ${other}) − ${other} = ${answer} (digits add to 9)!`;
+      }
+      if (a === 4 || b === 4) {
+        const other = a === 4 ? b : a;
+        return `Double-Double: ${other} × 2 = ${other * 2}, doubled again = ${answer}!`;
+      }
+      if (a === 5 || b === 5) {
+        const other = a === 5 ? b : a;
+        return `Half of 10×: (${other} × 10) ÷ 2 = ${answer}!`;
+      }
+      if (a === 6 || b === 6) {
+        const other = a === 6 ? b : a;
+        return `5s + 1 More: (${other} × 5) + ${other} = ${answer}!`;
+      }
+      if (a === 8 || b === 8) {
+        const other = a === 8 ? b : a;
+        return `Triple-Double: ${other} → ${other * 2} → ${other * 4} → ${answer}!`;
+      }
+      if (a === 11 || b === 11) {
+        const other = a === 11 ? b : a;
+        return `11s Trick: (10 × ${other}) + ${other} = ${answer}!`;
+      }
+      if (a === 12 || b === 12) {
+        const other = a === 12 ? b : a;
+        return `10s + 2s Split: (10 × ${other}) + (2 × ${other}) = ${answer}!`;
+      }
+      if (a === 2 || b === 2) {
+        const other = a === 2 ? b : a;
+        return `Doubling: ${other} + ${other} = ${answer}!`;
+      }
+      if (a === 10 || b === 10) {
+        const other = a === 10 ? b : a;
+        return `Place Value: Attach a 0 to ${other} = ${answer}!`;
+      }
+      return `Break Apart: (${a} × ${b - 1}) + ${a} = ${answer}!`;
+    }
+    if (op === OPERATIONS.DIVIDE) {
+      return `Reverse It: ${answer} × ${num2} = ${num1}!`;
+    }
+    if (op === OPERATIONS.MISSING) {
+      const prod = extra.product || (num1 * num2);
+      const known = extra.knownFactor || num1;
+      return `Inverse Division: ${prod} ÷ ${known} = ${answer}!`;
+    }
+    if (op === OPERATIONS.ADD || op === OPERATIONS.SUBTRACT) {
+      return 'Bridge through 10s: Split the smaller number to hit a multiple of 10!';
+    }
+    return '';
+  }
+
   function generateHint(op, num1, num2, answer, extra = {}) {
     if (op === OPERATIONS.MULTIPLY) {
       if (num1 === 1 || num2 === 1) {
@@ -348,6 +407,7 @@ const MathEngine = (() => {
     const symbol = SYMBOLS[resolvedOp];
     const options = generateDistractors(answer, resolvedOp, num1, num2);
     const hint = generateHint(resolvedOp, num1, num2, answer, nums);
+    const trick = getMentalTrick(resolvedOp, num1, num2, answer, nums);
     const visualArray = resolvedOp === OPERATIONS.MULTIPLY ? generateVisualArray(num1, num2) : null;
     const equation = resolvedOp === OPERATIONS.MISSING
       ? (nums.missingPosition === 'first' ? `? × ${num2} = ${nums.product}` : `${num1} × ? = ${nums.product}`)
@@ -366,6 +426,7 @@ const MathEngine = (() => {
       equation,
       options,
       hint,
+      trick,
       visualArray,
       matrixFactors,
     };
@@ -457,6 +518,7 @@ const MathEngine = (() => {
       const symbol = SYMBOLS[op];
       const options = generateDistractors(answer, op, num1, num2, rng);
       const hint = generateHint(op, num1, num2, answer, extra);
+      const trick = getMentalTrick(op, num1, num2, answer, extra);
       const visualArray = op === OPERATIONS.MULTIPLY ? generateVisualArray(num1, num2) : null;
 
       const problem = {
@@ -469,6 +531,7 @@ const MathEngine = (() => {
         equation,
         options,
         hint,
+        trick,
         visualArray,
         matrixFactors: [f1, f2],
       };
@@ -618,6 +681,7 @@ const MathEngine = (() => {
       const symbol = SYMBOLS[resolvedOp];
       const options = generateDistractors(answer, resolvedOp, num1, num2, rng);
       const hint = generateHint(resolvedOp, num1, num2, answer, nums);
+      const trick = getMentalTrick(resolvedOp, num1, num2, answer, nums);
       const visualArray = resolvedOp === OPERATIONS.MULTIPLY ? generateVisualArray(num1, num2) : null;
       const equation = resolvedOp === OPERATIONS.MISSING
         ? (nums.missingPosition === 'first' ? `? × ${num2} = ${nums.product}` : `${num1} × ? = ${nums.product}`)
@@ -636,6 +700,7 @@ const MathEngine = (() => {
         equation,
         options,
         hint,
+        trick,
         visualArray,
         matrixFactors,
       };
@@ -675,6 +740,120 @@ const MathEngine = (() => {
     };
   }
 
+  function generateFactorPuzzle(difficulty = 'medium', rng = Math.random) {
+    const pools = {
+      easy: [12, 16, 18, 20, 24, 36],
+      medium: [24, 30, 36, 40, 48, 60, 72],
+      hard: [36, 48, 54, 60, 72, 84, 96, 108],
+    };
+    const pool = pools[difficulty] || pools.medium;
+    const target = pool[Math.floor(rng() * pool.length)];
+
+    const allPairs = [];
+    for (let a = 2; a <= 12; a++) {
+      if (target % a === 0) {
+        const b = target / a;
+        if (b >= a && b <= 12) {
+          allPairs.push([a, b]);
+        }
+      }
+    }
+
+    const shuffledPairs = shuffle(allPairs, rng);
+    const chosenPairs = shuffledPairs.slice(0, 2);
+    while (chosenPairs.length < 2 && shuffledPairs.length > 0) {
+      chosenPairs.push(shuffledPairs[0]);
+    }
+
+    const rawFactors = [];
+    chosenPairs.forEach(([a, b]) => {
+      rawFactors.push(a, b);
+    });
+
+    // Add 2 distractor factors that do not divide target
+    const distractors = [];
+    for (let cand = 2; cand <= 13 && distractors.length < 6; cand++) {
+      if (target % cand !== 0) distractors.push(cand);
+    }
+    const pickedDistractors = shuffle(distractors, rng).slice(0, 2);
+    while (pickedDistractors.length < 2) {
+      pickedDistractors.push(7 + pickedDistractors.length * 4);
+    }
+
+    const tiles = shuffle([...rawFactors, ...pickedDistractors], rng).map((value, idx) => ({
+      id: `ft_${idx}`,
+      value,
+    }));
+
+    return {
+      target,
+      pairsCount: chosenPairs.length,
+      tiles,
+      validPairs: chosenPairs,
+    };
+  }
+
+  const BOSS_ROSTER = [
+    {
+      tier: 1,
+      id: 'goblin',
+      name: 'Goblin Multiplier',
+      title: 'Forest Scavenger',
+      maxHp: 100,
+      turnSeconds: 12,
+      rewardXP: 45,
+      rewardStars: 12,
+      svg: `<svg class="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="18" fill="#10b981" stroke="#047857" stroke-width="3"/><path d="M12 24l10 6M52 24l-10 6" stroke="#059669" stroke-width="5" stroke-linecap="round"/><circle cx="25" cy="31" r="3.5" fill="#fde047"/><circle cx="39" cy="31" r="3.5" fill="#fde047"/><path d="M24 43l4-3 4 3 4-3 4 3" stroke="#064e3b" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    },
+    {
+      tier: 2,
+      id: 'phantasm',
+      name: 'Division Phantasm',
+      title: 'Shadow Wraith',
+      maxHp: 150,
+      turnSeconds: 11,
+      rewardXP: 65,
+      rewardStars: 16,
+      svg: `<svg class="w-16 h-16" viewBox="0 0 64 64" fill="none"><path d="M14 48V30a18 18 0 0 1 36 0v18l-6-4-6 4-6-4-6 4-6-4z" fill="#8b5cf6" stroke="#4c1d95" stroke-width="3" stroke-linejoin="round"/><circle cx="26" cy="30" r="3.5" fill="#22d3ee"/><circle cx="38" cy="30" r="3.5" fill="#22d3ee"/></svg>`,
+    },
+    {
+      tier: 3,
+      id: 'golem',
+      name: 'Iron Factor Golem',
+      title: 'Armored Colossus',
+      maxHp: 200,
+      turnSeconds: 10,
+      rewardXP: 85,
+      rewardStars: 22,
+      svg: `<svg class="w-16 h-16" viewBox="0 0 64 64" fill="none"><rect x="14" y="14" width="36" height="36" rx="8" fill="#64748b" stroke="#334155" stroke-width="3"/><rect x="20" y="24" width="9" height="6" rx="2" fill="#f97316"/><rect x="35" y="24" width="9" height="6" rx="2" fill="#f97316"/><path d="M22 40h20" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/></svg>`,
+    },
+    {
+      tier: 4,
+      id: 'hydra',
+      name: 'Grand Calculus Hydra',
+      title: 'Mythic Overlord',
+      maxHp: 260,
+      turnSeconds: 9,
+      rewardXP: 110,
+      rewardStars: 30,
+      svg: `<svg class="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="38" r="18" fill="#e11d48" stroke="#881337" stroke-width="3"/><path d="M18 22l-6-10 12 4M32 20V8M46 22l6-10-12 4" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="35" r="3" fill="#fde047"/><circle cx="39" cy="35" r="3" fill="#fde047"/></svg>`,
+    },
+  ];
+
+  function getBossConfig(tier = 1) {
+    const t = Math.max(1, Math.floor(Number(tier) || 1));
+    const idx = Math.min(BOSS_ROSTER.length - 1, t - 1);
+    const base = BOSS_ROSTER[idx];
+    const extraHp = t > BOSS_ROSTER.length ? (t - BOSS_ROSTER.length) * 40 : 0;
+    return {
+      ...base,
+      tier: t,
+      maxHp: base.maxHp + extraHp,
+      rewardXP: base.rewardXP + (t > BOSS_ROSTER.length ? 20 : 0),
+      rewardStars: base.rewardStars + (t > BOSS_ROSTER.length ? 5 : 0),
+    };
+  }
+
   return {
     OPERATIONS,
     SYMBOLS,
@@ -683,6 +862,9 @@ const MathEngine = (() => {
     generateSeededDeck,
     generateDailyChallenge,
     getSurvivalFloorConfig,
+    getMentalTrick,
+    generateFactorPuzzle,
+    getBossConfig,
     generateVisualArray,
     generateDistractors,
     calculateAnswer,

@@ -221,7 +221,10 @@
               Not yet explored — challenge the 2× facts and earn XP!
             </p>
           </div>
-          <div class="flex items-center justify-end">
+          <div class="flex items-center justify-end gap-2">
+            <button id="btn-memory-vault" type="button" class="hidden px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/35 border border-purple-400/40 text-purple-200 font-bold text-xs active:scale-95 transition-all" title="Spaced Repetition Memory Check">
+              &#129504; <span id="memory-vault-count">0</span> due
+            </button>
             <button id="btn-rec-quest-start" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
               Start Quest
             </button>
@@ -253,6 +256,20 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Daily Mystery Chest Banner -->
+      <div id="lobby-mystery-chest" class="hidden rounded-2xl bg-gradient-to-r from-amber-950/80 via-yellow-950/60 to-orange-950/80 border border-amber-400/50 p-3 sm:p-4 flex items-center justify-between gap-3 shadow-lg">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="text-2xl sm:text-3xl flex-shrink-0 animate-bounce">&#127873;</span>
+          <div class="min-w-0">
+            <span class="text-xs sm:text-sm font-black text-amber-300 block">Daily Mystery Chest Unlocked!</span>
+            <p id="chest-banner-text" class="text-[11px] text-amber-100/90 truncate">Open today's chest for bonus stars, 2× XP boost, or a Streak Shield!</p>
+          </div>
+        </div>
+        <button id="btn-claim-chest" type="button" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs shadow-md flex-shrink-0">
+          Open Chest
+        </button>
       </div>
 
       <!-- Math Companion Card -->
@@ -306,7 +323,7 @@
           <span class="text-[11px] text-slate-400 md:hidden flex items-center gap-1">Swipe modes &rarr;</span>
         </div>
 
-        <div class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 pb-2" id="modes-carousel">
+        <div class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-3 pb-2" id="modes-carousel">
 
           <!-- Mode 1: Speed Blitz -->
           <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-indigo-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
@@ -412,6 +429,20 @@
             </div>
             <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
               <span class="text-emerald-400 font-semibold">Study Flip</span>
+            </div>
+          </div>
+
+          <!-- Mode 7: RPG Boss Battle -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-fuchsia-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="boss_raid">
+            <div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-fuchsia-600/20 text-fuchsia-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Boss Battle</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Slay RPG bosses with companion assist!</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span class="text-fuchsia-400 font-semibold">RPG Campaign</span>
             </div>
           </div>
 
@@ -659,6 +690,38 @@
             </div>
           </div>
 
+          <!-- RPG Boss Battle HUD -->
+          <div id="quiz-boss-hud" class="hidden rounded-2xl bg-slate-900/75 border border-fuchsia-500/40 p-2.5 flex items-center gap-3">
+            <div id="boss-avatar-box" class="w-12 h-12 rounded-xl bg-slate-950/70 border border-fuchsia-400/40 flex items-center justify-center flex-shrink-0"></div>
+            <div class="flex-1 min-w-0 space-y-1">
+              <div class="flex items-center justify-between gap-2 text-xs">
+                <span id="boss-name-label" class="font-black text-fuchsia-300 truncate">Goblin Multiplier</span>
+                <span id="boss-hp-text" class="font-mono font-bold text-rose-300 flex-shrink-0">100 / 100 HP</span>
+              </div>
+              <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-rose-500 to-fuchsia-500 rounded-full transition-all duration-300" style="width: 100%"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                <span id="boss-companion-assist">Companion Assist at 4-streak</span>
+                <span id="boss-fuse-text">12.0s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nitro Math Racer Track (Speed Blitz) -->
+          <div id="quiz-racer-track" class="hidden rounded-2xl bg-slate-900/75 border border-indigo-500/30 p-2.5 space-y-1">
+            <div class="flex items-center justify-between text-[10px] font-bold">
+              <span class="text-indigo-300 uppercase tracking-wider">Nitro Math Racer</span>
+              <span id="racer-gear-badge" class="font-mono text-amber-300">Gear 1 · 1st</span>
+            </div>
+            <div class="space-y-1">
+              <div class="relative h-2 bg-slate-950 rounded-full overflow-hidden"><div id="racer-lane-you" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-300" style="width: 4%"></div></div>
+              <div class="relative h-1.5 bg-slate-950 rounded-full overflow-hidden opacity-75"><div id="racer-lane-ai1" class="h-full bg-amber-400 rounded-full transition-all duration-300" style="width: 4%"></div></div>
+              <div class="relative h-1.5 bg-slate-950 rounded-full overflow-hidden opacity-75"><div id="racer-lane-ai2" class="h-full bg-rose-400 rounded-full transition-all duration-300" style="width: 4%"></div></div>
+              <div class="relative h-1.5 bg-slate-950 rounded-full overflow-hidden opacity-75"><div id="racer-lane-ai3" class="h-full bg-violet-400 rounded-full transition-all duration-300" style="width: 4%"></div></div>
+            </div>
+          </div>
+
           <!-- Fever Charge Meter -->
           <div id="quiz-fever-meter-wrap" class="flex items-center gap-2">
             <span class="text-[9px] font-bold uppercase tracking-wider text-amber-400 flex-shrink-0">Fever</span>
@@ -699,6 +762,9 @@
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
               </svg>
             </button>
+            <button id="btn-quiz-mic" type="button" class="hidden p-1 px-2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs flex items-center gap-1 active:scale-95" title="Speak Answer Hands-Free">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            </button>
           </div>
 
           <!-- Big Equation -->
@@ -709,6 +775,7 @@
           </div>
 
           <div id="quiz-hint-text" class="text-xs text-slate-400 italic min-h-[1.25rem] mt-0.5 select-none"></div>
+          <div id="quiz-trick-coach" class="hidden mx-auto max-w-md mt-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs font-semibold"></div>
 
           <!-- Visual Dot Array Model (Collapsible) -->
           <div id="quiz-visual-array-wrapper" class="hidden mt-3 pt-2.5 border-t border-slate-800/80">
@@ -823,14 +890,22 @@
         <!-- PvP Format Selector -->
         <div class="space-y-2">
           <span class="text-xs font-bold text-slate-300 block">Choose Online PvP Format</span>
-          <div class="grid grid-cols-2 gap-2.5">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border-2 border-indigo-400 bg-indigo-600/25 text-white font-bold text-xs text-left transition-all shadow" data-pvp-format="duel">
               <span class="block text-sm font-black">⚔️ 1v1 HP Battle</span>
               <span class="text-[10px] text-slate-300 font-normal">100 HP · Crits &amp; Shields</span>
             </button>
             <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500 font-bold text-xs text-left transition-all" data-pvp-format="tug">
-              <span class="block text-sm font-black">🪢 Online Tug-of-War</span>
+              <span class="block text-sm font-black">🪢 Tug-of-War</span>
               <span class="text-[10px] text-slate-300 font-normal">Pull rope 6 steps to win</span>
+            </button>
+            <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500 font-bold text-xs text-left transition-all" data-pvp-format="coop">
+              <span class="block text-sm font-black">🤝 Co-Op Raid</span>
+              <span class="text-[10px] text-slate-300 font-normal">Team up vs 300 HP Boss</span>
+            </button>
+            <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500 font-bold text-xs text-left transition-all" data-pvp-format="party">
+              <span class="block text-sm font-black">🏟️ Party Quiz</span>
+              <span class="text-[10px] text-slate-300 font-normal">Up to 25 players live</span>
             </button>
           </div>
           <p id="pvp-format-desc" class="text-[11px] text-slate-400"></p>
@@ -1006,6 +1081,32 @@
           </div>
         </div>
 
+        <!-- Format 3 HUD: Co-Op Raid Boss -->
+        <div id="pvp-coop-hud" class="hidden glass-card rounded-2xl p-3.5 sm:p-4 border border-emerald-500/40 relative overflow-hidden space-y-2">
+          <div id="pvp-coop-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"></div>
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-fuchsia-300 font-black">RAID BOSS (TEAM CO-OP)</span>
+            <span id="pvp-coop-boss-hp-text" class="font-mono text-rose-300">300 / 300 HP</span>
+          </div>
+          <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700">
+            <div id="pvp-coop-boss-hp-bar" class="h-full bg-gradient-to-r from-rose-500 to-fuchsia-500 rounded-full transition-all duration-300" style="width: 100%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] font-mono">
+            <span class="text-emerald-300">You: <span id="pvp-coop-me-hp">100 HP</span></span>
+            <span id="pvp-coop-team-streak" class="text-amber-300 font-black">Team Streak 0</span>
+            <span class="text-cyan-300"><span id="pvp-coop-partner-name">Partner</span>: <span id="pvp-coop-partner-hp">100 HP</span></span>
+          </div>
+        </div>
+
+        <!-- Format 4 HUD: Classroom Party Quiz Show -->
+        <div id="pvp-party-hud" class="hidden glass-card rounded-2xl p-3.5 border border-cyan-500/40 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span id="pvp-party-room-code" class="text-cyan-300 font-mono">Party Sprint</span>
+            <span id="pvp-party-count" class="text-slate-300 font-mono">1 player</span>
+          </div>
+          <div id="pvp-party-standings" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs max-h-28 overflow-y-auto"></div>
+        </div>
+
         <!-- Equation Card -->
         <div id="pvp-equation-card" class="glass-card rounded-2xl p-4 sm:p-5 text-center border border-indigo-500/30 transition-opacity">
           <span id="pvp-op-label" class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold mb-1">× Multiply</span>
@@ -1106,9 +1207,14 @@
             <span id="fc-progress-text" class="text-[11px] text-slate-400">Card 1 of 15</span>
           </div>
         </div>
-        <button id="btn-fc-exit" class="p-1.5 px-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
-          Exit
-        </button>
+        <div class="flex items-center gap-2">
+          <button id="btn-fc-mic" type="button" class="hidden p-1.5 px-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold active:scale-95" title="Speak Answer Hands-Free">
+            🎤 Speak
+          </button>
+          <button id="btn-fc-exit" class="p-1.5 px-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
+            Exit
+          </button>
+        </div>
       </div>
 
       <!-- 3D Perspective Flip Card (Touch Swipe Area) -->
@@ -1302,6 +1408,13 @@
          VIEW 6: METEOR BLASTER ARCADE ARENA
          ================================================================== -->
     <section id="view-meteor" class="hidden space-y-3 max-w-2xl mx-auto w-full">
+      <!-- Arcade Switcher -->
+      <div class="grid grid-cols-2 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+        <button id="btn-arcade-tab-meteor" type="button" class="py-1.5 rounded-lg bg-sky-600 text-white">Meteor Blaster</button>
+        <button id="btn-arcade-tab-puzzle" type="button" class="py-1.5 rounded-lg text-slate-300">Target Factor Puzzle</button>
+      </div>
+
+      <div id="arcade-meteor-wrap" class="space-y-3">
       <!-- Meteor HUD -->
       <div class="glass-panel rounded-2xl p-3 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -1362,6 +1475,32 @@
           <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-base font-bold active:scale-95" data-key="backspace">⌫</button>
           <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="0">0</button>
           <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold active:scale-95" data-key="enter">↵</button>
+        </div>
+      </div>
+      </div>
+
+      <!-- Target Number Factor Puzzle Panel -->
+      <div id="meteor-puzzle-panel" class="hidden space-y-3">
+        <div class="glass-panel rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span id="puzzle-timer-val" class="px-2.5 py-1 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-300 font-mono font-bold text-xs">45s</span>
+            <span id="puzzle-combo-val" class="font-mono font-black text-amber-400 text-sm">x0</span>
+          </div>
+          <span id="puzzle-pairs-status" class="text-xs font-bold text-emerald-300">Pairs found: 0 / 2</span>
+          <div class="flex items-center gap-2">
+            <span id="puzzle-score-val" class="font-mono font-black text-indigo-300 text-base">0</span>
+            <button id="btn-puzzle-pause" type="button" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold active:scale-95">❚❚</button>
+            <button id="btn-puzzle-exit" type="button" class="p-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold active:scale-95">✕</button>
+          </div>
+        </div>
+        <div class="glass-card rounded-3xl p-5 text-center space-y-3 border border-indigo-500/30 relative overflow-hidden">
+          <div id="puzzle-pause-overlay" class="hidden absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6">
+            <span class="text-xs font-bold uppercase tracking-widest text-sky-300">Factor Puzzle Paused</span>
+            <button id="btn-puzzle-resume" type="button" class="px-5 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-sm">Resume</button>
+          </div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Tap pairs that multiply to Target</span>
+          <div id="puzzle-target-val" class="text-5xl font-black font-mono text-amber-300">36</div>
+          <div id="puzzle-tiles-grid" class="grid grid-cols-3 gap-2.5 pt-2"></div>
         </div>
       </div>
     </section>
@@ -1580,6 +1719,9 @@
         <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg text-amber-300 active:scale-95 text-center" data-tab="stars">
           &#11088; Stars
         </button>
+        <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg text-fuchsia-300 active:scale-95 text-center" data-tab="cards">
+          &#127183; Cards
+        </button>
       </div>
 
       <!-- Selected Cell Callout & Instant Drill Button -->
@@ -1604,6 +1746,15 @@
         </div>
         <p class="text-[10px] text-slate-400">&#11088; 80% accuracy &middot; &#11088;&#11088; 95% accuracy &middot; &#11088;&#11088;&#11088; 95% accuracy &amp; under 2.5s average</p>
         <div id="matrix-star-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+      </div>
+
+      <div id="matrix-cards-album" class="hidden flex-1 overflow-auto p-1 space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span class="text-fuchsia-300">Math Hero Cards Album</span>
+          <span id="cards-album-total" class="font-mono text-amber-300">0 / 12 Unlocked</span>
+        </div>
+        <p class="text-[10px] text-slate-400">Earn 1&#11088; on a table to unlock its Hero Card, and 3&#11088; for Holographic Gold!</p>
+        <div id="cards-album-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
       </div>
       <div class="flex-1 overflow-auto p-1 bg-slate-950/60 rounded-2xl border border-slate-800">
         <div id="matrix-grid-container" class="grid gap-1 min-w-[280px]">
@@ -1724,6 +1875,15 @@
         </div>
       </div>
 
+      <!-- 7-Day Activity & Speed Chart -->
+      <div class="no-print bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-bold">
+          <span class="text-slate-200">7-Day Practice &amp; Speed</span>
+          <span id="stats-chart-summary" class="font-mono text-indigo-300">0 solved</span>
+        </div>
+        <div id="stats-activity-chart" class="w-full"></div>
+      </div>
+
       <!-- Parent / Teacher Progress Snapshot -->
       <div id="parent-report-printable" class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 space-y-2 text-xs">
         <div class="flex items-center justify-between gap-2">
@@ -1731,9 +1891,21 @@
             <span class="text-[11px] font-bold text-slate-200 block">Parent / Teacher Progress Snapshot</span>
             <span class="text-[10px] text-slate-400">Learner: <strong id="report-profile-name" class="text-indigo-300">Player 1</strong></span>
           </div>
-          <button id="btn-print-report" type="button" class="no-print px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold active:scale-95">
-            Print / Save PDF
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button id="btn-toggle-certificate" type="button" class="no-print px-2.5 py-1 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-200 text-[10px] font-bold active:scale-95">
+              Certificate
+            </button>
+            <button id="btn-print-report" type="button" class="no-print px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold active:scale-95">
+              Print / Save PDF
+            </button>
+          </div>
+        </div>
+        <div id="stats-certificate-box" class="hidden p-4 rounded-2xl bg-gradient-to-br from-amber-950/60 via-slate-900 to-indigo-950/60 border-2 border-amber-400/60 text-center space-y-1.5">
+          <span class="text-[10px] uppercase tracking-widest font-black text-amber-300 block">Certificate of Math Mastery</span>
+          <h4 id="cert-learner-name" class="text-lg font-black text-white">Player 1</h4>
+          <p id="cert-level-title" class="text-xs font-bold text-indigo-300">Level 1 · Number Novice</p>
+          <p id="cert-stats-line" class="text-[11px] text-slate-300"></p>
+          <span id="cert-date-line" class="text-[10px] font-mono text-amber-200/80 block pt-1"></span>
         </div>
         <div class="grid grid-cols-2 gap-1.5 text-[11px]">
           <div class="bg-slate-900/60 p-2 rounded-lg">
@@ -1796,6 +1968,10 @@
           <p class="text-[10px] text-slate-400">Each learner keeps separate XP, streaks, and 12×12 mastery</p>
         </div>
         <button id="btn-close-profiles" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <div id="profiles-welcome-banner" class="hidden p-3 rounded-2xl bg-indigo-950/60 border border-indigo-400/50 text-xs text-indigo-200 font-semibold">
+        Welcome to Math Quest! Choose a hero name and avatar below (or tap Quick Start) to save your personal progress.
       </div>
 
       <div id="profiles-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
@@ -1916,11 +2092,12 @@
           <button id="btn-close-shop" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
         </div>
       </div>
-      <div class="grid grid-cols-5 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+      <div class="grid grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-shop-tab="avatars">Avatars</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="frames">Frames</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="lasers">Lasers</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="themes">Themes</button>
+        <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="audio">Audio</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="consumables">Boosts</button>
       </div>
       <p id="shop-feedback" class="text-[11px] text-slate-400 min-h-[1rem]"></p>

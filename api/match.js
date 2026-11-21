@@ -8,7 +8,7 @@
 
 const crypto = require('crypto');
 
-const ALLOWED_FORMATS = ['duel', 'tug'];
+const ALLOWED_FORMATS = ['duel', 'tug', 'coop', 'party'];
 const ALLOWED_OPS = ['multiply', 'divide', 'missing', 'add', 'subtract', 'mixed'];
 const ALLOWED_DIFFS = ['easy', 'medium', 'hard'];
 const ALLOWED_AVATARS = ['knight', 'wizard', 'star', 'rocket', 'shield', 'owl', 'dragon', 'crown', 'ninja', 'phoenix'];
@@ -20,7 +20,9 @@ const SEARCHING_TTL_SECONDS = 90;
 
 const MATCH_DURATION_MS = 90000;
 const DUEL_START_HP = 100;
+const COOP_BOSS_START_HP = 300;
 const TUG_WIN_THRESHOLD = 6;
+const PARTY_MAX_PLAYERS = 25;
 const MIN_ACTION_COOLDOWN_MS = 400;
 const MATCH_TTL_SECONDS = 300;
 const PRESENCE_KEY = 'mq:pvp:online';
@@ -131,6 +133,19 @@ function makePlayerState(raw = {}) {
   };
 }
 
+function makePartyPlayer(raw = {}) {
+  return {
+    playerId: sanitizePlayerId(raw.playerId) || `p_${crypto.randomBytes(6).toString('hex')}`,
+    name: sanitizeNickname(raw.name),
+    avatar: ALLOWED_AVATARS.includes(raw.avatar) ? raw.avatar : 'knight',
+    score: 0,
+    correct: 0,
+    answered: 0,
+    streak: 0,
+    lastActionAt: 0,
+  };
+}
+
 function createMatchState({
   matchId,
   code = '',
@@ -146,6 +161,12 @@ function createMatchState({
   const resolvedOp = ALLOWED_OPS.includes(operation) ? operation : 'multiply';
   const resolvedDiff = ALLOWED_DIFFS.includes(difficulty) ? difficulty : 'medium';
   const hasP2 = Boolean(p2);
+  const startActive = hasP2 || resolvedFormat === 'party';
+  const p1State = makePlayerState(p1);
+  const p2State = hasP2 ? makePlayerState(p2) : null;
+  const partyPlayers = {};
+  if (p1State) partyPlayers[p1State.playerId] = makePartyPlayer(p1State);
+  if (p2State) partyPlayers[p2State.playerId] = makePartyPlayer(p2State);
 
   return {
     matchId: resolvedId,
@@ -154,16 +175,21 @@ function createMatchState({
     format: resolvedFormat,
     operation: resolvedOp,
     difficulty: resolvedDiff,
-    status: hasP2 ? 'active' : 'waiting',
+    status: startActive ? 'active' : 'waiting',
     createdAt: nowMs,
-    startedAt: hasP2 ? nowMs : null,
-    endsAt: hasP2 ? nowMs + MATCH_DURATION_MS : null,
+    startedAt: startActive ? nowMs : null,
+    endsAt: startActive ? nowMs + MATCH_DURATION_MS : null,
     ropePos: 0,
+    bossHp: COOP_BOSS_START_HP,
+    bossMaxHp: COOP_BOSS_START_HP,
+    teamStreak: 0,
+    maxTeamStreak: 0,
+    partyPlayers,
     winner: null,
     finishReason: null,
     lastEvent: null,
-    p1: makePlayerState(p1),
-    p2: hasP2 ? makePlayerState(p2) : null,
+    p1: p1State,
+    p2: p2State,
   };
 }
 
@@ -173,6 +199,17 @@ function resolveTimeoutIfNeeded(match, nowMs = Date.now()) {
 
   match.status = 'finished';
   match.finishReason = 'timeout';
+
+  if (match.format === 'coop') {
+    match.winner = (match.bossHp || 0) <= 0 ? 'team' : 'boss';
+    return match;
+  }
+  if (match.format === 'party') {
+    const list = Object.values(match.partyPlayers || {});
+    list.sort((a, b) => (b.score - a.score) || (b.correct - a.correct));
+    match.winner = list[0] ? list[0].playerId : 'draw';
+    return match;
+  }
 
   if (match.format === 'duel') {
     const hp1 = match.p1 ? match.p1.hp : 0;
@@ -211,6 +248,34 @@ function applyPlayerAction(match, { playerId, correct, responseTimeMs = 3500, no
     return { match, accepted: false, reason: 'match_not_active', event: null };
   }
 
+  if (match.format === 'party') {
+    match.partyPlayers = match.partyPlayers || {};
+    const p = match.partyPlayers[playerId];
+    if (!p) {
+      return { match, accepted: false, reason: 'not_in_match', event: null };
+    }
+    if (p.lastActionAt > 0 && nowMs - p.lastActionAt < MIN_ACTION_COOLDOWN_MS) {
+      return { match, accepted: false, reason: 'cooldown', event: null };
+    }
+    p.lastActionAt = nowMs;
+    p.answered++;
+    const rt = Number.isFinite(Number(responseTimeMs)) ? Math.max(0, Number(responseTimeMs)) : 4000;
+    const isFast = rt >= 350 && rt < 2500;
+    let event = null;
+    if (correct) {
+      p.correct++;
+      p.streak++;
+      const pts = 20 + (isFast ? 10 : 0) + (p.streak >= 3 ? 8 : 0);
+      p.score += pts;
+      event = { type: isFast ? 'crit' : 'hit', by: playerId, amount: pts, ts: nowMs };
+    } else {
+      p.streak = 0;
+      event = { type: 'miss', by: playerId, amount: 0, ts: nowMs };
+    }
+    match.lastEvent = event;
+    return { match, accepted: true, event, reason: null };
+  }
+
   let side = null;
   if (match.p1 && match.p1.playerId === playerId) side = 'p1';
   else if (match.p2 && match.p2.playerId === playerId) side = 'p2';
@@ -237,7 +302,39 @@ function applyPlayerAction(match, { playerId, correct, responseTimeMs = 3500, no
   const isCorrect = Boolean(correct);
   let event = null;
 
-  if (match.format === 'duel') {
+  if (match.format === 'coop') {
+    if (isCorrect) {
+      player.correct++;
+      player.streak++;
+      player.maxStreak = Math.max(player.maxStreak, player.streak);
+      match.teamStreak = (match.teamStreak || 0) + 1;
+      match.maxTeamStreak = Math.max(match.maxTeamStreak || 0, match.teamStreak);
+
+      const dmg = Math.min(42, 18 + (isFast ? 8 : 0) + (match.teamStreak >= 4 ? 10 : 0));
+      match.bossHp = Math.max(0, (match.bossHp ?? COOP_BOSS_START_HP) - dmg);
+      event = { type: match.teamStreak >= 4 || isFast ? 'crit' : 'hit', by: side, amount: dmg, ts: nowMs };
+
+      if (match.bossHp <= 0) {
+        match.status = 'finished';
+        match.winner = 'team';
+        match.finishReason = 'boss_slain';
+      }
+    } else {
+      player.streak = 0;
+      match.teamStreak = 0;
+      const bossDmg = 12;
+      if (match.p1) match.p1.hp = Math.max(0, match.p1.hp - bossDmg);
+      if (match.p2) match.p2.hp = Math.max(0, match.p2.hp - bossDmg);
+      event = { type: 'boss_strike', by: side, amount: bossDmg, ts: nowMs };
+      const p1Dead = !match.p1 || match.p1.hp <= 0;
+      const p2Dead = !match.p2 || match.p2.hp <= 0;
+      if (p1Dead && p2Dead) {
+        match.status = 'finished';
+        match.winner = 'boss';
+        match.finishReason = 'team_ko';
+      }
+    }
+  } else if (match.format === 'duel') {
     if (isCorrect) {
       player.correct++;
       player.streak++;
@@ -357,11 +454,33 @@ function buildPublicMatchView(match, viewerPlayerId, nowMs = Date.now()) {
 
   let winnerOutcome = null;
   if (match.status === 'finished') {
-    if (match.winner === 'draw' || !mySide) {
+    if (match.format === 'coop') {
+      winnerOutcome = match.winner === 'team' ? 'win' : 'loss';
+    } else if (match.format === 'party') {
+      const list = Object.values(match.partyPlayers || {}).sort((a, b) => (b.score - a.score) || (b.correct - a.correct));
+      const myRank = list.findIndex(p => p.playerId === viewerPlayerId) + 1;
+      winnerOutcome = myRank === 1 ? 'win' : (myRank >= 1 && myRank <= 3 ? 'draw' : 'loss');
+    } else if (match.winner === 'draw' || !mySide) {
       winnerOutcome = 'draw';
     } else {
       winnerOutcome = match.winner === mySide ? 'win' : 'loss';
     }
+  }
+
+  let partyStandings = null;
+  if (match.format === 'party') {
+    const list = Object.values(match.partyPlayers || {})
+      .sort((a, b) => (b.score - a.score) || (b.correct - a.correct))
+      .slice(0, 10);
+    partyStandings = list.map((p, idx) => ({
+      rank: idx + 1,
+      name: p.name,
+      avatar: p.avatar,
+      score: p.score || 0,
+      correct: p.correct || 0,
+      streak: p.streak || 0,
+      isMe: p.playerId === viewerPlayerId,
+    }));
   }
 
   let lastEvent = null;
@@ -390,6 +509,10 @@ function buildPublicMatchView(match, viewerPlayerId, nowMs = Date.now()) {
     mySide,
     ropePos: perspectiveRope,
     winThreshold: TUG_WIN_THRESHOLD,
+    bossHp: match.bossHp ?? COOP_BOSS_START_HP,
+    bossMaxHp: match.bossMaxHp ?? COOP_BOSS_START_HP,
+    teamStreak: match.teamStreak || 0,
+    partyStandings,
     timeLeft,
     winnerOutcome,
     finishReason: match.finishReason,
@@ -802,7 +925,32 @@ async function handler(req, res) {
           return sendJson(res, 404, { configured: true, error: 'Room not found or expired' });
         }
         const match = await loadMatchFromRedis(matchId);
-        if (!match || match.status !== 'waiting') {
+        if (!match) {
+          return sendJson(res, 409, { configured: true, error: 'Room is no longer available' });
+        }
+
+        if (match.format === 'party') {
+          resolveTimeoutIfNeeded(match, nowMs);
+          if (match.status !== 'active') {
+            return sendJson(res, 409, { configured: true, error: 'Party sprint has already finished' });
+          }
+          match.partyPlayers = match.partyPlayers || {};
+          if (!match.partyPlayers[playerId]) {
+            if (Object.keys(match.partyPlayers).length >= PARTY_MAX_PLAYERS) {
+              return sendJson(res, 409, { configured: true, error: 'Party room is full (25 players max)' });
+            }
+            match.partyPlayers[playerId] = makePartyPlayer({ playerId, name: body.name, avatar: body.avatar });
+            await saveMatchToRedis(match);
+          }
+          return sendJson(res, 200, {
+            configured: true,
+            joined: true,
+            matchId: match.matchId,
+            match: buildPublicMatchView(match, playerId, nowMs),
+          });
+        }
+
+        if (match.status !== 'waiting') {
           return sendJson(res, 409, { configured: true, error: 'Room is no longer available' });
         }
         if (match.p1 && match.p1.playerId === playerId) {
@@ -913,6 +1061,7 @@ async function handler(req, res) {
 }
 
 handler.ALLOWED_FORMATS = ALLOWED_FORMATS;
+handler.COOP_BOSS_START_HP = COOP_BOSS_START_HP;
 handler.ALLOWED_AVATARS = ALLOWED_AVATARS;
 handler.ALLOWED_EMOTES = ALLOWED_EMOTES;
 handler.MIN_EMOTE_COOLDOWN_MS = MIN_EMOTE_COOLDOWN_MS;

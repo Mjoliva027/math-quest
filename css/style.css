@@ -1015,3 +1015,32 @@ html.theme-light #btn-ghost-accept,
 html.theme-light #btn-results-ghost-share {
   color: #ffffff !important;
 }
+
+/* Holographic Collectible Card, Boss Hit, Companion Beam & Factor Tiles */
+@keyframes holoShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.holo-card {
+  background-size: 200% 200%;
+  animation: holoShimmer 4s ease infinite;
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.38), inset 0 0 12px rgba(255, 255, 255, 0.14);
+}
+
+.boss-hit-flash {
+  animation: pvpAvatarHit 0.35s ease-out;
+}
+
+.factor-tile-selected {
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.55);
+  transform: scale(1.04);
+}
+
+.mic-listening {
+  border-color: #f43f5e !important;
+  background-color: rgba(244, 63, 94, 0.25) !important;
+  color: #fda4af !important;
+  animation: heartBeat 0.9s infinite ease-in-out;
+}

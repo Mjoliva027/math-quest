@@ -1057,8 +1057,225 @@ const ArcadeGames = (() => {
     return { start, stop, handleKey };
   })();
 
+  // =========================================================================
+  // 3. TARGET NUMBER FACTOR PUZZLE (REVERSE MULTIPLICATION)
+  // =========================================================================
+  const FactorPuzzle = (() => {
+    let bound = false;
+    let targetEl, timerEl, scoreEl, comboEl, pairsStatusEl, tilesContainer, btnExit, pauseOverlay, btnPause, btnResume;
+
+    const state = {
+      running: false,
+      paused: false,
+      difficulty: 'medium',
+      score: 0,
+      combo: 0,
+      maxStreak: 0,
+      correctCount: 0,
+      totalCount: 0,
+      timeLeft: 45,
+      xpGained: 0,
+      puzzle: null,
+      selectedTileIds: [],
+      matchedTileIds: new Set(),
+      pairsFound: 0,
+      timerInterval: null,
+      callbacks: null,
+    };
+
+    function bindElements() {
+      if (bound) return;
+      targetEl = document.getElementById('puzzle-target-val');
+      timerEl = document.getElementById('puzzle-timer-val');
+      scoreEl = document.getElementById('puzzle-score-val');
+      comboEl = document.getElementById('puzzle-combo-val');
+      pairsStatusEl = document.getElementById('puzzle-pairs-status');
+      tilesContainer = document.getElementById('puzzle-tiles-grid');
+      btnExit = document.getElementById('btn-puzzle-exit');
+      pauseOverlay = document.getElementById('puzzle-pause-overlay');
+      btnPause = document.getElementById('btn-puzzle-pause');
+      btnResume = document.getElementById('btn-puzzle-resume');
+
+      if (btnPause) btnPause.addEventListener('click', togglePause);
+      if (btnResume) btnResume.addEventListener('click', togglePause);
+      if (btnExit) {
+        btnExit.addEventListener('click', () => {
+          if (typeof SoundEngine !== 'undefined') SoundEngine.playClick();
+          const cb = state.callbacks && state.callbacks.onExit;
+          stop();
+          if (cb) cb();
+        });
+      }
+      bound = true;
+    }
+
+    function syncHUD() {
+      if (timerEl) timerEl.textContent = `${state.timeLeft}s`;
+      if (scoreEl) scoreEl.textContent = state.score;
+      if (comboEl) comboEl.textContent = `x${state.combo}`;
+      if (pairsStatusEl && state.puzzle) {
+        pairsStatusEl.textContent = `Pairs found: ${state.pairsFound} / ${state.puzzle.pairsCount}`;
+      }
+    }
+
+    function renderTiles() {
+      if (!tilesContainer || !state.puzzle) return;
+      tilesContainer.innerHTML = '';
+      state.puzzle.tiles.forEach(tile => {
+        const isMatched = state.matchedTileIds.has(tile.id);
+        const isSelected = state.selectedTileIds.includes(tile.id);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.disabled = isMatched;
+        btn.textContent = String(tile.value);
+        btn.className = isMatched
+          ? 'py-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 font-mono text-2xl font-black opacity-40 cursor-default'
+          : isSelected
+            ? 'factor-tile-selected py-4 rounded-2xl bg-indigo-600 border-2 border-cyan-300 text-white font-mono text-2xl font-black shadow-lg active:scale-95 transition-all'
+            : 'py-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white font-mono text-2xl font-black shadow active:scale-95 transition-all';
+        btn.addEventListener('click', () => handleTileClick(tile.id));
+        tilesContainer.appendChild(btn);
+      });
+    }
+
+    function loadNextBoard() {
+      if (typeof MathEngine === 'undefined' || typeof MathEngine.generateFactorPuzzle !== 'function') return;
+      state.puzzle = MathEngine.generateFactorPuzzle(state.difficulty);
+      state.selectedTileIds = [];
+      state.matchedTileIds = new Set();
+      state.pairsFound = 0;
+      if (targetEl) targetEl.textContent = String(state.puzzle.target);
+      syncHUD();
+      renderTiles();
+    }
+
+    function handleTileClick(tileId) {
+      if (!state.running || state.paused || !state.puzzle || state.matchedTileIds.has(tileId)) return;
+      if (state.selectedTileIds.includes(tileId)) {
+        state.selectedTileIds = state.selectedTileIds.filter(id => id !== tileId);
+        renderTiles();
+        return;
+      }
+      if (typeof SoundEngine !== 'undefined') SoundEngine.playClick();
+      state.selectedTileIds.push(tileId);
+      if (state.selectedTileIds.length < 2) {
+        renderTiles();
+        return;
+      }
+
+      const [idA, idB] = state.selectedTileIds;
+      const tileA = state.puzzle.tiles.find(t => t.id === idA);
+      const tileB = state.puzzle.tiles.find(t => t.id === idB);
+      state.totalCount++;
+
+      if (tileA && tileB && tileA.value * tileB.value === state.puzzle.target) {
+        state.matchedTileIds.add(idA);
+        state.matchedTileIds.add(idB);
+        state.selectedTileIds = [];
+        state.pairsFound++;
+        state.correctCount++;
+        state.combo++;
+        state.maxStreak = Math.max(state.maxStreak, state.combo);
+        const pts = 30 + state.combo * 5;
+        state.score += pts;
+        state.xpGained += 6;
+        if (typeof SoundEngine !== 'undefined') SoundEngine.playCorrect();
+        if (state.callbacks && state.callbacks.onMatchPair) {
+          state.callbacks.onMatchPair(tileA.value, tileB.value, true);
+        }
+        if (state.pairsFound >= state.puzzle.pairsCount) {
+          state.timeLeft += 3;
+          if (typeof Confetti !== 'undefined') Confetti.burst(20);
+          syncHUD();
+          renderTiles();
+          setTimeout(() => {
+            if (state.running) loadNextBoard();
+          }, 260);
+          return;
+        }
+      } else {
+        state.combo = 0;
+        state.selectedTileIds = [];
+        if (typeof SoundEngine !== 'undefined') SoundEngine.playWrong();
+        if (tilesContainer) {
+          tilesContainer.classList.add('animate-shake');
+          setTimeout(() => tilesContainer && tilesContainer.classList.remove('animate-shake'), 350);
+        }
+      }
+      syncHUD();
+      renderTiles();
+    }
+
+    function togglePause() {
+      if (!state.running) return;
+      if (typeof SoundEngine !== 'undefined') SoundEngine.playClick();
+      state.paused = !state.paused;
+      if (pauseOverlay) pauseOverlay.classList.toggle('hidden', !state.paused);
+    }
+
+    function start({ difficulty = 'medium', onMatchPair, onFinish, onExit } = {}) {
+      bindElements();
+      stop();
+      state.difficulty = difficulty;
+      state.score = 0;
+      state.combo = 0;
+      state.maxStreak = 0;
+      state.correctCount = 0;
+      state.totalCount = 0;
+      state.timeLeft = 45;
+      state.xpGained = 0;
+      state.paused = false;
+      state.running = true;
+      state.callbacks = { onMatchPair, onFinish, onExit };
+      if (pauseOverlay) pauseOverlay.classList.add('hidden');
+
+      loadNextBoard();
+      state.timerInterval = setInterval(() => {
+        if (!state.running || state.paused) return;
+        state.timeLeft--;
+        syncHUD();
+        if (state.timeLeft <= 0) {
+          const summary = {
+            score: state.score,
+            maxStreak: state.maxStreak,
+            correctCount: state.correctCount,
+            totalCount: state.totalCount,
+            xpGained: state.xpGained,
+          };
+          const cb = state.callbacks && state.callbacks.onFinish;
+          stop();
+          if (cb) cb(summary);
+        }
+      }, 1000);
+    }
+
+    function stop() {
+      state.running = false;
+      state.paused = false;
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+
+    function handleKey(e) {
+      if (!state.running) return false;
+      if (e.key === 'Escape') {
+        togglePause();
+        return true;
+      }
+      if (!state.paused && /^[1-6]$/.test(e.key) && state.puzzle) {
+        const tile = state.puzzle.tiles[parseInt(e.key, 10) - 1];
+        if (tile) handleTileClick(tile.id);
+        return true;
+      }
+      return false;
+    }
+
+    return { start, stop, handleKey };
+  })();
+
   return {
     MeteorBlaster,
     TugOfWar,
+    FactorPuzzle,
   };
 })();

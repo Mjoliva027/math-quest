@@ -32,6 +32,8 @@ const PvpArena = (() => {
   let duelHud, meAvatarEl, meNameEl, meHpTextEl, meHpBarEl, meShieldEl, meStreakEl;
   let oppAvatarEl, oppNameEl, oppBadgeEl, oppHpTextEl, oppHpBarEl, oppShieldEl, oppStreakEl, combatFxEl;
   let tugHud, tugMeAvatarEl, tugMeNameEl, tugMePullsEl, tugOppAvatarEl, tugOppNameEl, tugOppBadgeEl, tugOppPullsEl;
+  let coopHud, coopBossHpTextEl, coopBossHpBarEl, coopTeamStreakEl, coopMeHpEl, coopPartnerNameEl, coopPartnerHpEl, coopFxEl;
+  let partyHud, partyRoomCodeEl, partyCountEl, partyStandingsEl;
   let meEmoteBubbleEl, oppEmoteBubbleEl, tugMeEmoteBubbleEl, tugOppEmoteBubbleEl;
   let emoteBtns = [];
   let ropeLabelEl, ropeKnotEl, tugFxEl;
@@ -229,6 +231,18 @@ const PvpArena = (() => {
     ropeLabelEl = document.getElementById('pvp-rope-label');
     ropeKnotEl = document.getElementById('pvp-rope-knot');
     tugFxEl = document.getElementById('pvp-tug-fx');
+    coopHud = document.getElementById('pvp-coop-hud');
+    coopBossHpTextEl = document.getElementById('pvp-coop-boss-hp-text');
+    coopBossHpBarEl = document.getElementById('pvp-coop-boss-hp-bar');
+    coopTeamStreakEl = document.getElementById('pvp-coop-team-streak');
+    coopMeHpEl = document.getElementById('pvp-coop-me-hp');
+    coopPartnerNameEl = document.getElementById('pvp-coop-partner-name');
+    coopPartnerHpEl = document.getElementById('pvp-coop-partner-hp');
+    coopFxEl = document.getElementById('pvp-coop-fx');
+    partyHud = document.getElementById('pvp-party-hud');
+    partyRoomCodeEl = document.getElementById('pvp-party-room-code');
+    partyCountEl = document.getElementById('pvp-party-count');
+    partyStandingsEl = document.getElementById('pvp-party-standings');
     meEmoteBubbleEl = document.getElementById('pvp-me-emote-bubble');
     oppEmoteBubbleEl = document.getElementById('pvp-opp-emote-bubble');
     tugMeEmoteBubbleEl = document.getElementById('pvp-tug-me-emote-bubble');
@@ -259,7 +273,8 @@ const PvpArena = (() => {
       btn.addEventListener('click', () => {
         if (state.phase === 'playing') return;
         if (typeof SoundEngine !== 'undefined') SoundEngine.playClick();
-        state.format = btn.dataset.pvpFormat === 'tug' ? 'tug' : 'duel';
+        const fmt = btn.dataset.pvpFormat;
+        state.format = ['duel', 'tug', 'coop', 'party'].includes(fmt) ? fmt : 'duel';
         syncFormatSelectorUI();
       });
     });
@@ -450,9 +465,13 @@ const PvpArena = (() => {
         : 'pvp-format-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500 font-bold text-xs text-left transition-all';
     });
     if (formatDescEl) {
-      formatDescEl.textContent = state.format === 'tug'
-        ? 'Online Tug-of-War: Pull the rope 6 steps to your side! Fast/streak answers pull +2; wrong answers cause a brief slip.'
-        : '1v1 HP Battle: Start at 100 HP. Answer fast (<2.5s) for Critical Strikes and build a 5-streak Shield!';
+      const descMap = {
+        tug: 'Online Tug-of-War: Pull the rope 6 steps to your side! Fast/streak answers pull +2; wrong answers cause a brief slip.',
+        coop: 'Co-Op Raid Boss: Team up with a friend (or BuddyBot AI) to defeat a 300 HP Raid Boss together!',
+        party: 'Classroom Party Quiz: Up to 25 players race the same room code for the Top-3 Podium!',
+        duel: '1v1 HP Battle: Start at 100 HP. Answer fast (<2.5s) for Critical Strikes and build a 5-streak Shield!',
+      };
+      formatDescEl.textContent = descMap[state.format] || descMap.duel;
     }
   }
 
@@ -799,6 +818,11 @@ const PvpArena = (() => {
     state.roomCode = res.data.code || '';
     state.matchId = res.data.matchId || '';
 
+    if (res.data.match && res.data.match.status === 'active') {
+      beginMatch(res.data.match, 'online');
+      return;
+    }
+
     if (roomCodeDisplay) roomCodeDisplay.textContent = state.roomCode;
     if (roomCreatedBox) roomCreatedBox.classList.remove('hidden');
     if (searchingBox) searchingBox.classList.add('hidden');
@@ -861,7 +885,9 @@ const PvpArena = (() => {
     const me = state.meProfile || getActivePlayerProfile();
     const difficulty = cfg.difficulty || 'medium';
     const operation = cfg.operation || 'multiply';
-    const rival = pickAiRival(difficulty);
+    const rival = state.format === 'coop'
+      ? { playerId: 'ai_partner', name: 'BuddyBot Partner', avatar: 'shield' }
+      : pickAiRival(difficulty);
     const seed = `ai_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
     const match = {
@@ -873,11 +899,23 @@ const PvpArena = (() => {
       status: 'active',
       ropePos: 0,
       winThreshold: 6,
+      bossHp: 300,
+      bossMaxHp: 300,
+      teamStreak: 0,
       timeLeft: 90,
       endsAt: Date.now() + 90000,
       winnerOutcome: null,
       finishReason: null,
       lastEvent: null,
+      partyPlayers: state.format === 'party'
+        ? [
+          { name: me.name, avatar: me.avatar, score: 0, correct: 0, streak: 0, isMe: true },
+          { name: 'NovaBot', avatar: 'rocket', score: 0, correct: 0, streak: 0, isMe: false },
+          { name: 'SparkBot', avatar: 'wizard', score: 0, correct: 0, streak: 0, isMe: false },
+          { name: 'CometBot', avatar: 'owl', score: 0, correct: 0, streak: 0, isMe: false },
+        ]
+        : null,
+      partyStandings: null,
       me: {
         name: me.name,
         avatar: me.avatar,
@@ -901,6 +939,9 @@ const PvpArena = (() => {
         pulls: 0,
       },
     };
+    if (match.partyPlayers) {
+      match.partyStandings = match.partyPlayers.map((p, idx) => ({ ...p, rank: idx + 1 }));
+    }
 
     beginMatch(match, 'ai');
   }
@@ -943,7 +984,8 @@ const PvpArena = (() => {
     if (equationCard) equationCard.classList.remove('tug-stunned');
 
     if (formatLabelEl) {
-      formatLabelEl.textContent = state.format === 'tug' ? 'Online Tug-of-War' : '1v1 HP Battle';
+      const labels = { tug: 'Online Tug-of-War', coop: 'Co-Op Raid Boss', party: 'Classroom Party', duel: '1v1 HP Battle' };
+      formatLabelEl.textContent = labels[state.format] || '1v1 HP Battle';
     }
 
     const inputStyle = (state.config && state.config.inputStyle) || 'choice';
@@ -1157,6 +1199,52 @@ const PvpArena = (() => {
       : 'none';
     const frameClass = equippedFrame !== 'none' ? ` avatar-frame-${equippedFrame}` : '';
 
+    if (coopHud) coopHud.classList.add('hidden');
+    if (partyHud) partyHud.classList.add('hidden');
+
+    if (state.format === 'coop') {
+      if (duelHud) duelHud.classList.add('hidden');
+      if (tugHud) tugHud.classList.add('hidden');
+      if (coopHud) coopHud.classList.remove('hidden');
+      const bossHp = Math.max(0, m.bossHp ?? 300);
+      const bossMax = Math.max(1, m.bossMaxHp || 300);
+      if (coopBossHpTextEl) coopBossHpTextEl.textContent = `${bossHp} / ${bossMax} HP`;
+      if (coopBossHpBarEl) coopBossHpBarEl.style.width = `${Math.round((bossHp / bossMax) * 100)}%`;
+      if (coopTeamStreakEl) coopTeamStreakEl.textContent = `Team Streak ${m.teamStreak || 0}`;
+      if (coopMeHpEl) coopMeHpEl.textContent = `${Math.max(0, me.hp ?? 100)} HP`;
+      if (coopPartnerNameEl) coopPartnerNameEl.textContent = opp.name || 'Partner';
+      if (coopPartnerHpEl) coopPartnerHpEl.textContent = `${Math.max(0, opp.hp ?? 100)} HP`;
+      return;
+    }
+
+    if (state.format === 'party') {
+      if (duelHud) duelHud.classList.add('hidden');
+      if (tugHud) tugHud.classList.add('hidden');
+      if (partyHud) partyHud.classList.remove('hidden');
+      const standings = Array.isArray(m.partyStandings) ? m.partyStandings : [];
+      if (partyRoomCodeEl) partyRoomCodeEl.textContent = m.code ? `Party Code: ${m.code}` : 'Practice Party Sprint';
+      if (partyCountEl) partyCountEl.textContent = `${standings.length || 1} player(s)`;
+      if (partyStandingsEl) {
+        partyStandingsEl.innerHTML = '';
+        standings.forEach(p => {
+          const row = document.createElement('div');
+          row.className = `flex items-center justify-between px-2.5 py-1.5 rounded-xl border ${
+            p.isMe ? 'bg-indigo-950/50 border-indigo-400/50' : 'bg-slate-800/70 border-slate-700/60'
+          }`;
+          const left = document.createElement('span');
+          left.className = 'font-bold text-white truncate';
+          left.textContent = `#${p.rank} ${p.name}`;
+          const right = document.createElement('span');
+          right.className = 'font-mono font-black text-emerald-300 flex-shrink-0';
+          right.textContent = `${p.score} pts`;
+          row.appendChild(left);
+          row.appendChild(right);
+          partyStandingsEl.appendChild(row);
+        });
+      }
+      return;
+    }
+
     if (state.format === 'tug') {
       if (duelHud) duelHud.classList.add('hidden');
       if (tugHud) tugHud.classList.remove('hidden');
@@ -1333,7 +1421,63 @@ const PvpArena = (() => {
     actor.answered++;
 
     let ev = null;
-    if (m.format === 'duel') {
+    if (m.format === 'coop') {
+      if (isCorrect) {
+        actor.correct++;
+        actor.streak++;
+        actor.maxStreak = Math.max(actor.maxStreak, actor.streak);
+        m.teamStreak = (m.teamStreak || 0) + 1;
+        const dmg = Math.min(42, 18 + (isFast ? 8 : 0) + (m.teamStreak >= 4 ? 10 : 0));
+        m.bossHp = Math.max(0, (m.bossHp ?? 300) - dmg);
+        spawnFx(coopFxEl, `${isMe ? 'YOU' : actor.name} -${dmg} HP!`, isFast ? '#fbbf24' : '#34d399');
+        if (m.bossHp <= 0) {
+          m.status = 'finished';
+          m.winnerOutcome = 'win';
+          m.finishReason = 'boss_slain';
+        }
+      } else {
+        actor.streak = 0;
+        m.teamStreak = 0;
+        m.me.hp = Math.max(0, m.me.hp - 12);
+        m.opponent.hp = Math.max(0, m.opponent.hp - 12);
+        spawnFx(coopFxEl, 'BOSS STRIKE -12 HP!', '#fb7185');
+        if (m.me.hp <= 0 && m.opponent.hp <= 0) {
+          m.status = 'finished';
+          m.winnerOutcome = 'loss';
+          m.finishReason = 'team_ko';
+        }
+      }
+    } else if (m.format === 'party') {
+      const list = m.partyPlayers || [];
+      const meEntry = list.find(p => p.isMe);
+      if (isMe && meEntry) {
+        if (isCorrect) {
+          actor.correct++;
+          actor.streak++;
+          actor.maxStreak = Math.max(actor.maxStreak, actor.streak);
+          meEntry.correct++;
+          meEntry.streak++;
+          meEntry.score += 20 + (isFast ? 10 : 0) + (meEntry.streak >= 3 ? 8 : 0);
+        } else {
+          actor.streak = 0;
+          meEntry.streak = 0;
+        }
+      } else if (!isMe) {
+        const bots = list.filter(p => !p.isMe);
+        if (bots.length > 0) {
+          const bot = bots[Math.floor(Math.random() * bots.length)];
+          if (isCorrect) {
+            bot.correct++;
+            bot.streak++;
+            bot.score += 18 + (isFast ? 8 : 0);
+          } else {
+            bot.streak = 0;
+          }
+        }
+      }
+      const sorted = [...list].sort((a, b) => (b.score - a.score) || (b.correct - a.correct));
+      m.partyStandings = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
+    } else if (m.format === 'duel') {
       if (isCorrect) {
         actor.correct++;
         actor.streak++;
@@ -1420,7 +1564,13 @@ const PvpArena = (() => {
     m.status = 'finished';
     m.finishReason = 'timeout';
 
-    if (m.format === 'duel') {
+    if (m.format === 'coop') {
+      m.winnerOutcome = (m.bossHp || 0) <= 0 ? 'win' : 'loss';
+    } else if (m.format === 'party') {
+      const sorted = m.partyStandings || [];
+      const myRank = sorted.findIndex(p => p.isMe) + 1;
+      m.winnerOutcome = myRank === 1 ? 'win' : (myRank <= 3 ? 'draw' : 'loss');
+    } else if (m.format === 'duel') {
       if (m.me.hp > m.opponent.hp) m.winnerOutcome = 'win';
       else if (m.opponent.hp > m.me.hp) m.winnerOutcome = 'loss';
       else m.winnerOutcome = m.me.correct > m.opponent.correct ? 'win' : (m.opponent.correct > m.me.correct ? 'loss' : 'draw');
@@ -1476,19 +1626,30 @@ const PvpArena = (() => {
     }
 
     if (resultBadgeEl) {
-      resultBadgeEl.textContent = m.format === 'tug' ? 'Tug-of-War Complete' : '1v1 Battle Complete';
+      const badges = {
+        tug: 'Tug-of-War Complete',
+        coop: 'Co-Op Raid Complete',
+        party: 'Party Quiz Podium',
+        duel: '1v1 Battle Complete',
+      };
+      resultBadgeEl.textContent = badges[m.format] || '1v1 Battle Complete';
     }
     if (resultTitleEl) {
       resultTitleEl.textContent = outcome === 'win'
-        ? 'Victory!'
+        ? (m.format === 'coop' ? 'Raid Boss Defeated!' : 'Victory!')
         : outcome === 'draw'
-          ? 'Draw Match!'
+          ? (m.format === 'party' ? 'Top 3 Podium!' : 'Draw Match!')
           : (m.finishReason === 'forfeit' ? 'Match Forfeited' : 'Defeated!');
     }
     if (resultSummaryEl) {
       const oppName = opp.name || 'Rival';
       if (m.format === 'tug') {
         resultSummaryEl.textContent = `You pulled ${me.pulls || 0}× vs ${oppName} (${opp.pulls || 0}×)`;
+      } else if (m.format === 'coop') {
+        resultSummaryEl.textContent = `Boss HP left: ${Math.max(0, m.bossHp ?? 0)}/${m.bossMaxHp || 300} · Team Max Streak: ${m.teamStreak || 0}`;
+      } else if (m.format === 'party') {
+        const podium = (m.partyStandings || []).slice(0, 3).map(p => `#${p.rank} ${p.name} (${p.score})`).join(' · ');
+        resultSummaryEl.textContent = podium || `Solved ${me.correct || 0} questions`;
       } else {
         resultSummaryEl.textContent = `Your HP: ${Math.max(0, me.hp || 0)} vs ${oppName}: ${Math.max(0, opp.hp || 0)} HP (${me.correct || 0}/${me.answered || 0} accurate)`;
       }
@@ -1620,7 +1781,7 @@ const PvpArena = (() => {
     state.meProfile = getActivePlayerProfile();
     state.config = { operation, difficulty, inputStyle, autoSubmit };
     state.callbacks = { onOpenLocalTug, onMatchComplete, onStatsAttempt, onToast, onExit };
-    if (initialFormat === 'duel' || initialFormat === 'tug') {
+    if (['duel', 'tug', 'coop', 'party'].includes(initialFormat)) {
       state.format = initialFormat;
     }
 

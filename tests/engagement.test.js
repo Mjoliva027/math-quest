@@ -5,6 +5,8 @@
  */
 
 const StorageManager = require('../js/storage.js');
+const SoundEngine = require('../js/audio.js');
+const MathEngine = require('../js/math-engine.js');
 const matchApi = require('../api/match.js');
 const lbApi = require('../api/leaderboard.js');
 
@@ -354,5 +356,169 @@ describe('Engagement API - PvP board, Room Goals, Emotes & Searching Count', () 
     const pvpBoard = LeaderboardClient.getLocalBoard('pvp', StorageManager);
     expect(pvpBoard.length).toBe(1);
     expect(pvpBoard[0].pvpTrophies).toBe(25);
+  });
+});
+
+describe('Engagement Final Edition - Onboarding, Voice, Tricks, Factor Puzzle & Bosses', () => {
+  it('handles first-time player onboarding prompt state and hero customization', () => {
+    localStorage.clear();
+    expect(StorageManager.needsProfileSetup()).toBe(true);
+
+    const setup = StorageManager.completeProfileSetup('Captain Nova', 'wizard');
+    expect(setup.success).toBe(true);
+    expect(setup.profile.name).toBe('Captain Nova');
+    expect(setup.profile.avatar).toBe('wizard');
+    expect(StorageManager.needsProfileSetup()).toBe(false);
+
+    localStorage.clear();
+    StorageManager.markProfileSetupDone();
+    expect(StorageManager.needsProfileSetup()).toBe(false);
+
+    localStorage.clear();
+    StorageManager.createProfile('Existing Player', 'knight');
+    expect(StorageManager.needsProfileSetup()).toBe(false);
+  });
+
+  it('parses spoken numbers and manages BGM/SFX tracks in SoundEngine', () => {
+    localStorage.clear();
+    expect(SoundEngine.parseSpokenNumber('56')).toBe(56);
+    expect(SoundEngine.parseSpokenNumber('the answer is forty-two')).toBe(42);
+    expect(SoundEngine.parseSpokenNumber('one hundred forty four')).toBe(144);
+    expect(SoundEngine.parseSpokenNumber('zero')).toBe(0);
+    expect(SoundEngine.parseSpokenNumber('hello world')).toBe(null);
+
+    expect(Object.keys(SoundEngine.BGM_TRACKS).length).toBe(4);
+    expect(SoundEngine.SFX_PACKS.length).toBe(3);
+    expect(SoundEngine.setBgmTrack('bgm_synthwave')).toBe('bgm_synthwave');
+    expect(SoundEngine.getBgmTrack()).toBe('bgm_synthwave');
+    expect(SoundEngine.setBgmTrack('invalid')).toBe('bgm_classic');
+    expect(SoundEngine.setSfxPack('sfx_coin')).toBe('sfx_coin');
+    expect(SoundEngine.getSfxPack()).toBe('sfx_coin');
+    expect(SoundEngine.setSfxPack('invalid')).toBe('sfx_classic');
+  });
+
+  it('generates mental tricks, factor puzzles, and escalating RPG boss configs', () => {
+    const t9 = MathEngine.getMentalTrick('multiply', 9, 7, 63);
+    expect(t9).toContain('63');
+    const t5 = MathEngine.getMentalTrick('multiply', 5, 8, 40);
+    expect(t5.length).toBeGreaterThan(5);
+    const tDiv = MathEngine.getMentalTrick('divide', 56, 8, 7);
+    expect(tDiv).toContain('8');
+
+    const puzzle = MathEngine.generateFactorPuzzle('medium', () => 0.2);
+    expect(puzzle.target).toBeGreaterThan(0);
+    expect(puzzle.tiles.length).toBe(6);
+    expect(puzzle.pairsCount).toBe(2);
+    puzzle.validPairs.forEach(([a, b]) => expect(a * b).toBe(puzzle.target));
+
+    const boss1 = MathEngine.getBossConfig(1);
+    const boss5 = MathEngine.getBossConfig(5);
+    expect(boss1.name).toBe('Goblin Multiplier');
+    expect(boss1.maxHp).toBe(100);
+    expect(boss5.tier).toBe(5);
+    expect(boss5.maxHp).toBeGreaterThan(boss1.maxHp);
+  });
+
+  it('supports Memory Vault Leitner boxes, Daily Mystery Chest, 2x XP, Hero Cards, Audio Shop, 7d Chart & Bosses', () => {
+    localStorage.clear();
+    const chestDay = new Date();
+    const t0 = chestDay.getTime();
+    StorageManager.recordMatrixAttempt(7, 8, false, 4500, t0);
+    StorageManager.recordMatrixAttempt(2, 3, true, 1500, t0);
+    const vault = StorageManager.getMemoryVaultSummary(t0 + 1000);
+    expect(vault.testedCount).toBe(2);
+    expect(vault.dueCount).toBeGreaterThanOrEqual(1);
+    expect(vault.dueFacts[0].key).toBe('7x8');
+
+    expect(StorageManager.getDailyChestStatus(chestDay).ready).toBe(false);
+    expect(StorageManager.claimDailyMysteryChest(chestDay).success).toBe(false);
+
+    StorageManager.recordGameResult({
+      mode: 'boss_raid',
+      score: 300,
+      streak: 6,
+      correct: 10,
+      total: 10,
+      bossesSlain: 2,
+    });
+
+    expect(StorageManager.getDailyChestStatus(chestDay).ready).toBe(true);
+    const newly = StorageManager.checkAchievements();
+    expect(newly.some(a => a.id === 'boss_slayer')).toBe(true);
+    const ach = StorageManager.getAchievements();
+    expect(ach.find(a => a.id === 'boss_slayer').unlocked).toBe(true);
+    expect(StorageManager.getStats().bossesDefeated).toBe(2);
+
+    // Deterministic RNG hitting xp_boost (roll = 0.55 falls between 0.45 and 0.80)
+    const chestRes = StorageManager.claimDailyMysteryChest(chestDay, () => 0.55);
+    expect(chestRes.success).toBe(true);
+    expect(chestRes.reward.type).toBe('xp_boost');
+    expect(StorageManager.consumeXpBoostRound().boosted).toBe(true);
+    expect(StorageManager.consumeXpBoostRound().boosted).toBe(true);
+    expect(StorageManager.consumeXpBoostRound().boosted).toBe(false);
+    expect(StorageManager.claimDailyMysteryChest(chestDay).success).toBe(false);
+
+    // Hero Cards Album (unlock at 1 star, holo at 3 stars)
+    for (let c = 1; c <= 12; c++) {
+      StorageManager.recordMatrixAttempt(3, c, true, 1800, t0);
+      StorageManager.recordMatrixAttempt(3, c, true, 1800, t0);
+    }
+    const album = StorageManager.getHeroCardsAlbum();
+    expect(album.totalCount).toBe(12);
+    const card3 = album.cards.find(c => c.table === 3);
+    expect(card3.unlocked).toBe(true);
+    expect(card3.holo).toBe(true);
+
+    // Audio Star Shop
+    StorageManager.addStars(200);
+    const buyBgm = StorageManager.purchaseShopItem('audio', 'bgm_synthwave');
+    expect(buyBgm.success).toBe(true);
+    expect(buyBgm.shopState.cosmetics.equippedBgm).toBe('bgm_synthwave');
+    const buySfx = StorageManager.purchaseShopItem('audio', 'sfx_coin');
+    expect(buySfx.success).toBe(true);
+    expect(buySfx.shopState.cosmetics.equippedSfx).toBe('sfx_coin');
+
+    // 7-day Activity Chart
+    const chart = StorageManager.getRecentActivityChart(7, chestDay);
+    expect(chart.days.length).toBe(7);
+    expect(chart.days[6].solved).toBe(10);
+    expect(chart.avgSpeed7d).toBeGreaterThan(0);
+  });
+
+  it('supports online Co-Op Raid Boss and Classroom Party Quiz in api/match.js', () => {
+    const t = 9000000;
+    const coop = matchApi.createMatchState({
+      matchId: 'm_coop_1',
+      format: 'coop',
+      p1: { playerId: 'p1', name: 'Hero 1', avatar: 'knight' },
+      p2: { playerId: 'p2', name: 'Hero 2', avatar: 'wizard' },
+      nowMs: t,
+    });
+    expect(coop.bossHp).toBe(matchApi.COOP_BOSS_START_HP);
+
+    const hit1 = matchApi.applyPlayerAction(coop, { playerId: 'p1', correct: true, responseTimeMs: 1200, nowMs: t + 1000 });
+    expect(hit1.accepted).toBe(true);
+    expect(coop.bossHp).toBeLessThanOrEqual(matchApi.COOP_BOSS_START_HP - 18);
+
+    const miss = matchApi.applyPlayerAction(coop, { playerId: 'p2', correct: false, responseTimeMs: 3000, nowMs: t + 1200 });
+    expect(miss.event.type).toBe('boss_strike');
+    expect(coop.p1.hp).toBe(88);
+    expect(coop.p2.hp).toBe(88);
+
+    const party = matchApi.createMatchState({
+      matchId: 'm_party_1',
+      format: 'party',
+      p1: { playerId: 'host1', name: 'Teacher', avatar: 'owl' },
+      nowMs: t,
+    });
+    expect(party.status).toBe('active');
+    party.partyPlayers.stu2 = { playerId: 'stu2', name: 'Student 2', avatar: 'star', score: 0, correct: 0, streak: 0, answered: 0, lastActionAt: 0 };
+
+    matchApi.applyPlayerAction(party, { playerId: 'host1', correct: true, responseTimeMs: 1000, nowMs: t + 800 });
+    matchApi.applyPlayerAction(party, { playerId: 'stu2', correct: true, responseTimeMs: 3200, nowMs: t + 900 });
+    const view = matchApi.buildPublicMatchView(party, 'host1', t + 1500);
+    expect(view.partyStandings.length).toBe(2);
+    expect(view.partyStandings[0].isMe).toBe(true);
+    expect(view.partyStandings[0].score).toBeGreaterThan(view.partyStandings[1].score);
   });
 });

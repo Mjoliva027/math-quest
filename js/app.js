@@ -106,6 +106,24 @@ document.addEventListener('DOMContentLoaded', () => {
     shopTab: 'avatars',
     companionCheerIdx: 0,
     streakFreezeToastShown: false,
+    bossTier: 1,
+    bossConfig: null,
+    bossHp: 100,
+    bossMaxHp: 100,
+    bossFuseLeft: 12,
+    bossFuseMax: 12,
+    bossFuseInterval: null,
+    bossesSlain: 0,
+    xpBoostFactor: 1,
+    racerProgress: 4,
+    racerAi: [4, 4, 4],
+    racerTimer: null,
+    racerGear: 1,
+    racerRank: 1,
+    arcadeSubMode: 'meteor',
+    memoryDeck: [],
+    memoryIndex: 0,
+    isFirstTimeOnboarding: false,
   };
 
   // =========================================================================
@@ -191,6 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const recQuestTitle = document.getElementById('rec-quest-title');
   const recQuestSubtitle = document.getElementById('rec-quest-subtitle');
   const btnRecQuestStart = document.getElementById('btn-rec-quest-start');
+  const btnMemoryVault = document.getElementById('btn-memory-vault');
+  const memoryVaultCount = document.getElementById('memory-vault-count');
+  const lobbyMysteryChest = document.getElementById('lobby-mystery-chest');
+  const chestBannerText = document.getElementById('chest-banner-text');
+  const btnClaimChest = document.getElementById('btn-claim-chest');
   const dailyChallengeDate = document.getElementById('daily-challenge-date');
   const dailyChallengeStatus = document.getElementById('daily-challenge-status');
   const btnStartDailyChallenge = document.getElementById('btn-start-daily-challenge');
@@ -254,6 +277,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const hudDailyContainer = document.getElementById('hud-daily-container');
   const hudDailyProgress = document.getElementById('hud-daily-progress');
   const hudDailyElapsed = document.getElementById('hud-daily-elapsed');
+  const quizBossHud = document.getElementById('quiz-boss-hud');
+  const bossAvatarBox = document.getElementById('boss-avatar-box');
+  const bossNameLabel = document.getElementById('boss-name-label');
+  const bossHpText = document.getElementById('boss-hp-text');
+  const bossHpBar = document.getElementById('boss-hp-bar');
+  const bossCompanionAssist = document.getElementById('boss-companion-assist');
+  const bossFuseText = document.getElementById('boss-fuse-text');
+  const quizRacerTrack = document.getElementById('quiz-racer-track');
+  const racerGearBadge = document.getElementById('racer-gear-badge');
+  const racerLaneYou = document.getElementById('racer-lane-you');
+  const racerLaneAi1 = document.getElementById('racer-lane-ai1');
+  const racerLaneAi2 = document.getElementById('racer-lane-ai2');
+  const racerLaneAi3 = document.getElementById('racer-lane-ai3');
+  const btnQuizMic = document.getElementById('btn-quiz-mic');
+  const quizTrickCoach = document.getElementById('quiz-trick-coach');
   const hudScoreVal = document.getElementById('hud-score-val');
   const btnQuizFinish = document.getElementById('btn-quiz-finish');
   const btnQuizPause = document.getElementById('btn-quiz-pause');
@@ -292,6 +330,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const fcSkipCountBanner = document.getElementById('fc-skip-count-banner');
   const btnFcLearning = document.getElementById('btn-fc-learning');
   const btnFcMastered = document.getElementById('btn-fc-mastered');
+  const btnFcMic = document.getElementById('btn-fc-mic');
+  const btnArcadeTabMeteor = document.getElementById('btn-arcade-tab-meteor');
+  const btnArcadeTabPuzzle = document.getElementById('btn-arcade-tab-puzzle');
+  const arcadeMeteorWrap = document.getElementById('arcade-meteor-wrap');
+  const meteorPuzzlePanel = document.getElementById('meteor-puzzle-panel');
 
   // Results Arena Elements
   const resultsTitle = document.getElementById('results-title');
@@ -328,6 +371,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const matrixStarMap = document.getElementById('matrix-star-map');
   const matrixStarTotal = document.getElementById('matrix-star-total');
   const matrixStarGrid = document.getElementById('matrix-star-grid');
+  const matrixCardsAlbum = document.getElementById('matrix-cards-album');
+  const cardsAlbumTotal = document.getElementById('cards-album-total');
+  const cardsAlbumGrid = document.getElementById('cards-album-grid');
   const matrixInfoFactors = document.getElementById('matrix-info-factors');
   const matrixInfoProduct = document.getElementById('matrix-info-product');
   const matrixInfoStatus = document.getElementById('matrix-info-status');
@@ -354,6 +400,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordMeteor = document.getElementById('record-meteor');
   const achievementsContainer = document.getElementById('achievements-container');
   const achievementsCount = document.getElementById('achievements-count');
+  const statsChartSummary = document.getElementById('stats-chart-summary');
+  const statsActivityChart = document.getElementById('stats-activity-chart');
+  const btnToggleCertificate = document.getElementById('btn-toggle-certificate');
+  const statsCertificateBox = document.getElementById('stats-certificate-box');
+  const certLearnerName = document.getElementById('cert-learner-name');
+  const certLevelTitle = document.getElementById('cert-level-title');
+  const certStatsLine = document.getElementById('cert-stats-line');
+  const certDateLine = document.getElementById('cert-date-line');
   const reportProfileName = document.getElementById('report-profile-name');
   const reportFactsMastered = document.getElementById('report-facts-mastered');
   const reportAvgSpeed = document.getElementById('report-avg-speed');
@@ -369,6 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalProfiles = document.getElementById('modal-profiles');
   const btnCloseProfiles = document.getElementById('btn-close-profiles');
   const btnProfilesDone = document.getElementById('btn-profiles-done');
+  const profilesWelcomeBanner = document.getElementById('profiles-welcome-banner');
   const profilesList = document.getElementById('profiles-list');
   const btnRandomHeroName = document.getElementById('btn-random-hero-name');
   const inputNewProfileName = document.getElementById('input-new-profile-name');
@@ -415,11 +470,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   // INITIALIZATION & UI SYNC
   // =========================================================================
+  function syncAudioSelection() {
+    const shop = StorageManager.getShopState();
+    const cos = (shop && shop.cosmetics) || {};
+    if (typeof SoundEngine.setBgmTrack === 'function') {
+      SoundEngine.setBgmTrack(cos.equippedBgm || 'bgm_classic');
+    }
+    if (typeof SoundEngine.setSfxPack === 'function') {
+      SoundEngine.setSfxPack(cos.equippedSfx || 'sfx_classic');
+    }
+  }
+
   function init() {
     loadPreferencesIntoState();
     parseSharedPracticeFromURL();
     applyTheme(state.theme);
     syncProfileUI();
+    syncAudioSelection();
+    if (btnQuizMic && typeof SoundEngine.isVoiceInputSupported === 'function' && SoundEngine.isVoiceInputSupported()) {
+      btnQuizMic.classList.remove('hidden');
+    }
+    if (btnFcMic && typeof SoundEngine.isVoiceInputSupported === 'function' && SoundEngine.isVoiceInputSupported()) {
+      btnFcMic.classList.remove('hidden');
+    }
     syncLobbySelectors();
     syncDurationUI();
     syncInputStyleUI();
@@ -436,6 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
       startGame('pvp');
     } else {
       refreshLobbyOnlineCount();
+      if (!state.ghostChallenge && typeof StorageManager.needsProfileSetup === 'function' && StorageManager.needsProfileSetup()) {
+        openProfilesModal(true);
+      }
     }
   }
 
@@ -508,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function persistPreferences() {
-    const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards'];
+    const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'boss_raid'];
     const currentSaved = StorageManager.getPreferences();
     StorageManager.savePreferences({
       mode: lobbyModes.includes(state.mode) ? state.mode : currentSaved.mode,
@@ -597,6 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPreferencesIntoState();
     applyTheme(state.theme);
     syncProfileUI();
+    syncAudioSelection();
     syncPlayerHUD();
     syncLobbySelectors();
     syncDurationUI();
@@ -610,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function parseSharedPracticeFromURL() {
     if (!window.location || !window.location.search) return;
     const params = new URLSearchParams(window.location.search);
-    const allowedModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'tug'];
+    const allowedModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'tug', 'boss_raid'];
     const allowedOps = ['multiply', 'divide', 'missing', 'add', 'subtract', 'mixed'];
     const allowedDiffs = ['easy', 'medium', 'hard'];
     const allowedInputs = ['choice', 'direct'];
@@ -631,6 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
         survival: 'Survival Gauntlet',
         endless: 'Endless Cards',
         flashcards: 'Flashcards',
+        boss_raid: 'Boss Battle',
       };
       parts.push(modeNames[modeParam]);
     }
@@ -647,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const formatParam = params.get('format');
-    if (formatParam === 'duel' || formatParam === 'tug') {
+    if (['duel', 'tug', 'coop', 'party'].includes(formatParam)) {
       state.pendingPvpFormat = formatParam;
     }
 
@@ -748,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function buildShareablePracticeURL() {
     const params = new URLSearchParams();
-    const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards'];
+    const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'boss_raid'];
     const mode = lobbyModes.includes(state.mode) ? state.mode : 'blitz';
     params.set('mode', mode);
     params.set('op', state.operation);
@@ -1034,11 +1112,12 @@ document.addEventListener('DOMContentLoaded', () => {
       survival: 'border-rose-500',
       endless: 'border-cyan-500',
       flashcards: 'border-emerald-500',
+      boss_raid: 'border-fuchsia-500',
     };
     if (borderMap[state.mode]) {
       modeCards.forEach(c => {
         c.classList.remove(
-          'border-indigo-500', 'border-cyan-500', 'border-sky-500', 'border-amber-500', 'border-rose-500', 'border-emerald-500',
+          'border-indigo-500', 'border-cyan-500', 'border-sky-500', 'border-amber-500', 'border-rose-500', 'border-emerald-500', 'border-fuchsia-500',
           'border-2'
         );
         if (c.dataset.mode === state.mode) {
@@ -1072,6 +1151,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function syncMemoryVaultButton() {
+    if (!btnMemoryVault || typeof StorageManager.getMemoryVaultSummary !== 'function') return;
+    const summary = StorageManager.getMemoryVaultSummary();
+    if (summary.dueCount > 0) {
+      btnMemoryVault.classList.remove('hidden');
+      if (memoryVaultCount) memoryVaultCount.textContent = summary.dueCount;
+    } else {
+      btnMemoryVault.classList.add('hidden');
+    }
+  }
+
+  function syncDailyChestBanner() {
+    if (!lobbyMysteryChest || typeof StorageManager.getDailyChestStatus !== 'function') return;
+    const status = StorageManager.getDailyChestStatus();
+    if (status.ready) {
+      lobbyMysteryChest.classList.remove('hidden');
+      if (btnClaimChest) btnClaimChest.classList.remove('hidden');
+      if (chestBannerText) chestBannerText.textContent = "Open today's chest for bonus stars, 2× XP boost, or a Streak Shield!";
+    } else if (status.xpBoostRounds > 0) {
+      lobbyMysteryChest.classList.remove('hidden');
+      if (btnClaimChest) btnClaimChest.classList.add('hidden');
+      if (chestBannerText) chestBannerText.textContent = `⚡ 2× XP Boost Active for ${status.xpBoostRounds} more round${status.xpBoostRounds > 1 ? 's' : ''}!`;
+    } else {
+      lobbyMysteryChest.classList.add('hidden');
+    }
+  }
+
   function syncLobbyStats() {
     const mistakes = StorageManager.getMistakes();
     if (mistakes.length > 0) {
@@ -1084,7 +1190,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTableChips();
     syncCompanionCard();
     syncRecommendedQuest();
+    syncMemoryVaultButton();
     syncDailyChallengeCard();
+    syncDailyChestBanner();
     syncDailyPanel();
   }
 
@@ -1155,8 +1263,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   function showView(viewId) {
     if (typeof ArcadeGames !== 'undefined') {
-      if (viewId !== 'view-meteor') ArcadeGames.MeteorBlaster.stop();
+      if (viewId !== 'view-meteor') {
+        ArcadeGames.MeteorBlaster.stop();
+        if (ArcadeGames.FactorPuzzle) ArcadeGames.FactorPuzzle.stop();
+      }
       if (viewId !== 'view-tug') ArcadeGames.TugOfWar.stop();
+    }
+    if (typeof SoundEngine.stopListening === 'function') {
+      SoundEngine.stopListening();
     }
     if (typeof PvpArena !== 'undefined' && viewId !== 'view-pvp') {
       PvpArena.stop();
@@ -1186,10 +1300,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearPendingTimers() {
     clearInterval(state.timerInterval);
     clearInterval(state.survivalFuseInterval);
+    clearInterval(state.bossFuseInterval);
+    clearInterval(state.racerTimer);
     clearInterval(state.dailyElapsedTimer);
     state.timerInterval = null;
     state.survivalFuseInterval = null;
+    state.bossFuseInterval = null;
+    state.racerTimer = null;
     state.dailyElapsedTimer = null;
+    if (typeof SoundEngine.stopListening === 'function') {
+      SoundEngine.stopListening();
+    }
     if (state.pendingTimeout) {
       clearTimeout(state.pendingTimeout);
       state.pendingTimeout = null;
@@ -1235,9 +1356,55 @@ document.addEventListener('DOMContentLoaded', () => {
     state.survival5050Left = 2;
     state.survivalSkipLeft = 1;
     state.survival5050UsedOnCurrent = false;
+    state.bossTier = 1;
+    state.bossesSlain = 0;
+    state.memoryDeck = [];
+    state.memoryIndex = 0;
     disableFeverMode();
 
-    if (state.mode === 'daily') {
+    if (state.mode !== 'pvp' && typeof StorageManager.consumeXpBoostRound === 'function') {
+      const boost = StorageManager.consumeXpBoostRound();
+      state.xpBoostFactor = boost && boost.boosted ? 2 : 1;
+      if (state.xpBoostFactor > 1) {
+        showToast(`⚡ 2× XP Boost Active! (${boost.remaining} round${boost.remaining === 1 ? '' : 's'} left after this)`, 'success');
+      }
+    } else {
+      state.xpBoostFactor = 1;
+    }
+
+    if (state.mode === 'boss_raid' && typeof MathEngine.getBossConfig === 'function') {
+      state.bossConfig = MathEngine.getBossConfig(1);
+      state.bossMaxHp = state.bossConfig.maxHp;
+      state.bossHp = state.bossConfig.maxHp;
+      state.bossFuseMax = state.bossConfig.turnSeconds;
+      state.bossFuseLeft = state.bossConfig.turnSeconds;
+    } else if (state.mode === 'memory_vault' && typeof StorageManager.getDueMemoryFacts === 'function') {
+      const due = StorageManager.getDueMemoryFacts(Date.now(), 12);
+      if (due.length === 0) {
+        showToast('All tested facts are fresh in your Memory Vault!', 'info');
+        showView('view-lobby');
+        return;
+      }
+      state.memoryDeck = due.map(f => {
+        const ans = f.num1 * f.num2;
+        return {
+          id: `mv_${f.key}`,
+          operation: 'multiply',
+          symbol: '×',
+          num1: f.num1,
+          num2: f.num2,
+          answer: ans,
+          equation: `${f.num1} × ${f.num2}`,
+          options: MathEngine.generateDistractors(ans, 'multiply', f.num1, f.num2),
+          hint: `${f.num1} groups of ${f.num2} equals ${ans}`,
+          trick: typeof MathEngine.getMentalTrick === 'function' ? MathEngine.getMentalTrick('multiply', f.num1, f.num2, ans) : '',
+          visualArray: MathEngine.generateVisualArray(f.num1, f.num2),
+          matrixFactors: [f.num1, f.num2],
+          memoryBox: f.box,
+        };
+      });
+      state.memoryIndex = 0;
+    } else if (state.mode === 'daily') {
       state.dailyDateKey = (state.activeGhostRun && state.activeGhostRun.date) || StorageManager.getDateKey();
       state.dailyDeck = MathEngine.generateDailyChallenge(state.dailyDateKey, 15);
       state.dailyIndex = 0;
@@ -1341,43 +1508,94 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state.mode === 'flashcards') {
       startFlashcards();
     } else if (state.mode === 'meteor' && typeof ArcadeGames !== 'undefined') {
-      const meteorStats = StorageManager.getStats();
-      const shopState = StorageManager.getShopState();
       showView('view-meteor');
-      ArcadeGames.MeteorBlaster.start({
-        operation: state.operation,
-        difficulty: state.difficulty,
-        customTables: isTableOperation(state.operation) ? state.customTables : [],
-        weakFacts: StorageManager.getWeakFacts(state.operation),
-        targetPB: (meteorStats.highScores && meteorStats.highScores.meteor) || 0,
-        laserSkin: (shopState.cosmetics && shopState.cosmetics.equippedLaser) || 'indigo',
-        onStatsAttempt: (prob, isCorrect, rt) => {
-          const factors = prob.matrixFactors || (prob.operation === 'multiply' ? [prob.num1, prob.num2] : null);
-          if (factors && factors.length === 2) {
-            StorageManager.recordMatrixAttempt(factors[0], factors[1], isCorrect, rt);
-          }
-          if (!isCorrect) {
-            StorageManager.recordMistake(prob);
-            state.roundMistakes.push({ ...prob });
-          }
-          handleQuestUpdates({ answered: 1, fastCorrect: isCorrect ? 1 : 0 });
-        },
-        onFinish: (summary) => {
-          state.score = summary.score;
-          state.maxStreak = summary.maxStreak;
-          state.correctCount = summary.correctCount;
-          state.totalCount = summary.totalCount;
-          state.lastMeteorWave = summary.wave || 1;
-          state.roundXPGained += summary.xpGained;
-          if (summary.xpGained > 0) {
-            StorageManager.addXP(summary.xpGained);
-          }
-          endGame(`Meteor Wave ${state.lastMeteorWave}!`);
-        },
-        onExit: () => showView('view-lobby'),
-      });
+      switchArcadeSubMode('meteor');
     } else {
       startQuiz();
+    }
+  }
+
+  function launchMeteorBlaster() {
+    if (typeof ArcadeGames === 'undefined' || !ArcadeGames.MeteorBlaster) return;
+    const meteorStats = StorageManager.getStats();
+    const shopState = StorageManager.getShopState();
+    ArcadeGames.MeteorBlaster.start({
+      operation: state.operation,
+      difficulty: state.difficulty,
+      customTables: isTableOperation(state.operation) ? state.customTables : [],
+      weakFacts: StorageManager.getWeakFacts(state.operation),
+      targetPB: (meteorStats.highScores && meteorStats.highScores.meteor) || 0,
+      laserSkin: (shopState.cosmetics && shopState.cosmetics.equippedLaser) || 'indigo',
+      onStatsAttempt: (prob, isCorrect, rt) => {
+        const factors = prob.matrixFactors || (prob.operation === 'multiply' ? [prob.num1, prob.num2] : null);
+        if (factors && factors.length === 2) {
+          StorageManager.recordMatrixAttempt(factors[0], factors[1], isCorrect, rt);
+        }
+        if (!isCorrect) {
+          StorageManager.recordMistake(prob);
+          state.roundMistakes.push({ ...prob });
+        }
+        handleQuestUpdates({ answered: 1, fastCorrect: isCorrect ? 1 : 0 });
+      },
+      onFinish: (summary) => {
+        const xp = (summary.xpGained || 0) * (state.xpBoostFactor || 1);
+        state.score = summary.score;
+        state.maxStreak = summary.maxStreak;
+        state.correctCount = summary.correctCount;
+        state.totalCount = summary.totalCount;
+        state.lastMeteorWave = summary.wave || 1;
+        state.roundXPGained += xp;
+        if (xp > 0) StorageManager.addXP(xp);
+        endGame(`Meteor Wave ${state.lastMeteorWave}!`);
+      },
+      onExit: () => showView('view-lobby'),
+    });
+  }
+
+  function launchFactorPuzzle() {
+    if (typeof ArcadeGames === 'undefined' || !ArcadeGames.FactorPuzzle) return;
+    ArcadeGames.FactorPuzzle.start({
+      difficulty: state.difficulty,
+      onMatchPair: (a, b, rt) => {
+        StorageManager.recordMatrixAttempt(a, b, true, rt || 2500);
+        handleQuestUpdates({ answered: 1, fastCorrect: 1 });
+      },
+      onFinish: (summary) => {
+        const xp = (summary.xpGained || 0) * (state.xpBoostFactor || 1);
+        state.score = summary.score;
+        state.maxStreak = summary.maxStreak;
+        state.correctCount = summary.correctCount;
+        state.totalCount = summary.totalCount;
+        state.roundXPGained += xp;
+        if (xp > 0) StorageManager.addXP(xp);
+        endGame('Factor Puzzle Complete!');
+      },
+      onExit: () => showView('view-lobby'),
+    });
+  }
+
+  function switchArcadeSubMode(sub) {
+    state.arcadeSubMode = sub === 'puzzle' ? 'puzzle' : 'meteor';
+    if (btnArcadeTabMeteor && btnArcadeTabPuzzle) {
+      btnArcadeTabMeteor.className = state.arcadeSubMode === 'meteor'
+        ? 'py-1.5 rounded-lg bg-sky-600 text-white'
+        : 'py-1.5 rounded-lg text-slate-300';
+      btnArcadeTabPuzzle.className = state.arcadeSubMode === 'puzzle'
+        ? 'py-1.5 rounded-lg bg-sky-600 text-white'
+        : 'py-1.5 rounded-lg text-slate-300';
+    }
+    if (arcadeMeteorWrap) arcadeMeteorWrap.classList.toggle('hidden', state.arcadeSubMode !== 'meteor');
+    if (meteorPuzzlePanel) meteorPuzzlePanel.classList.toggle('hidden', state.arcadeSubMode !== 'puzzle');
+
+    if (typeof ArcadeGames !== 'undefined') {
+      ArcadeGames.MeteorBlaster.stop();
+      if (ArcadeGames.FactorPuzzle) ArcadeGames.FactorPuzzle.stop();
+    }
+
+    if (state.arcadeSubMode === 'puzzle') {
+      launchFactorPuzzle();
+    } else {
+      launchMeteorBlaster();
     }
   }
 
@@ -1470,6 +1688,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (survivalLifelinesBar) survivalLifelinesBar.classList.add('hidden');
     if (hudEndlessContainer) hudEndlessContainer.classList.add('hidden');
     if (hudDailyContainer) hudDailyContainer.classList.add('hidden');
+    if (quizBossHud) quizBossHud.classList.add('hidden');
+    if (quizRacerTrack) quizRacerTrack.classList.add('hidden');
+    if (quizTrickCoach) quizTrickCoach.classList.add('hidden');
     if (btnQuizFinish) btnQuizFinish.classList.add('hidden');
     if (btnQuizPause) btnQuizPause.classList.add('hidden');
     if (quizPauseOverlay) quizPauseOverlay.classList.add('hidden');
@@ -1481,6 +1702,16 @@ document.addEventListener('DOMContentLoaded', () => {
       hudTimerVal.textContent = state.timeLeft;
       hudTimerVal.classList.remove('text-rose-400');
       startBlitzTimer();
+
+      if (quizRacerTrack) {
+        state.racerProgress = 4;
+        state.racerAi = [4, 4, 4];
+        state.racerGear = 1;
+        state.racerRank = 1;
+        quizRacerTrack.classList.remove('hidden');
+        updateRacerTrackUI();
+        resumeRacerTimer();
+      }
     } else if (state.mode === 'survival') {
       state.survivalFloor = 1;
       state.survivalSolved = 0;
@@ -1495,11 +1726,21 @@ document.addEventListener('DOMContentLoaded', () => {
       renderHearts();
       updateSurvivalFloorUI();
       updateSurvivalLifelinesUI();
-    } else if (state.mode === 'endless') {
+    } else if (state.mode === 'boss_raid') {
+      hudHeartsContainer.classList.remove('hidden');
+      if (quizBossHud) quizBossHud.classList.remove('hidden');
+      if (btnQuizPause) btnQuizPause.classList.remove('hidden');
+      renderHearts();
+      syncBossHudUI();
+    } else if (state.mode === 'endless' || state.mode === 'memory_vault') {
       if (hudEndlessContainer) hudEndlessContainer.classList.remove('hidden');
-      if (btnQuizFinish) btnQuizFinish.classList.remove('hidden');
+      if (btnQuizFinish && state.mode === 'endless') btnQuizFinish.classList.remove('hidden');
       state.endlessCardCount = 1;
-      if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
+      if (hudEndlessCardVal) {
+        hudEndlessCardVal.textContent = state.mode === 'memory_vault'
+          ? `1/${state.memoryDeck.length}`
+          : `#${state.endlessCardCount}`;
+      }
     } else if (state.mode === 'daily') {
       if (hudDailyContainer) hudDailyContainer.classList.remove('hidden');
       if (btnQuizPause) btnQuizPause.classList.remove('hidden');
@@ -1576,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleQuizPause() {
     if (viewQuiz.classList.contains('hidden')) return;
-    if (!['blitz', 'daily', 'survival'].includes(state.mode)) return;
+    if (!['blitz', 'daily', 'survival', 'boss_raid'].includes(state.mode)) return;
 
     SoundEngine.playClick();
     if (!state.isPaused) {
@@ -1584,9 +1825,13 @@ document.addEventListener('DOMContentLoaded', () => {
       state.pauseStartedAt = Date.now();
       clearInterval(state.timerInterval);
       clearInterval(state.survivalFuseInterval);
+      clearInterval(state.bossFuseInterval);
+      clearInterval(state.racerTimer);
       clearInterval(state.dailyElapsedTimer);
       state.timerInterval = null;
       state.survivalFuseInterval = null;
+      state.bossFuseInterval = null;
+      state.racerTimer = null;
       state.dailyElapsedTimer = null;
       if (state.pendingTimeout) {
         clearTimeout(state.pendingTimeout);
@@ -1601,17 +1846,103 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.problemStartTime) state.problemStartTime += pausedMs;
       if (state.dailyStartTime) state.dailyStartTime += pausedMs;
       if (quizPauseOverlay) quizPauseOverlay.classList.add('hidden');
-      if (state.mode === 'blitz') resumeBlitzTimer();
+      if (state.mode === 'blitz') {
+        resumeBlitzTimer();
+        resumeRacerTimer();
+      }
       if (state.mode === 'daily') resumeDailyElapsedTimer();
       if (state.mode === 'survival') {
         updateSurvivalLifelinesUI();
         if (!state.resumeNeedsNextProblem) resumeSurvivalFuse();
+      }
+      if (state.mode === 'boss_raid' && !state.resumeNeedsNextProblem) {
+        resumeBossFuse();
       }
       if (state.resumeNeedsNextProblem) {
         state.resumeNeedsNextProblem = false;
         loadNextProblem();
       }
     }
+  }
+
+  function syncBossHudUI() {
+    if (!quizBossHud || !state.bossConfig) return;
+    const boss = state.bossConfig;
+    if (bossAvatarBox) bossAvatarBox.innerHTML = boss.svg;
+    if (bossNameLabel) bossNameLabel.textContent = `${boss.name} · ${boss.title}`;
+    if (bossHpText) bossHpText.textContent = `${Math.max(0, state.bossHp)} / ${state.bossMaxHp} HP`;
+    if (bossHpBar) {
+      const pct = state.bossMaxHp > 0 ? Math.max(0, Math.min(100, (state.bossHp / state.bossMaxHp) * 100)) : 0;
+      bossHpBar.style.width = `${pct}%`;
+    }
+    if (bossCompanionAssist) {
+      const charge = state.streak % 4;
+      bossCompanionAssist.textContent = charge === 3
+        ? 'Companion Assist READY next hit!'
+        : `Companion Assist: ${charge}/4 streak`;
+    }
+    if (bossFuseText) {
+      bossFuseText.textContent = `${Math.max(0, state.bossFuseLeft).toFixed(1)}s`;
+    }
+  }
+
+  function startBossFuse() {
+    clearInterval(state.bossFuseInterval);
+    state.bossFuseMax = (state.bossConfig && state.bossConfig.turnSeconds) || 12;
+    state.bossFuseLeft = state.bossFuseMax;
+    syncBossHudUI();
+    resumeBossFuse();
+  }
+
+  function resumeBossFuse() {
+    clearInterval(state.bossFuseInterval);
+    state.bossFuseInterval = setInterval(() => {
+      if (state.isPaused || state.isEvaluating || state.mode !== 'boss_raid') return;
+      state.bossFuseLeft = Math.max(0, state.bossFuseLeft - 0.1);
+      if (bossFuseText) bossFuseText.textContent = `${Math.max(0, state.bossFuseLeft).toFixed(1)}s`;
+      if (state.bossFuseLeft <= 0) {
+        clearInterval(state.bossFuseInterval);
+        state.bossFuseInterval = null;
+        state.isEvaluating = true;
+        state.totalCount++;
+        if (state.currentProblem) {
+          const factors = state.currentProblem.matrixFactors ||
+            (state.currentProblem.operation === 'multiply' ? [state.currentProblem.num1, state.currentProblem.num2] : null);
+          if (factors && factors.length === 2) {
+            StorageManager.recordMatrixAttempt(factors[0], factors[1], false, state.bossFuseMax * 1000);
+          }
+          quizHintText.textContent = `Boss Attack! ${state.currentProblem.equation} = ${state.currentProblem.answer}`;
+        }
+        handleIncorrectAnswer();
+      }
+    }, 100);
+  }
+
+  function updateRacerTrackUI() {
+    if (!quizRacerTrack) return;
+    const all = [state.racerProgress, ...state.racerAi];
+    const ahead = state.racerAi.filter(v => v > state.racerProgress).length;
+    state.racerRank = 1 + ahead;
+    state.racerGear = Math.min(6, 1 + Math.floor(state.streak / 3));
+    const rankLabels = ['1st', '2nd', '3rd', '4th'];
+    if (racerGearBadge) {
+      racerGearBadge.textContent = `Gear ${state.racerGear} · ${rankLabels[state.racerRank - 1] || '4th'}`;
+    }
+    if (racerLaneYou) racerLaneYou.style.width = `${Math.min(100, Math.max(4, state.racerProgress))}%`;
+    if (racerLaneAi1) racerLaneAi1.style.width = `${Math.min(100, Math.max(4, all[1]))}%`;
+    if (racerLaneAi2) racerLaneAi2.style.width = `${Math.min(100, Math.max(4, all[2]))}%`;
+    if (racerLaneAi3) racerLaneAi3.style.width = `${Math.min(100, Math.max(4, all[3]))}%`;
+  }
+
+  function resumeRacerTimer() {
+    clearInterval(state.racerTimer);
+    state.racerTimer = setInterval(() => {
+      if (state.isPaused || state.mode !== 'blitz') return;
+      const baseStep = 82 / Math.max(20, state.blitzDuration || 30);
+      const factors = [1.05, 0.92, 0.8];
+      state.racerAi = state.racerAi.map((pos, idx) => Math.min(96, pos + baseStep * factors[idx] * (0.85 + Math.random() * 0.35)));
+      updateRacerTrackUI();
+    }, 1000);
   }
 
   function updateSurvivalFloorUI() {
@@ -1742,10 +2073,23 @@ document.addEventListener('DOMContentLoaded', () => {
     state.survival5050UsedOnCurrent = false;
     updateDirectInputDisplay();
     resetChoiceStyles(choiceBtns);
+    if (quizTrickCoach) {
+      quizTrickCoach.classList.add('hidden');
+      quizTrickCoach.textContent = '';
+    }
 
     let fromRetry = false;
 
-    if (state.mode === 'daily') {
+    if (state.mode === 'memory_vault') {
+      if (state.memoryIndex >= state.memoryDeck.length) {
+        endGame('Memory Vault Cleared!');
+        return;
+      }
+      state.currentProblem = state.memoryDeck[state.memoryIndex];
+      if (hudEndlessCardVal) {
+        hudEndlessCardVal.textContent = `${state.memoryIndex + 1}/${state.memoryDeck.length}`;
+      }
+    } else if (state.mode === 'daily') {
       if (state.dailyIndex >= state.dailyDeck.length) {
         endGame('Daily Challenge Complete!');
         return;
@@ -1780,7 +2124,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         const targetDifficulty = state.mode === 'survival'
           ? MathEngine.getSurvivalFloorConfig(state.survivalFloor).difficulty
-          : state.difficulty;
+          : state.mode === 'boss_raid'
+            ? (state.bossTier === 1 ? 'easy' : state.bossTier === 2 ? 'medium' : 'hard')
+            : state.difficulty;
         if (state.mode === 'blitz' && state.activeGhostRun && state.ghostDeck.length > 0) {
           state.currentProblem = state.ghostDeck[state.ghostDeckIndex % state.ghostDeck.length];
           state.ghostDeckIndex++;
@@ -1801,7 +2147,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ? 'Mystery Factor'
       : capitalize(state.currentProblem.operation);
     quizEquationText.textContent = state.currentProblem.equation;
-    quizHintText.textContent = fromRetry ? 'Recall Check — try this one again!' : '';
+    quizHintText.textContent = state.mode === 'memory_vault'
+      ? `Leitner Box ${state.currentProblem.memoryBox || 1} Review`
+      : fromRetry
+        ? 'Recall Check — try this one again!'
+        : '';
 
     if (SoundEngine.isSpeechEnabled()) {
       SoundEngine.speakEquation(
@@ -1836,6 +2186,9 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSurvivalFloorUI();
       updateSurvivalLifelinesUI();
       startSurvivalFuse();
+    } else if (state.mode === 'boss_raid') {
+      syncBossHudUI();
+      startBossFuse();
     }
   }
 
@@ -1845,11 +2198,14 @@ document.addEventListener('DOMContentLoaded', () => {
     state.totalCount++;
 
     const responseTimeMs = state.problemStartTime ? Date.now() - state.problemStartTime : null;
+    state.lastAnswerRtMs = responseTimeMs;
     const isCorrect = Number(playerAnswer) === state.currentProblem.answer;
 
     if (state.mode === 'daily') {
       state.dailyResults.push(isCorrect);
       state.dailyIndex++;
+    } else if (state.mode === 'memory_vault') {
+      state.memoryIndex++;
     }
 
     if (state.inputStyle === 'choice') {
@@ -1878,7 +2234,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleCorrectAnswer() {
     clearInterval(state.survivalFuseInterval);
+    clearInterval(state.bossFuseInterval);
     state.survivalFuseInterval = null;
+    state.bossFuseInterval = null;
     state.correctCount++;
     state.streak++;
     state.maxStreak = Math.max(state.maxStreak, state.streak);
@@ -1894,7 +2252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gainedScore = Math.round(basePoints * multiplier * inputBonus * floorBonus);
     state.score += gainedScore;
 
-    const earnedXP = Math.round(5 * multiplier * inputBonus);
+    const earnedXP = Math.round(5 * multiplier * inputBonus) * (state.xpBoostFactor || 1);
     state.roundXPGained += earnedXP;
     StorageManager.addXP(earnedXP);
 
@@ -1929,12 +2287,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hudEndlessCardVal) hudEndlessCardVal.textContent = `#${state.endlessCardCount}`;
     }
 
+    if (state.mode === 'boss_raid' && state.bossConfig) {
+      const baseDmg = Math.round(25 * multiplier);
+      const assistBonus = (state.streak > 0 && state.streak % 4 === 0) ? 35 : 0;
+      const totalDmg = baseDmg + assistBonus;
+      state.bossHp = Math.max(0, state.bossHp - totalDmg);
+      if (bossAvatarBox) {
+        bossAvatarBox.classList.add('boss-hit-flash');
+        setTimeout(() => bossAvatarBox && bossAvatarBox.classList.remove('boss-hit-flash'), 300);
+      }
+      if (assistBonus > 0) {
+        setTimeout(() => spawnFloatingXP('🐾 COMPANION ASSIST! +35 DMG!', true), 140);
+      }
+      if (state.bossHp <= 0) {
+        state.bossesSlain++;
+        const bossXP = (state.bossConfig.rewardXP || 25) * (state.xpBoostFactor || 1);
+        const bossStars = state.bossConfig.rewardStars || 12;
+        state.roundXPGained += bossXP;
+        state.roundStarsEarned += bossStars;
+        StorageManager.addXP(bossXP);
+        StorageManager.addStars(bossStars);
+        Confetti.burst(45);
+        SoundEngine.playLevelUp();
+        const slainName = state.bossConfig.name;
+        state.bossTier++;
+        state.bossConfig = MathEngine.getBossConfig(state.bossTier);
+        state.bossMaxHp = state.bossConfig.maxHp;
+        state.bossHp = state.bossMaxHp;
+        state.bossFuseMax = state.bossConfig.turnSeconds;
+        setTimeout(() => {
+          spawnFloatingXP(`DEFEATED ${slainName}! +${bossXP} XP +${bossStars}⭐`, true);
+        }, 240);
+      }
+      syncBossHudUI();
+    }
+
     if (state.mode === 'survival') {
       state.survivalSolved++;
       if (state.survivalSolved % 5 === 0) {
         state.survivalFloor++;
-        state.roundXPGained += 25;
-        StorageManager.addXP(25);
+        const floorXP = 25 * (state.xpBoostFactor || 1);
+        state.roundXPGained += floorXP;
+        StorageManager.addXP(floorXP);
         StorageManager.addStars(5);
         state.roundStarsEarned += 5;
         if ((state.survivalFloor - 1) % 3 === 0) {
@@ -1943,7 +2337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSurvivalFloorUI();
         Confetti.burst(35);
         setTimeout(() => {
-          spawnFloatingXP(`FLOOR ${state.survivalFloor}! +25 XP +5⭐`, true);
+          spawnFloatingXP(`FLOOR ${state.survivalFloor}! +${floorXP} XP +5⭐`, true);
         }, 160);
       }
       if (state.streak > 0 && state.streak % 10 === 0 && state.hearts < 3) {
@@ -1956,8 +2350,16 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSurvivalLifelinesUI();
     }
 
-    // Blitz Mode Streak Time Bonus (Tiered: +2s @ 3 streak, +3s @ 5 streak, +5s @ 10+ streak)
+    // Blitz Mode Streak Time Bonus + Nitro Racer Boost
     if (state.mode === 'blitz') {
+      const rtMs = state.lastAnswerRtMs || 3000;
+      const isNitro = rtMs < 2000;
+      state.racerProgress = Math.min(100, state.racerProgress + (isNitro ? 10 : 6));
+      updateRacerTrackUI();
+      if (isNitro) {
+        setTimeout(() => spawnFloatingXP('🏎️ NITRO BOOST!', true), 120);
+      }
+
       let timeBonus = 0;
       let bonusMessage = '';
 
@@ -2005,7 +2407,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleIncorrectAnswer() {
     clearInterval(state.survivalFuseInterval);
+    clearInterval(state.bossFuseInterval);
     state.survivalFuseInterval = null;
+    state.bossFuseInterval = null;
     state.streak = 0;
     disableFeverMode();
     updateStreakDisplay();
@@ -2018,7 +2422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     state.roundMistakes.push({ ...state.currentProblem });
 
-    if (['blitz', 'endless', 'survival'].includes(state.mode)) {
+    if (['blitz', 'endless', 'survival', 'boss_raid'].includes(state.mode)) {
       const alreadyQueued = state.retryQueue.some(item => item.problem.equation === state.currentProblem.equation);
       if (!alreadyQueued && state.retryQueue.length < 5) {
         state.retryQueue.push({ problem: { ...state.currentProblem }, dueIn: 2 });
@@ -2040,16 +2444,32 @@ document.addEventListener('DOMContentLoaded', () => {
       quizHintText.textContent = `Hint: ${state.currentProblem.hint}`;
     }
 
+    if (quizTrickCoach) {
+      const trick = state.currentProblem.trick || (
+        typeof MathEngine.getMentalTrick === 'function'
+          ? MathEngine.getMentalTrick(state.currentProblem.operation, state.currentProblem.num1, state.currentProblem.num2, state.currentProblem.answer, state.currentProblem)
+          : ''
+      );
+      if (trick) {
+        quizTrickCoach.textContent = `Trick: ${trick}`;
+        quizTrickCoach.classList.remove('hidden');
+      }
+    }
+
     quizCard.classList.remove('animate-correct');
     quizCard.classList.add('animate-shake');
     setTimeout(() => quizCard.classList.remove('animate-shake'), 400);
 
-    if (state.mode === 'survival') {
+    if (state.mode === 'survival' || state.mode === 'boss_raid') {
       state.hearts--;
       renderHearts();
-      updateSurvivalLifelinesUI();
+      if (state.mode === 'survival') updateSurvivalLifelinesUI();
+      if (state.mode === 'boss_raid') syncBossHudUI();
       if (state.hearts <= 0) {
-        state.pendingTimeout = setTimeout(() => endGame(`Survival Floor ${state.survivalFloor}!`), 500);
+        const endTitle = state.mode === 'boss_raid'
+          ? (state.bossesSlain > 0 ? `Bosses Slain: ${state.bossesSlain}!` : 'Boss Victory — Try Again!')
+          : `Survival Floor ${state.survivalFloor}!`;
+        state.pendingTimeout = setTimeout(() => endGame(endTitle), 500);
         return;
       }
     }
@@ -2355,14 +2775,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.matrixTab === 'stars') {
       if (matrixCallout) matrixCallout.classList.add('hidden');
       if (gridScrollWrap) gridScrollWrap.classList.add('hidden');
+      if (matrixCardsAlbum) matrixCardsAlbum.classList.add('hidden');
       if (matrixStarMap) matrixStarMap.classList.remove('hidden');
       renderMatrixStarMap();
+      return;
+    }
+
+    if (state.matrixTab === 'cards') {
+      if (matrixCallout) matrixCallout.classList.add('hidden');
+      if (gridScrollWrap) gridScrollWrap.classList.add('hidden');
+      if (matrixStarMap) matrixStarMap.classList.add('hidden');
+      if (matrixCardsAlbum) matrixCardsAlbum.classList.remove('hidden');
+      renderHeroCardsAlbum();
       return;
     }
 
     if (matrixCallout) matrixCallout.classList.remove('hidden');
     if (gridScrollWrap) gridScrollWrap.classList.remove('hidden');
     if (matrixStarMap) matrixStarMap.classList.add('hidden');
+    if (matrixCardsAlbum) matrixCardsAlbum.classList.add('hidden');
 
     matrixGridContainer.innerHTML = '';
     const matrixStats = StorageManager.getMatrixStats();
@@ -2524,6 +2955,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function renderHeroCardsAlbum() {
+    if (!cardsAlbumGrid || typeof StorageManager.getHeroCardsAlbum !== 'function') return;
+    cardsAlbumGrid.innerHTML = '';
+    const album = StorageManager.getHeroCardsAlbum();
+    if (cardsAlbumTotal) {
+      cardsAlbumTotal.textContent = `${album.unlockedCount} / ${album.totalCount} Unlocked (${album.holoCount} Holo)`;
+    }
+    album.cards.forEach(c => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = c.unlocked
+        ? `p-3 rounded-2xl border text-left transition-all active:scale-95 bg-gradient-to-br ${c.color} ${c.holo ? 'holo-card border-amber-300 shadow-lg' : 'border-white/25'}`
+        : 'p-3 rounded-2xl border border-slate-800 bg-slate-900/70 text-left opacity-60 hover:opacity-90 active:scale-95 transition-all';
+
+      const top = document.createElement('div');
+      top.className = 'flex items-center justify-between gap-1 mb-1';
+      const badge = document.createElement('span');
+      badge.className = 'text-sm font-black font-mono text-white';
+      badge.textContent = `${c.table}×`;
+      const tier = document.createElement('span');
+      tier.className = 'text-[10px] font-bold text-amber-200';
+      tier.textContent = c.holo ? '★★★ HOLO' : c.unlocked ? `${'★'.repeat(Math.max(1, c.stars))}` : '🔒';
+      top.appendChild(badge);
+      top.appendChild(tier);
+
+      const title = document.createElement('span');
+      title.className = 'text-xs font-bold text-white block truncate';
+      title.textContent = c.unlocked ? c.title : 'Locked Hero';
+
+      const sub = document.createElement('span');
+      sub.className = 'text-[10px] text-white/75 block';
+      sub.textContent = c.unlocked ? `${c.accuracy}% accuracy` : `Earn 1⭐ on ${c.table}×`;
+
+      card.appendChild(top);
+      card.appendChild(title);
+      card.appendChild(sub);
+      card.addEventListener('click', () => {
+        SoundEngine.playClick();
+        closeMatrixModal();
+        state.operation = 'multiply';
+        state.customTables = [c.table];
+        syncLobbySelectors();
+        startGame('blitz');
+      });
+      cardsAlbumGrid.appendChild(card);
+    });
+  }
+
   function openMatrixModal() {
     SoundEngine.playClick();
     buildMatrixGrid();
@@ -2598,6 +3077,7 @@ document.addEventListener('DOMContentLoaded', () => {
       correct: state.correctCount,
       total: state.totalCount,
       floor: state.survivalFloor || 1,
+      bossesSlain: state.bossesSlain || 0,
     });
 
     resultsScore.textContent = state.score;
@@ -2609,12 +3089,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let baseStars = 0;
     if (state.mode === 'daily') {
       baseStars = state.correctCount >= 12 ? 20 : 12;
-    } else if (state.mode === 'blitz' || state.mode === 'survival' || state.mode === 'meteor') {
+    } else if (state.mode === 'blitz' || state.mode === 'survival' || state.mode === 'meteor' || state.mode === 'boss_raid') {
       if (state.correctCount > 0) {
         baseStars = Math.max(3, Math.min(25, Math.floor(state.correctCount / 2) + (state.score >= 250 ? 5 : 2)));
       }
     } else if (state.correctCount >= 3 || state.totalCount >= 5) {
       baseStars = 5;
+    }
+    if (state.mode === 'blitz' && state.racerRank === 1 && state.correctCount >= 5) {
+      baseStars += 15;
     }
     if (baseStars > 0) {
       StorageManager.addStars(baseStars);
@@ -2724,15 +3207,25 @@ document.addEventListener('DOMContentLoaded', () => {
       resultsMistakesList.innerHTML = '';
       state.roundMistakes.forEach(m => {
         const item = document.createElement('div');
-        item.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-800/80 border border-slate-700/60';
+        item.className = 'p-2 rounded-lg bg-slate-800/80 border border-slate-700/60';
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-center justify-between';
         const eqSpan = document.createElement('span');
         eqSpan.className = 'font-mono font-bold text-white';
         eqSpan.textContent = m.equation;
         const ansSpan = document.createElement('span');
         ansSpan.className = 'font-mono font-bold text-emerald-400';
         ansSpan.textContent = `= ${m.answer}`;
-        item.appendChild(eqSpan);
-        item.appendChild(ansSpan);
+        topRow.appendChild(eqSpan);
+        topRow.appendChild(ansSpan);
+        item.appendChild(topRow);
+        const trick = m.trick || (typeof MathEngine.getMentalTrick === 'function' ? MathEngine.getMentalTrick(m.operation, m.num1, m.num2, m.answer, m) : '');
+        if (trick) {
+          const trickSpan = document.createElement('span');
+          trickSpan.className = 'text-[10px] text-amber-300/90 block mt-0.5';
+          trickSpan.textContent = `Trick: ${trick}`;
+          item.appendChild(trickSpan);
+        }
         resultsMistakesList.appendChild(item);
       });
     } else {
@@ -2807,7 +3300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateAudioIcons();
     });
 
-    // Single Question Speech Button
+    // Single Question Speech Button & Voice Hands-Free Mic
     btnQuizSpeak.addEventListener('click', () => {
       if (state.currentProblem) {
         SoundEngine.speakEquation(
@@ -2819,6 +3312,98 @@ document.addEventListener('DOMContentLoaded', () => {
         );
       }
     });
+
+    if (btnQuizMic) {
+      btnQuizMic.addEventListener('click', () => {
+        if (typeof SoundEngine.listenForNumber !== 'function') return;
+        const ok = SoundEngine.listenForNumber({
+          onStateChange: (status) => {
+            btnQuizMic.classList.toggle('mic-listening', status === 'listening');
+          },
+          onResult: (num) => {
+            if (state.isEvaluating || state.isPaused || !state.currentProblem) return;
+            if (state.inputStyle === 'direct') {
+              state.directInputVal = String(num);
+              updateDirectInputDisplay();
+            }
+            handleAnswerSubmit(num);
+          },
+        });
+        if (!ok) showToast('Voice recognition is not supported in this browser.', 'info');
+      });
+    }
+
+    if (btnFcMic) {
+      btnFcMic.addEventListener('click', () => {
+        if (typeof SoundEngine.listenForNumber !== 'function') return;
+        const ok = SoundEngine.listenForNumber({
+          onStateChange: (status) => {
+            btnFcMic.classList.toggle('mic-listening', status === 'listening');
+          },
+          onResult: (num) => {
+            const card = state.flashcardDeck[state.flashcardIndex];
+            if (!card || state.isCardTransitioning) return;
+            if (!state.isCardFlipped) toggleFlipCard();
+            const isRight = Number(num) === card.answer;
+            showToast(isRight ? `Heard ${num} — Correct!` : `Heard ${num} (Answer: ${card.answer})`, isRight ? 'success' : 'info');
+            setTimeout(() => {
+              if (viewFlashcards && !viewFlashcards.classList.contains('hidden')) {
+                nextFlashcard(isRight);
+              }
+            }, 450);
+          },
+        });
+        if (!ok) showToast('Voice recognition is not supported in this browser.', 'info');
+      });
+    }
+
+    // Memory Vault & Daily Mystery Chest
+    if (btnMemoryVault) {
+      btnMemoryVault.addEventListener('click', () => {
+        SoundEngine.playClick();
+        startGame('memory_vault');
+      });
+    }
+
+    if (btnClaimChest) {
+      btnClaimChest.addEventListener('click', () => {
+        if (typeof StorageManager.claimDailyMysteryChest !== 'function') return;
+        const res = StorageManager.claimDailyMysteryChest();
+        if (res.success && res.reward) {
+          SoundEngine.playLevelUp();
+          Confetti.cannon();
+          showToast(res.reward.label, 'success');
+          syncPlayerHUD();
+          syncDailyChestBanner();
+          syncDailyPanel();
+        } else {
+          SoundEngine.playWrong();
+          showToast((res && res.error) || 'Chest already claimed today.', 'info');
+        }
+      });
+    }
+
+    // Arcade Sub-mode Switcher (Meteor Blaster vs Target Factor Puzzle)
+    if (btnArcadeTabMeteor) {
+      btnArcadeTabMeteor.addEventListener('click', () => {
+        SoundEngine.playClick();
+        switchArcadeSubMode('meteor');
+      });
+    }
+    if (btnArcadeTabPuzzle) {
+      btnArcadeTabPuzzle.addEventListener('click', () => {
+        SoundEngine.playClick();
+        switchArcadeSubMode('puzzle');
+      });
+    }
+
+    // Printable Certificate Toggle
+    if (btnToggleCertificate && statsCertificateBox) {
+      btnToggleCertificate.addEventListener('click', () => {
+        SoundEngine.playClick();
+        statsCertificateBox.classList.toggle('hidden');
+      });
+    }
 
     // Nav XP Pill opens Career Stats
     if (navPlayerBar) {
@@ -3072,11 +3657,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Profiles Modal Triggers & Actions
-    if (btnProfileSwitcher) btnProfileSwitcher.addEventListener('click', openProfilesModal);
+    if (btnProfileSwitcher) btnProfileSwitcher.addEventListener('click', () => openProfilesModal(false));
     if (btnMenuProfiles) {
       btnMenuProfiles.addEventListener('click', () => {
         modalMobileMenu.classList.add('hidden');
-        openProfilesModal();
+        openProfilesModal(false);
       });
     }
     if (btnCloseProfiles) btnCloseProfiles.addEventListener('click', closeProfilesModal);
@@ -3094,13 +3679,17 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         SoundEngine.playClick();
-        const res = StorageManager.createProfile(rawName, state.selectedNewAvatar);
+        const isFirstSetup = typeof StorageManager.needsProfileSetup === 'function' && StorageManager.needsProfileSetup();
+        const res = isFirstSetup && typeof StorageManager.completeProfileSetup === 'function'
+          ? StorageManager.completeProfileSetup(rawName, state.selectedNewAvatar)
+          : StorageManager.createProfile(rawName, state.selectedNewAvatar);
         if (res.success) {
+          if (typeof StorageManager.markProfileSetupDone === 'function') StorageManager.markProfileSetupDone();
           if (inputNewProfileName) inputNewProfileName.value = '';
           refreshActiveProfileUI();
           renderProfilesModal();
           closeProfilesModal();
-          showToast(`Switched to profile: ${res.profile.name}`, 'success');
+          showToast(isFirstSetup ? `Welcome, ${res.profile.name}!` : `Switched to profile: ${res.profile.name}`, 'success');
         } else {
           showToast(res.error || 'Could not create profile.', 'error');
         }
@@ -3365,7 +3954,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Button
     btnStartGame.addEventListener('click', () => {
       SoundEngine.playClick();
-      const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards'];
+      const lobbyModes = ['blitz', 'pvp', 'meteor', 'survival', 'endless', 'flashcards', 'boss_raid'];
       if (!lobbyModes.includes(state.mode)) {
         state.mode = StorageManager.getPreferences().mode;
       }
@@ -3599,7 +4188,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (viewMeteor && !viewMeteor.classList.contains('hidden') && typeof ArcadeGames !== 'undefined') {
-      if (ArcadeGames.MeteorBlaster.handleKey(e)) return;
+      if (state.arcadeSubMode === 'puzzle' && ArcadeGames.FactorPuzzle) {
+        if (ArcadeGames.FactorPuzzle.handleKey(e)) return;
+      } else if (ArcadeGames.MeteorBlaster.handleKey(e)) {
+        return;
+      }
     }
 
     if (viewTug && !viewTug.classList.contains('hidden') && typeof ArcadeGames !== 'undefined') {
@@ -3759,14 +4352,31 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProfileAvatarPicker();
   }
 
-  function openProfilesModal() {
+  function openProfilesModal(isOnboarding = false) {
     if (!modalProfiles) return;
+    state.isFirstTimeOnboarding = isOnboarding === true;
     SoundEngine.playClick();
+    if (profilesWelcomeBanner) {
+      profilesWelcomeBanner.classList.toggle('hidden', !state.isFirstTimeOnboarding);
+    }
+    if (btnCreateProfile) {
+      btnCreateProfile.textContent = state.isFirstTimeOnboarding ? 'Save Hero & Start' : 'Create & Switch Profile';
+    }
+    if (btnProfilesDone) {
+      btnProfilesDone.textContent = state.isFirstTimeOnboarding ? 'Play as Guest / Continue' : 'Done';
+    }
     renderProfilesModal();
     modalProfiles.classList.remove('hidden');
   }
 
   function closeProfilesModal() {
+    state.isFirstTimeOnboarding = false;
+    if (typeof StorageManager.markProfileSetupDone === 'function') {
+      StorageManager.markProfileSetupDone();
+    }
+    if (profilesWelcomeBanner) profilesWelcomeBanner.classList.add('hidden');
+    if (btnCreateProfile) btnCreateProfile.textContent = 'Create & Switch Profile';
+    if (btnProfilesDone) btnProfilesDone.textContent = 'Done';
     if (modalProfiles) modalProfiles.classList.add('hidden');
   }
 
@@ -3834,6 +4444,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (tab === 'themes') {
         isOwned = shop.cosmetics.unlockedThemes.includes(item.id);
         isEquipped = shop.equippedTheme === item.id;
+      } else if (tab === 'audio') {
+        const unlockedAudio = shop.cosmetics.unlockedAudio || [];
+        isOwned = unlockedAudio.includes(item.id);
+        isEquipped = item.kind === 'bgm'
+          ? shop.cosmetics.equippedBgm === item.id
+          : shop.cosmetics.equippedSfx === item.id;
       }
 
       if (tab === 'consumables') {
@@ -3871,6 +4487,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const res = StorageManager.equipCosmetic(tab, item.id);
           if (res.success) {
             if (tab === 'themes') applyTheme(item.id);
+            if (tab === 'audio') {
+              syncAudioSelection();
+              if (item.kind === 'sfx') SoundEngine.playCorrect();
+            }
             syncProfileUI();
             if (shopFeedback) shopFeedback.textContent = `Equipped ${item.name}!`;
             renderShopModal();
@@ -3887,6 +4507,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (res.success) {
             SoundEngine.playLevelUp();
             if (tab === 'themes') applyTheme(item.id);
+            if (tab === 'audio') syncAudioSelection();
             syncProfileUI();
             syncPlayerHUD();
             if (shopFeedback) shopFeedback.textContent = `Unlocked & equipped ${item.name}!`;
@@ -4227,6 +4848,64 @@ document.addEventListener('DOMContentLoaded', () => {
         achievementsContainer.appendChild(item);
       });
     }
+
+    // 7-Day Activity Chart & Printable Certificate
+    if (statsActivityChart && typeof StorageManager.getRecentActivityChart === 'function') {
+      const chart = StorageManager.getRecentActivityChart(7);
+      if (statsChartSummary) {
+        statsChartSummary.textContent = chart.avgSpeed7d !== null
+          ? `${chart.totalSolved7d} solved · ${chart.avgSpeed7d}s avg`
+          : `${chart.totalSolved7d} solved`;
+      }
+      statsActivityChart.innerHTML = '';
+      const maxSolved = Math.max(5, ...chart.days.map(d => d.solved));
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 280 86');
+      svg.setAttribute('class', 'w-full h-20');
+      chart.days.forEach((d, idx) => {
+        const x = 8 + idx * 39;
+        const barH = d.solved > 0 ? Math.max(6, Math.round((d.solved / maxSolved) * 52)) : 3;
+        const y = 60 - barH;
+        const rect = document.createElementNS(ns, 'rect');
+        rect.setAttribute('x', String(x));
+        rect.setAttribute('y', String(y));
+        rect.setAttribute('width', '24');
+        rect.setAttribute('height', String(barH));
+        rect.setAttribute('rx', '4');
+        rect.setAttribute('fill', d.solved > 0 ? '#6366f1' : '#334155');
+        svg.appendChild(rect);
+
+        if (d.solved > 0) {
+          const valText = document.createElementNS(ns, 'text');
+          valText.setAttribute('x', String(x + 12));
+          valText.setAttribute('y', String(Math.max(9, y - 3)));
+          valText.setAttribute('text-anchor', 'middle');
+          valText.setAttribute('fill', '#e2e8f0');
+          valText.setAttribute('font-size', '8');
+          valText.setAttribute('font-family', 'monospace');
+          valText.textContent = String(d.solved);
+          svg.appendChild(valText);
+        }
+
+        const lbl = document.createElementNS(ns, 'text');
+        lbl.setAttribute('x', String(x + 12));
+        lbl.setAttribute('y', '76');
+        lbl.setAttribute('text-anchor', 'middle');
+        lbl.setAttribute('fill', '#94a3b8');
+        lbl.setAttribute('font-size', '9');
+        lbl.textContent = d.label;
+        svg.appendChild(lbl);
+      });
+      statsActivityChart.appendChild(svg);
+    }
+
+    if (certLearnerName) certLearnerName.textContent = summary.profileName;
+    if (certLevelTitle) certLevelTitle.textContent = `Level ${info.level} · ${info.title}`;
+    if (certStatsLine) {
+      certStatsLine.textContent = `${summary.masteredFacts} / ${summary.totalUniqueFacts} Core Facts Mastered · ${stats.accuracy}% Accuracy · ${stats.highestStreak} Best Streak`;
+    }
+    if (certDateLine) certDateLine.textContent = `Awarded ${StorageManager.getDateKey()}`;
 
     modalStats.classList.remove('hidden');
   }
