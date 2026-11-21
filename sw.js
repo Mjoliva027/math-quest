@@ -3,7 +3,7 @@
  * Caches core app shell for fast offline gameplay
  */
 
-const CACHE_NAME = 'math-quest-v1';
+const CACHE_NAME = 'math-quest-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,8 +12,13 @@ const ASSETS_TO_CACHE = [
   './js/storage.js',
   './js/confetti.js',
   './js/math-engine.js',
+  './js/leaderboard.js',
+  './js/arcade-games.js',
+  './js/pvp-arena.js',
   './js/app.js',
-  './manifest.json'
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -39,12 +44,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Stale-while-revalidate for local assets
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    return;
+  }
+
+  const reqUrl = new URL(event.request.url);
+  if (reqUrl.pathname.startsWith('/api/')) {
+    return;
+  }
+  const isSameOrigin = reqUrl.origin === self.location.origin;
+  const isTailwindCdn = reqUrl.hostname === 'cdn.tailwindcss.com';
+  if (!isSameOrigin && !isTailwindCdn) {
+    return;
+  }
+
+  // Stale-while-revalidate for local assets and Tailwind runtime script
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);

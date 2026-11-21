@@ -2,8 +2,15 @@
 <html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Math Quest - Gamified Multiplication & Math Training</title>
+  <meta name="description" content="100% free, ad-free, offline mental arithmetic trainer with 12x12 matrix heatmap, Daily Challenge, Survival Gauntlet, Meteor Blaster, and Online 1v1 PvP.">
+  <meta property="og:title" content="Math Quest - Gamified Arithmetic & Multiplication Training">
+  <meta property="og:description" content="Master multiplication, division, and mental math with Online 1v1 PvP & Tug-of-War, Meteor Blaster, Survival Gauntlet, and 12x12 mastery heatmaps.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="icons/icon-512.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -62,67 +69,92 @@
       </div>
 
       <!-- Player Mini HUD -->
-      <div id="nav-player-bar" class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/60 rounded-full px-2.5 sm:px-3.5 py-1 shadow-inner">
-        <span id="nav-player-icon" class="flex items-center justify-center"></span>
-        <div class="flex flex-col min-w-[70px] sm:min-w-[110px]">
-          <div class="flex justify-between items-center text-[10px] sm:text-xs font-semibold">
-            <span id="nav-player-level" class="text-indigo-400">Lvl 1</span>
-            <span id="nav-player-title" class="text-slate-300 truncate max-w-[65px] sm:max-w-[90px] hidden sm:inline">Novice</span>
+      <div class="flex items-center">
+        <div id="nav-player-bar" role="button" tabindex="0" title="Open Career Stats & Progress Report" class="cursor-pointer hover:border-indigo-500/60 flex items-center gap-2 bg-slate-800/90 border border-slate-700/60 rounded-full px-2.5 sm:px-3.5 py-1 shadow-inner transition-all active:scale-95">
+          <span id="nav-player-icon" class="flex items-center justify-center"></span>
+          <div class="flex flex-col min-w-[60px] sm:min-w-[100px]">
+            <div class="flex justify-between items-center text-[10px] sm:text-xs font-semibold">
+              <span id="nav-player-level" class="text-indigo-400">Lvl 1</span>
+              <span id="nav-player-title" class="text-slate-300 truncate max-w-[65px] sm:max-w-[90px] hidden sm:inline">Novice</span>
+            </div>
+            <div class="w-full bg-slate-700 h-1 sm:h-1.5 rounded-full mt-0.5 overflow-hidden">
+              <div id="nav-xp-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
           </div>
-          <div class="w-full bg-slate-700 h-1 sm:h-1.5 rounded-full mt-0.5 overflow-hidden">
-            <div id="nav-xp-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 15%"></div>
-          </div>
+          <span id="nav-xp-text" class="text-[10px] text-slate-400 font-mono hidden sm:inline">0 XP</span>
         </div>
-        <span id="nav-xp-text" class="text-[10px] text-slate-400 font-mono hidden sm:inline">0 XP</span>
       </div>
 
-      <!-- Desktop Header Controls (Vector SVGs) -->
-      <div class="hidden md:flex items-center gap-1.5">
-        <button id="btn-matrix-toggle" title="12x12 Multiplication Grid" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-            <path d="M3 9h18"></path>
-            <path d="M3 15h18"></path>
-            <path d="M9 3v18"></path>
-            <path d="M15 3v18"></path>
-          </svg>
-          <span>12×12 Grid</span>
-        </button>
+      <!-- Upper-Right Controls & Player Profile Switcher -->
+      <div class="flex items-center gap-1.5">
+        <!-- Desktop Header Controls (Vector SVGs) -->
+        <div class="hidden md:flex items-center gap-1.5">
+          <button id="btn-install-app" type="button" title="Install Math Quest App" class="hidden px-2.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-xs font-bold text-emerald-300 transition-all flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Install</span>
+          </button>
 
-        <button id="btn-bgm-toggle" title="Toggle 8-Bit Music" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
-          <span id="bgm-icon-wrapper" class="flex items-center"></span>
-          <span>Music</span>
-        </button>
+          <button id="btn-leaderboard-toggle" type="button" title="Leaderboards" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-amber-300 hover:text-white transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45.98-.98 1.05A4 4 0 0 1 5 14.2V4h14v10.2a4 4 0 0 1-4.02 3.85c-.53-.07-.98-.5-.98-1.05v-2.34"/></svg>
+            <span>Ranks</span>
+          </button>
 
-        <button id="btn-speech-toggle" title="Toggle Read Aloud Voice" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <span id="speech-icon-wrapper" class="flex items-center"></span>
-        </button>
+          <button id="btn-matrix-toggle" title="12x12 Multiplication Grid" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <path d="M3 9h18"></path>
+              <path d="M3 15h18"></path>
+              <path d="M9 3v18"></path>
+              <path d="M15 3v18"></path>
+            </svg>
+            <span>12×12 Grid</span>
+          </button>
 
-        <button id="btn-sound-toggle" title="Toggle Sound FX" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <span id="sound-icon-wrapper" class="flex items-center"></span>
-        </button>
+          <button id="btn-bgm-toggle" title="Toggle 8-Bit Music" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+            <span id="bgm-icon-wrapper" class="flex items-center"></span>
+            <span>Music</span>
+          </button>
 
-        <button id="btn-stats-modal" title="View Career Statistics" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
-          <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v18h18"></path>
-            <path d="M18 17V9"></path>
-            <path d="M13 17V5"></path>
-            <path d="M8 17v-3"></path>
-          </svg>
-        </button>
-      </div>
+          <button id="btn-speech-toggle" title="Toggle Read Aloud Voice" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
+            <span id="speech-icon-wrapper" class="flex items-center"></span>
+          </button>
 
-      <!-- Mobile Top Right Action Bar -->
-      <div class="flex md:hidden items-center gap-1.5">
-        <button id="btn-sound-toggle-mobile" class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 active:scale-95" title="Toggle Sound">
-          <span id="sound-icon-mobile-wrapper" class="flex items-center"></span>
-        </button>
-        <button id="btn-mobile-menu" class="p-2 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 active:scale-95 font-bold flex items-center justify-center" title="Menu">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="4" y1="18" x2="20" y2="18"></line>
-          </svg>
+          <button id="btn-sound-toggle" title="Toggle Sound FX" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
+            <span id="sound-icon-wrapper" class="flex items-center"></span>
+          </button>
+
+          <button id="btn-theme-toggle" type="button" title="Toggle Light / Dark Theme" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
+            <span id="theme-icon-wrapper" class="flex items-center"></span>
+          </button>
+
+          <button id="btn-stats-modal" title="View Career Statistics" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all">
+            <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="M18 17V9"></path>
+              <path d="M13 17V5"></path>
+              <path d="M8 17v-3"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobile Action Bar -->
+        <div class="flex md:hidden items-center gap-1.5">
+          <button id="btn-sound-toggle-mobile" class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 active:scale-95" title="Toggle Sound">
+            <span id="sound-icon-mobile-wrapper" class="flex items-center"></span>
+          </button>
+          <button id="btn-mobile-menu" class="p-2 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 active:scale-95 font-bold flex items-center justify-center" title="Menu">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Player Profile Switcher (Upper-Right) -->
+        <button id="btn-profile-switcher" type="button" title="Switch Player Profile" class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-bold text-slate-200 transition-all active:scale-95 max-w-[95px] sm:max-w-[140px]">
+          <span id="nav-profile-avatar" class="flex items-center justify-center flex-shrink-0"></span>
+          <span id="nav-profile-name" class="truncate">Player 1</span>
         </button>
       </div>
     </div>
@@ -138,46 +170,70 @@
          ================================================================== -->
     <section id="view-lobby" class="space-y-4 sm:space-y-5">
 
-      <!-- Quick Summary Banner -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-        <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
-            </svg>
-            <span>Best Streak</span>
+      <!-- Shared Teacher / Parent Assignment Banner -->
+      <div id="lobby-shared-banner" class="hidden rounded-2xl bg-gradient-to-r from-indigo-950/90 to-cyan-950/70 border border-indigo-400/50 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-lg">
+        <div class="space-y-0.5">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+            Shared Practice Link
           </span>
-          <span id="lobby-stat-streak" class="text-xl sm:text-2xl font-black text-amber-400 mt-0.5 font-mono">0</span>
+          <p id="shared-banner-text" class="text-xs sm:text-sm font-bold text-white"></p>
         </div>
-        <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <circle cx="12" cy="12" r="6"></circle>
-              <circle cx="12" cy="12" r="2"></circle>
-            </svg>
-            <span>Accuracy</span>
-          </span>
-          <span id="lobby-stat-accuracy" class="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 font-mono">100%</span>
+        <div class="flex items-center gap-2">
+          <button id="btn-shared-start" type="button" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold shadow">
+            Start Practice
+          </button>
+          <button id="btn-shared-dismiss" type="button" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+            Dismiss
+          </button>
         </div>
-        <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-            <span>Blitz Record</span>
-          </span>
-          <span id="lobby-stat-blitz" class="text-xl sm:text-2xl font-black text-indigo-400 mt-0.5 font-mono">0</span>
+      </div>
+
+      <!-- Top Hero Row: Recommended Quest + Daily Math Challenge -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Recommended Next Quest Hero Card -->
+        <div id="lobby-recommended-card" class="rounded-2xl bg-gradient-to-r from-indigo-950/90 via-slate-900/90 to-emerald-950/70 border border-indigo-500/40 p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-lg">
+          <div class="space-y-1">
+            <span id="rec-quest-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+              Recommended Quest
+            </span>
+            <h3 id="rec-quest-title" class="text-sm sm:text-base font-black text-white">
+              Master the 2× Table
+            </h3>
+            <p id="rec-quest-subtitle" class="text-[11px] sm:text-xs text-slate-300">
+              Not yet explored — challenge the 2× facts and earn XP!
+            </p>
+          </div>
+          <div class="flex items-center justify-end">
+            <button id="btn-rec-quest-start" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
+              Start Quest
+            </button>
+          </div>
         </div>
-        <div class="glass-panel rounded-2xl p-3 flex flex-col">
-          <span class="text-[11px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              <path d="M9 12l2 2 4-4"></path>
-            </svg>
-            <span>Bosses Defeated</span>
-          </span>
-          <span id="lobby-stat-boss" class="text-xl sm:text-2xl font-black text-rose-400 mt-0.5 font-mono">0</span>
+
+        <!-- Daily Math Challenge Card -->
+        <div id="lobby-daily-challenge-card" class="rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900/90 to-indigo-950/80 border border-cyan-500/40 p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-lg">
+          <div class="space-y-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                Daily Math Challenge
+              </span>
+              <span id="daily-challenge-date" class="text-[10px] font-mono text-slate-400"></span>
+            </div>
+            <h3 class="text-sm sm:text-base font-black text-white">
+              15-Question Daily Sprint
+            </h3>
+            <p id="daily-challenge-status" class="text-[11px] sm:text-xs text-slate-300">
+              Same 15 facts worldwide today · +50 Bonus XP
+            </p>
+          </div>
+          <div class="flex items-center justify-end gap-2">
+            <button id="btn-share-daily-lobby" type="button" class="hidden px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition-all">
+              Share
+            </button>
+            <button id="btn-start-daily-challenge" type="button" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
+              Play Daily
+            </button>
+          </div>
         </div>
       </div>
 
@@ -219,7 +275,7 @@
           <span class="text-[11px] text-slate-400 md:hidden flex items-center gap-1">Swipe modes &rarr;</span>
         </div>
 
-        <div class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-5 gap-2.5 sm:gap-3 pb-2" id="modes-carousel">
+        <div class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 pb-2" id="modes-carousel">
 
           <!-- Mode 1: Speed Blitz -->
           <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-indigo-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border-2 border-indigo-500" data-mode="blitz">
@@ -230,7 +286,7 @@
                 </svg>
               </div>
               <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Speed Blitz</h3>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Race timer! Earn +2s/+3s/+5s streak bonuses!</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Race timer! +2s/+3s/+5s streak bonuses!</p>
             </div>
             <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
               <div class="flex gap-1 w-full justify-center" id="blitz-duration-selector">
@@ -241,7 +297,60 @@
             </div>
           </div>
 
-          <!-- Mode 2: Endless Cards (NEW MODE!) -->
+          <!-- Mode 2: PvP Arena (Online 1v1 HP Battle, Online Tug-of-War & Local 2P) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-amber-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="pvp">
+            <div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
+                  <path d="m13 19 6-6"></path>
+                  <path d="M16 16l4 4"></path>
+                  <path d="M19 21l2-2"></path>
+                  <path d="m17.5 14.5 3.5-3.5L18 8l-3.5 3.5"></path>
+                  <path d="m9.5 6.5-6 6"></path>
+                </svg>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">PvP Arena</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">1v1 HP Battle, Online &amp; 2P Tug-of-War!</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span id="lobby-pvp-online-badge" class="text-amber-400 font-semibold">Online + 2P</span>
+            </div>
+          </div>
+
+          <!-- Mode 3: Meteor Blaster (Arcade Canvas) -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-sky-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="meteor">
+            <div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-600/20 text-sky-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+                </svg>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Meteor Blaster</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Blast falling equations in space!</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span class="text-sky-400 font-semibold">Arcade Canvas</span>
+            </div>
+          </div>
+
+          <!-- Mode 4: Survival Gauntlet -->
+          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-rose-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="survival">
+            <div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                </svg>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Survival Gauntlet</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Climb floors, earn hearts &amp; use lifelines!</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
+              <span class="text-rose-400 font-semibold">Tower Climb</span>
+            </div>
+          </div>
+
+          <!-- Mode 5: Endless Cards -->
           <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-cyan-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="endless">
             <div>
               <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center mb-2">
@@ -250,49 +359,14 @@
                 </svg>
               </div>
               <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Endless Cards</h3>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Choices with no timers or lives!</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">No timers or lives — steady practice!</p>
             </div>
             <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
-              <span class="text-cyan-400 font-semibold">Untimed Choices</span>
+              <span class="text-cyan-400 font-semibold">Untimed</span>
             </div>
           </div>
 
-          <!-- Mode 3: Boss Battle (RPG Mode) -->
-          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-purple-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="boss">
-            <div>
-              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center mb-2">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
-                  <path d="m13 19 6-6"></path>
-                  <path d="M16 16l4 4"></path>
-                  <path d="M19 21l2-2"></path>
-                </svg>
-              </div>
-              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Boss Battle</h3>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Slash monsters and deplete HP!</p>
-            </div>
-            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
-              <span class="text-purple-400 font-semibold">RPG Battle</span>
-            </div>
-          </div>
-
-          <!-- Mode 4: Survival (3 Hearts) -->
-          <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-rose-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="survival">
-            <div>
-              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center mb-2">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Survival</h3>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">Start with 3 lives. Zero mistakes!</p>
-            </div>
-            <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
-              <span class="text-rose-400 font-semibold">3 Lives</span>
-            </div>
-          </div>
-
-          <!-- Mode 5: Flashcards (Study) -->
+          <!-- Mode 6: Flashcards (Study) -->
           <div class="mode-card snap-start flex-shrink-0 w-[145px] sm:w-[165px] md:w-auto glass-panel hover:border-emerald-500/80 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-150 active:scale-[0.98] flex flex-col justify-between border border-slate-800" data-mode="flashcards">
             <div>
               <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center mb-2">
@@ -303,99 +377,133 @@
                 </svg>
               </div>
               <h3 class="text-xs sm:text-sm font-black text-white mb-0.5">Flashcards</h3>
-              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">3D flip cards with area model.</p>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 leading-tight">3D flip cards with dot arrays.</p>
             </div>
             <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-center">
-              <span class="text-emerald-400 font-semibold">Self-Paced Flip</span>
+              <span class="text-emerald-400 font-semibold">Study Flip</span>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Settings / Parameters Panel -->
-      <div class="glass-panel rounded-2xl p-4 sm:p-5 space-y-4">
-        <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <span>⚙️</span> Game Settings & Filters
-        </h2>
+      <!-- Collapsible Settings / Parameters Panel -->
+      <div class="glass-panel rounded-2xl p-3.5 sm:p-5">
+        <button id="btn-toggle-settings" type="button" class="w-full flex items-center justify-between gap-2 text-left">
+          <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Customize Practice</span>
+          </span>
+          <span class="flex items-center gap-2">
+            <span id="settings-summary-pill" class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] sm:text-xs font-semibold text-indigo-300">× · Medium · Choice</span>
+            <svg id="settings-chevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
 
-        <!-- Operations Row -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Math Operation</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="multiply">
-              <span class="text-base font-black">×</span> Multiplication
-            </button>
-            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="add">
-              <span class="text-base font-black">+</span> Addition
-            </button>
-            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="subtract">
-              <span class="text-base font-black">−</span> Subtraction
-            </button>
-            <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="mixed">
-              <svg class="w-3.5 h-3.5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 3 21 3 21 8"></polyline>
-                <line x1="4" y1="20" x2="21" y2="3"></line>
-                <polyline points="21 16 21 21 16 21"></polyline>
-                <line x1="15" y1="15" x2="21" y2="21"></line>
-                <line x1="4" y1="4" x2="9" y2="9"></line>
-              </svg>
-              <span>Mixed</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Difficulty Row -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Difficulty Level</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="easy">
-              Easy <span class="block text-[10px] text-slate-400 font-normal">Tables 1–5</span>
-            </button>
-            <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all active:scale-95 text-center" data-diff="medium">
-              Medium <span class="block text-[10px] text-indigo-300/80 font-normal">Tables 1–12</span>
-            </button>
-            <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="hard">
-              Hard <span class="block text-[10px] text-slate-400 font-normal">Tables 2–20</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Custom Multiplication Table Selector with Mobile Presets -->
-        <div id="custom-tables-wrapper" class="pt-2 border-t border-slate-800">
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-              <span>Target Times Tables</span>
-            </label>
-            <!-- Quick Presets -->
-            <div class="flex items-center gap-1">
-              <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="1-5">1–5</button>
-              <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="6-10">6–10</button>
-              <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="all">All</button>
+        <div id="settings-panel-body" class="space-y-4 mt-4 pt-3 border-t border-slate-800">
+          <!-- Operations Row -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Math Operation</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="multiply">
+                <span class="text-base font-black">×</span> Multiplication
+              </button>
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="divide">
+                <span class="text-base font-black">÷</span> Division
+              </button>
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="missing">
+                <span class="text-base font-black">?</span> Mystery
+              </button>
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="add">
+                <span class="text-base font-black">+</span> Addition
+              </button>
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="subtract">
+                <span class="text-base font-black">−</span> Subtraction
+              </button>
+              <button type="button" class="op-btn py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95" data-op="mixed">
+                <svg class="w-3.5 h-3.5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 3 21 3 21 8"></polyline>
+                  <line x1="4" y1="20" x2="21" y2="3"></line>
+                  <polyline points="21 16 21 21 16 21"></polyline>
+                  <line x1="15" y1="15" x2="21" y2="21"></line>
+                  <line x1="4" y1="4" x2="9" y2="9"></line>
+                </svg>
+                <span>Mixed</span>
+              </button>
             </div>
           </div>
-          <div class="grid grid-cols-6 sm:grid-cols-12 gap-1.5" id="table-chips-container">
-            <!-- Table chips 1 through 12 generated via JS -->
-          </div>
-        </div>
 
-        <!-- Input Mode Selection -->
-        <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <!-- Difficulty Row -->
           <div>
-            <span class="block text-xs font-semibold text-slate-300">Answer Input Style</span>
-            <span class="text-[11px] text-slate-400">Multiple choice buttons vs tactile numeric keypad</span>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Difficulty Level</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="easy">
+                Easy <span class="block text-[10px] text-slate-400 font-normal">Tables 1–5</span>
+              </button>
+              <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-indigo-500 bg-indigo-600/20 text-indigo-300 font-semibold text-xs transition-all active:scale-95 text-center" data-diff="medium">
+                Medium <span class="block text-[10px] text-indigo-300/80 font-normal">Tables 2–12</span>
+              </button>
+              <button type="button" class="diff-btn py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-800/60 text-slate-400 hover:text-white font-semibold text-xs transition-all active:scale-95 text-center" data-diff="hard">
+                Hard <span class="block text-[10px] text-slate-400 font-normal">Tables 2–20</span>
+              </button>
+            </div>
           </div>
-          <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700/80 w-full sm:w-auto">
-            <button type="button" id="input-style-choice" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm">
-              Multiple Choice
-            </button>
-            <button type="button" id="input-style-direct" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
-              Numpad / Keyboard
-            </button>
+
+          <!-- Custom Multiplication Table Selector with Mobile Presets -->
+          <div id="custom-tables-wrapper" class="pt-2 border-t border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Target Times Tables</span>
+              </label>
+              <!-- Quick Presets -->
+              <div class="flex items-center gap-1">
+                <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="1-5">1–5</button>
+                <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="6-10">6–10</button>
+                <button type="button" class="table-preset-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold" data-preset="all">All</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-6 sm:grid-cols-12 gap-1.5" id="table-chips-container">
+              <!-- Table chips 1 through 12 generated via JS -->
+            </div>
+          </div>
+
+          <!-- Input Mode & Auto-Submit Selection -->
+          <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <span class="block text-xs font-semibold text-slate-300">Answer Input Style</span>
+              <span class="text-[11px] text-slate-400">Multiple choice buttons vs tactile numeric keypad</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700/80 flex-1 sm:flex-none">
+                <button type="button" id="input-style-choice" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white transition-all shadow-sm">
+                  Multiple Choice
+                </button>
+                <button type="button" id="input-style-direct" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+                  Numpad / Keyboard
+                </button>
+              </div>
+              <button type="button" id="btn-auto-submit-toggle" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition-all active:scale-95" title="Submit automatically once typed digits match the answer length">
+                Auto-Submit: <span id="auto-submit-status" class="text-slate-400">Off</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Share Teacher / Parent Practice Link -->
+          <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="block text-xs font-semibold text-slate-300">Share Practice Assignment</span>
+              <span class="text-[11px] text-slate-400">Copy a direct link to these exact tables, operation &amp; mode</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="copy-link-feedback" class="text-[11px] font-bold text-emerald-400 hidden">Copied!</span>
+              <button type="button" id="btn-copy-practice-link" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-indigo-300 transition-all active:scale-95 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span>Copy Practice Link</span>
+              </button>
+            </div>
           </div>
         </div>
-
       </div>
 
       <!-- Launch Action Button -->
@@ -405,6 +513,28 @@
         </svg>
         <span>Start Math Quest</span>
       </button>
+
+      <!-- Daily Streak & Collapsible Daily Quests Panel -->
+      <div id="lobby-daily-panel" class="glass-panel rounded-2xl p-3.5 sm:p-4">
+        <button id="btn-toggle-daily-quests" type="button" class="w-full flex items-center justify-between gap-2 text-left">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+              <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+              </svg>
+              <span id="daily-streak-count">0 Day Streak</span>
+            </span>
+            <span class="text-xs font-bold text-slate-300">Daily Quests</span>
+          </div>
+          <span class="flex items-center gap-2">
+            <span id="daily-quests-summary" class="text-[11px] font-mono font-bold text-emerald-400">0/3 Done</span>
+            <svg id="daily-quests-chevron" class="w-4 h-4 text-slate-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div id="daily-quests-list" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-2.5 border-t border-slate-800">
+          <!-- Injected via JS -->
+        </div>
+      </div>
 
     </section>
 
@@ -416,59 +546,97 @@
       <div id="quiz-fever-wrapper" class="rounded-3xl p-1 transition-all">
 
         <!-- Quiz HUD Bar -->
-        <div class="glass-panel rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 mb-3">
-          <!-- Left: Streak & Multiplier -->
-          <div class="flex items-center gap-2">
-            <div id="quiz-streak-badge" class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">
-              <svg id="quiz-flame-icon" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
-              </svg>
-              <span id="quiz-streak-count" class="font-black text-amber-400 text-sm font-mono">0</span>
-              <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">streak</span>
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 mb-3 space-y-2">
+          <div class="flex items-center justify-between gap-3">
+            <!-- Left: Streak & Multiplier -->
+            <div class="flex items-center gap-2">
+              <div id="quiz-streak-badge" class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">
+                <svg id="quiz-flame-icon" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                </svg>
+                <span id="quiz-streak-count" class="font-black text-amber-400 text-sm font-mono">0</span>
+                <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">streak</span>
+              </div>
+              <div id="quiz-multiplier-badge" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded-lg uppercase tracking-wider font-mono">
+                x1.5
+              </div>
             </div>
-            <div id="quiz-multiplier-badge" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded-lg uppercase tracking-wider font-mono">
-              x1.5
+
+            <!-- Center: Mode Indicator (Timer for Blitz, Hearts for Survival, or Card Count for Endless) -->
+            <div class="flex items-center gap-1.5">
+              <!-- Blitz Timer -->
+              <div id="hud-timer-container" class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span id="hud-timer-val" class="font-mono text-xl sm:text-2xl font-black text-white">60</span>
+                <span class="text-[11px] text-slate-400">s</span>
+              </div>
+              <!-- Survival Hearts & Floor -->
+              <div class="flex items-center gap-1.5">
+                <div id="hud-hearts-container" class="hidden flex items-center gap-1"></div>
+                <span id="hud-survival-floor" class="hidden px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 font-black text-[10px] sm:text-xs font-mono">F1</span>
+              </div>
+              <!-- Endless Cards Indicator -->
+              <div id="hud-endless-container" class="hidden flex items-center gap-1.5">
+                <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Card</span>
+                <span id="hud-endless-card-val" class="font-mono text-xl sm:text-2xl font-black text-cyan-300">#1</span>
+              </div>
+              <!-- Daily Challenge Indicator -->
+              <div id="hud-daily-container" class="hidden flex items-center gap-2">
+                <span id="hud-daily-progress" class="font-mono text-sm sm:text-base font-black text-cyan-300">Q 1/15</span>
+                <span class="text-slate-600">·</span>
+                <span id="hud-daily-elapsed" class="font-mono text-sm sm:text-base font-bold text-slate-200">0s</span>
+              </div>
+            </div>
+
+            <!-- Right: Score & Actions -->
+            <div class="flex items-center gap-2">
+              <div class="text-right">
+                <span class="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Score</span>
+                <span id="hud-score-val" class="text-lg sm:text-xl font-black text-indigo-300 font-mono">0</span>
+              </div>
+              <!-- Finish Endless Session Button -->
+              <button id="btn-quiz-finish" class="hidden px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/50 text-cyan-200 text-xs font-bold active:scale-95 transition-all">
+                Finish
+              </button>
+              <!-- Pause Button -->
+              <button id="btn-quiz-pause" type="button" class="hidden p-1.5 sm:p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold active:scale-95" title="Pause (Esc)">
+                ❚❚
+              </button>
+              <button id="btn-quiz-exit" class="p-1.5 sm:p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95" title="Quit">
+                ✕
+              </button>
             </div>
           </div>
 
-          <!-- Center: Mode Indicator (Timer for Blitz, Hearts for Survival, or Card Count for Endless) -->
-          <div class="flex items-center gap-1.5">
-            <!-- Blitz Timer -->
-            <div id="hud-timer-container" class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span id="hud-timer-val" class="font-mono text-xl sm:text-2xl font-black text-white">60</span>
-              <span class="text-[11px] text-slate-400">s</span>
-            </div>
-            <!-- Survival Hearts -->
-            <div id="hud-hearts-container" class="hidden flex items-center gap-1"></div>
-            <!-- Endless Cards Indicator -->
-            <div id="hud-endless-container" class="hidden flex items-center gap-1.5">
-              <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Card</span>
-              <span id="hud-endless-card-val" class="font-mono text-xl sm:text-2xl font-black text-cyan-300">#1</span>
+          <!-- Fever Charge Meter -->
+          <div id="quiz-fever-meter-wrap" class="flex items-center gap-2">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-amber-400 flex-shrink-0">Fever</span>
+            <div class="flex-1 bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-slate-800">
+              <div id="quiz-fever-bar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
           </div>
 
-          <!-- Right: Score & Actions -->
-          <div class="flex items-center gap-2">
-            <div class="text-right">
-              <span class="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold block">Score</span>
-              <span id="hud-score-val" class="text-lg sm:text-xl font-black text-indigo-300 font-mono">0</span>
+          <!-- Survival Question Fuse Bar -->
+          <div id="survival-fuse-wrap" class="hidden flex items-center gap-2">
+            <span id="survival-fuse-text" class="text-[9px] font-bold font-mono text-rose-300 flex-shrink-0">15.0s</span>
+            <div class="flex-1 bg-slate-900/90 h-1.5 rounded-full overflow-hidden border border-slate-800">
+              <div id="survival-fuse-bar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 rounded-full transition-all duration-100" style="width: 100%"></div>
             </div>
-            <!-- Finish Endless Session Button -->
-            <button id="btn-quiz-finish" class="hidden px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/50 text-cyan-200 text-xs font-bold active:scale-95 transition-all">
-              Finish
-            </button>
-            <button id="btn-quiz-exit" class="p-1.5 sm:p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95" title="Quit">
-              ✕
-            </button>
           </div>
         </div>
 
         <!-- Problem Card Arena -->
         <div id="quiz-card" class="glass-card rounded-3xl p-5 sm:p-8 text-center relative overflow-hidden shadow-2xl border border-indigo-500/30">
+          <div id="quiz-pause-overlay" class="hidden absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-300">Game Paused</span>
+            <p class="text-xs text-slate-400">Timer stopped — take a breath!</p>
+            <button id="btn-quiz-resume" type="button" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm shadow-lg">
+              Resume
+            </button>
+          </div>
           <div id="quiz-floating-container" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
 
           <!-- Category & Read Aloud -->
@@ -506,9 +674,22 @@
               <span id="quiz-visual-label" class="font-mono text-[10px]">8 × 7 = ?</span>
             </div>
             <div id="quiz-visual-dots" class="flex flex-col gap-1 items-center justify-center py-1 max-h-32 overflow-x-auto"></div>
+            <div id="quiz-skip-count-banner" class="hidden text-[11px] font-mono text-emerald-300 mt-1.5"></div>
           </div>
         </div>
 
+      </div>
+
+      <!-- Survival Gauntlet Tactical Lifelines -->
+      <div id="survival-lifelines-bar" class="hidden grid grid-cols-2 gap-2">
+        <button id="btn-survival-5050" type="button" class="py-2 px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-indigo-500/40 text-xs font-bold text-indigo-300 disabled:opacity-45 transition-all active:scale-95 flex items-center justify-between">
+          <span>50/50 Hint</span>
+          <span id="survival-5050-count" class="font-mono text-[11px] bg-indigo-500/20 px-2 py-0.5 rounded-md">2</span>
+        </button>
+        <button id="btn-survival-skip" type="button" class="py-2 px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-amber-500/40 text-xs font-bold text-amber-300 disabled:opacity-45 transition-all active:scale-95 flex items-center justify-between">
+          <span>Shield Skip</span>
+          <span id="survival-skip-count" class="font-mono text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-md">1</span>
+        </button>
       </div>
 
       <!-- Input Option 1: Multiple Choice Grid -->
@@ -537,9 +718,10 @@
 
       <!-- Input Option 2: Direct Input & Tactile Virtual Numpad -->
       <div id="input-container-direct" class="hidden space-y-2.5">
-        <div class="glass-panel rounded-2xl p-2.5 flex items-center justify-center border-2 border-indigo-500/50">
-          <span class="text-xs text-slate-400 mr-2">Your Answer:</span>
+        <div class="glass-panel rounded-2xl p-2.5 flex items-center justify-between border-2 border-indigo-500/50 max-w-xs sm:max-w-sm mx-auto px-4">
+          <span class="text-xs text-slate-400">Your Answer:</span>
           <span id="direct-display-val" class="font-mono text-2xl sm:text-3xl font-black text-indigo-300 min-w-[70px] text-center border-b-2 border-indigo-400 pb-0.5">_</span>
+          <button id="btn-direct-clear" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-rose-300 active:scale-95">Clear</button>
         </div>
 
         <div class="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-xs sm:max-w-sm mx-auto">
@@ -552,7 +734,7 @@
           <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="7">7</button>
           <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="8">8</button>
           <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="9">9</button>
-          <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-sm font-bold shadow" data-key="clear">Clear</button>
+          <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-lg font-bold shadow" data-key="backspace" title="Backspace">⌫</button>
           <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="0">0</button>
           <button type="button" class="numpad-btn py-3 sm:py-3.5 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold shadow" data-key="enter">↵</button>
         </div>
@@ -561,87 +743,285 @@
     </section>
 
     <!-- ==================================================================
-         VIEW 3: RPG BOSS BATTLE ARENA
+         VIEW 3: PVP ARENA (ONLINE 1V1 DUEL, ONLINE TUG-OF-WAR & 2P LOCAL)
          ================================================================== -->
-    <section id="view-boss" class="hidden space-y-3.5 max-w-2xl mx-auto w-full">
+    <section id="view-pvp" class="hidden space-y-3.5 max-w-2xl mx-auto w-full relative">
 
-      <!-- Compact Boss Card & HUD -->
-      <div id="boss-card-container" class="glass-card rounded-2xl p-3.5 sm:p-6 text-center relative overflow-hidden shadow-2xl border border-purple-500/40">
-        <div id="boss-combat-effects-container" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
-
-        <!-- Top Row: Boss Info + Flee -->
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] font-bold text-purple-300 bg-purple-900/40 border border-purple-600/40 px-2 py-0.5 rounded-full uppercase">
-              Boss Battle
-            </span>
-            <span id="boss-name" class="font-black text-white text-xs sm:text-base">Goblin Multiplier</span>
+      <!-- Matchmaking & Room Lobby Panel -->
+      <div id="pvp-lobby-panel" class="glass-card rounded-3xl p-4 sm:p-6 space-y-4 border border-amber-500/40 shadow-2xl">
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">Multiplayer &amp; Rivals</span>
+            <h2 class="text-lg sm:text-xl font-black text-white">PvP Battle Arena</h2>
           </div>
-          <button id="btn-boss-exit" class="p-1 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
-            Flee ✕
+          <div class="flex items-center gap-2">
+            <span id="pvp-record-badge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold text-amber-300">0W · 0L · 0 Streak</span>
+            <button id="btn-pvp-lobby-exit" type="button" class="p-1.5 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
+              Lobby ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Online Presence Bar -->
+        <div id="pvp-online-status" class="flex items-center justify-between gap-2 rounded-2xl bg-slate-800/70 border border-slate-700/80 px-3 py-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="pvp-online-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500 flex-shrink-0"></span>
+            <span id="pvp-online-count-text" class="text-xs font-bold text-slate-300 truncate">Checking online players...</span>
+          </div>
+          <span id="pvp-online-subtext" class="text-[10px] font-semibold text-slate-400 flex-shrink-0">Live Arena</span>
+        </div>
+
+        <!-- PvP Format Selector -->
+        <div class="space-y-2">
+          <span class="text-xs font-bold text-slate-300 block">Choose Online PvP Format</span>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border-2 border-indigo-400 bg-indigo-600/25 text-white font-bold text-xs text-left transition-all shadow" data-pvp-format="duel">
+              <span class="block text-sm font-black">⚔️ 1v1 HP Battle</span>
+              <span class="text-[10px] text-slate-300 font-normal">100 HP · Crits &amp; Shields</span>
+            </button>
+            <button type="button" class="pvp-format-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500 font-bold text-xs text-left transition-all" data-pvp-format="tug">
+              <span class="block text-sm font-black">🪢 Online Tug-of-War</span>
+              <span class="text-[10px] text-slate-300 font-normal">Pull rope 6 steps to win</span>
+            </button>
+          </div>
+          <p id="pvp-format-desc" class="text-[11px] text-slate-400"></p>
+        </div>
+
+        <!-- Quick Matchmaking Actions -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button id="btn-pvp-find-match" type="button" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 active:scale-95 text-white font-black text-sm shadow-lg transition-all">
+            Find Online Match
+          </button>
+          <button id="btn-pvp-vs-ai" type="button" class="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 active:scale-95 text-indigo-300 font-bold text-sm transition-all">
+            Instant AI Rival Match
           </button>
         </div>
 
-        <!-- Compact Avatar + HP Bar Layout -->
-        <div class="flex items-center gap-3 my-1">
-          <div id="boss-avatar-wrapper" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900/90 border border-purple-500/50 flex items-center justify-center shadow-xl boss-idle flex-shrink-0 select-none">
-            <div id="boss-avatar-icon" class="flex items-center justify-center"></div>
+        <!-- Searching Banner -->
+        <div id="pvp-searching-box" class="hidden rounded-2xl bg-indigo-950/50 border border-indigo-500/40 p-3 flex items-center justify-between gap-2">
+          <span id="pvp-search-status" class="text-xs font-bold text-indigo-200 animate-pulse">Searching for opponent...</span>
+          <button id="btn-pvp-cancel-search" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+            Cancel
+          </button>
+        </div>
+
+        <!-- Private Friend Room Code Box -->
+        <div class="rounded-2xl bg-slate-800/60 border border-slate-700/70 p-3.5 space-y-2.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-white block">Play With a Friend Online</span>
+              <span class="text-[10px] text-slate-400">Create a 6-letter room code or enter a friend's code</span>
+            </div>
+            <button id="btn-pvp-create-room" type="button" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold shadow">
+              Create Friend Room
+            </button>
           </div>
 
-          <div class="flex-1 space-y-1.5 text-left">
-            <div class="flex justify-between items-center text-[11px] font-bold font-mono">
-              <span class="text-rose-400">BOSS HP</span>
-              <span id="boss-hp-text" class="text-white">100 / 100</span>
+          <div id="pvp-room-created-box" class="hidden rounded-xl bg-slate-900/90 border border-emerald-500/40 p-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-slate-400">Room Code:</span>
+              <span id="pvp-room-code-display" class="font-mono text-base font-black tracking-widest text-emerald-300">------</span>
             </div>
-            <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700 p-0.5">
-              <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-300" style="width: 100%"></div>
+            <div class="flex items-center gap-1.5">
+              <button id="btn-pvp-copy-invite" type="button" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold">
+                Copy Invite Link
+              </button>
+              <button id="btn-pvp-cancel-room" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold">
+                Cancel
+              </button>
             </div>
-            <div class="flex justify-between items-center text-[10px]">
-              <span id="player-hp-text" class="font-bold text-emerald-400 font-mono">YOU: 100 HP</span>
-              <span class="text-slate-400 flex items-center gap-1">
-                <svg class="w-3 h-3 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <span id="boss-turn-timer" class="font-black font-mono text-amber-400">12s</span>
-              </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input id="input-pvp-join-code" type="text" maxlength="10" placeholder="Enter friend code (e.g. K7M4PQ)" class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500">
+            <button id="btn-pvp-join-room" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold">
+              Join Room
+            </button>
+          </div>
+        </div>
+
+        <!-- Same-Device 2P Option -->
+        <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-bold text-slate-200 block">Sharing One Phone or Tablet?</span>
+            <span class="text-[10px] text-slate-400">Play offline split-screen 2-Player Tug-of-War on this device</span>
+          </div>
+          <button id="btn-pvp-local-tug" type="button" class="px-3.5 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600/35 border border-amber-500/40 text-amber-300 text-xs font-bold active:scale-95 transition-all">
+            Same-Device 2P Tug-of-War
+          </button>
+        </div>
+      </div>
+
+      <!-- Active PvP Battle Panel -->
+      <div id="pvp-battle-panel" class="hidden space-y-3 relative">
+        <!-- Top Bar -->
+        <div class="glass-panel rounded-2xl p-2.5 px-3.5 flex items-center justify-between gap-2">
+          <span id="pvp-format-label" class="text-xs font-black text-amber-300 uppercase tracking-wider">1v1 HP Battle</span>
+          <div class="flex items-center gap-1.5 font-mono font-black text-base text-white">
+            <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="pvp-timer">90s</span>
+          </div>
+          <button id="btn-pvp-forfeit" type="button" class="p-1 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
+            Forfeit ✕
+          </button>
+        </div>
+
+        <!-- Format 1 HUD: HP Combat Duel -->
+        <div id="pvp-duel-hud" class="glass-card rounded-2xl p-3.5 sm:p-4 border border-indigo-500/30 relative overflow-hidden">
+          <div id="pvp-combat-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"></div>
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <!-- Player Side -->
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <div id="pvp-me-avatar" class="w-9 h-9 rounded-xl bg-indigo-950/70 border border-indigo-400/50 flex items-center justify-center flex-shrink-0"></div>
+                <div class="min-w-0">
+                  <span id="pvp-me-name" class="text-xs font-black text-white block truncate">You</span>
+                  <div class="flex items-center gap-1.5">
+                    <span id="pvp-me-streak" class="text-[10px] font-mono text-amber-300">Streak 0</span>
+                    <span id="pvp-me-shield" class="hidden px-1.5 py-0.2 rounded bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-bold">SHIELD</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex justify-between text-[10px] font-mono font-bold">
+                <span class="text-emerald-400">YOU</span>
+                <span id="pvp-me-hp-text" class="text-white">100 HP</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700 p-0.5">
+                <div id="pvp-me-hp-bar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-300" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <!-- Rival Side -->
+            <div class="space-y-1.5 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center justify-end gap-1">
+                    <span id="pvp-opp-badge" class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-amber-300">ONLINE</span>
+                    <span id="pvp-opp-name" class="text-xs font-black text-white block truncate">Rival</span>
+                  </div>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <span id="pvp-opp-shield" class="hidden px-1.5 py-0.2 rounded bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-[9px] font-bold">SHIELD</span>
+                    <span id="pvp-opp-streak" class="text-[10px] font-mono text-rose-300">Streak 0</span>
+                  </div>
+                </div>
+                <div id="pvp-opp-avatar" class="w-9 h-9 rounded-xl bg-rose-950/70 border border-rose-400/50 flex items-center justify-center flex-shrink-0"></div>
+              </div>
+              <div class="flex justify-between text-[10px] font-mono font-bold">
+                <span id="pvp-opp-hp-text" class="text-white">100 HP</span>
+                <span class="text-rose-400">RIVAL</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700 p-0.5">
+                <div id="pvp-opp-hp-bar" class="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-300 ml-auto" style="width: 100%"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <p id="boss-title-desc" class="text-[10px] text-purple-300/70 mt-1 hidden sm:block">Hoarder of Times Tables</p>
-      </div>
+        <!-- Format 2 HUD: Online Tug-of-War -->
+        <div id="pvp-tug-hud" class="hidden glass-card rounded-2xl p-3.5 sm:p-4 border border-amber-500/40 relative overflow-hidden space-y-2.5">
+          <div id="pvp-tug-fx" class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"></div>
+          <div class="flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <div id="pvp-tug-me-avatar" class="w-8 h-8 rounded-xl bg-indigo-950/70 border border-indigo-400/50 flex items-center justify-center flex-shrink-0"></div>
+              <div class="min-w-0">
+                <span id="pvp-tug-me-name" class="font-black text-indigo-300 block truncate">You</span>
+                <span id="pvp-tug-me-pulls" class="text-[10px] font-mono text-slate-400">0 pulls</span>
+              </div>
+            </div>
+            <span id="pvp-rope-label" class="font-mono font-black text-xs text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">EVEN!</span>
+            <div class="flex items-center gap-2 min-w-0 text-right">
+              <div class="min-w-0">
+                <div class="flex items-center justify-end gap-1">
+                  <span id="pvp-tug-opp-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-[9px] font-bold text-amber-300">ONLINE</span>
+                  <span id="pvp-tug-opp-name" class="font-black text-rose-300 block truncate">Rival</span>
+                </div>
+                <span id="pvp-tug-opp-pulls" class="text-[10px] font-mono text-slate-400">0 pulls</span>
+              </div>
+              <div id="pvp-tug-opp-avatar" class="w-8 h-8 rounded-xl bg-rose-950/70 border border-rose-400/50 flex items-center justify-center flex-shrink-0"></div>
+            </div>
+          </div>
 
-      <!-- Strike Equation -->
-      <div class="glass-card rounded-2xl p-3 sm:p-4 text-center border border-indigo-500/30">
-        <span class="text-[11px] text-slate-400 block">Strike the boss before time runs out!</span>
-        <div id="boss-equation-text" class="text-4xl sm:text-6xl font-black text-white font-mono py-1 select-none">
-          9 × 6
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-bold">
+              <span class="text-indigo-400">← YOU PULL</span>
+              <span class="text-rose-400">RIVAL PULLS →</span>
+            </div>
+            <div id="pvp-rope-track" class="relative h-5 rounded-full bg-gradient-to-r from-indigo-950 via-slate-900 to-rose-950 border border-slate-700 overflow-hidden">
+              <div class="absolute inset-y-0 left-1/2 w-0.5 bg-slate-500/50"></div>
+              <div id="pvp-rope-knot" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-400 border-2 border-white shadow-lg" style="left: 50%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equation Card -->
+        <div id="pvp-equation-card" class="glass-card rounded-2xl p-4 sm:p-5 text-center border border-indigo-500/30 transition-opacity">
+          <span id="pvp-op-label" class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold mb-1">× Multiply</span>
+          <div id="pvp-equation-text" class="text-4xl sm:text-6xl font-black text-white font-mono py-1 select-none">8 × 7</div>
+          <div id="pvp-status-text" class="text-xs text-slate-400 italic min-h-[1.25rem]"></div>
+        </div>
+
+        <!-- Choice Input -->
+        <div id="pvp-input-choice" class="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button type="button" class="pvp-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-indigo-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="0">
+            <span class="text-xs text-slate-400">A</span>
+            <span class="choice-val font-mono">0</span>
+            <span class="text-xs text-slate-500 font-mono hidden sm:inline">[1]</span>
+          </button>
+          <button type="button" class="pvp-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-indigo-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="1">
+            <span class="text-xs text-slate-400">B</span>
+            <span class="choice-val font-mono">0</span>
+            <span class="text-xs text-slate-500 font-mono hidden sm:inline">[2]</span>
+          </button>
+          <button type="button" class="pvp-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-indigo-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="2">
+            <span class="text-xs text-slate-400">C</span>
+            <span class="choice-val font-mono">0</span>
+            <span class="text-xs text-slate-500 font-mono hidden sm:inline">[3]</span>
+          </button>
+          <button type="button" class="pvp-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-indigo-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="3">
+            <span class="text-xs text-slate-400">D</span>
+            <span class="choice-val font-mono">0</span>
+            <span class="text-xs text-slate-500 font-mono hidden sm:inline">[4]</span>
+          </button>
+        </div>
+
+        <!-- Direct Numpad Input -->
+        <div id="pvp-input-direct" class="hidden space-y-2.5">
+          <div class="glass-panel rounded-2xl p-2.5 flex items-center justify-between border-2 border-indigo-500/50 max-w-xs sm:max-w-sm mx-auto px-4">
+            <span class="text-xs text-slate-400">Your Answer:</span>
+            <span id="pvp-direct-val" class="font-mono text-2xl sm:text-3xl font-black text-indigo-300 min-w-[70px] text-center border-b-2 border-indigo-400 pb-0.5">_</span>
+            <button id="btn-pvp-direct-clear" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-rose-300 active:scale-95">Clear</button>
+          </div>
+          <div class="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-xs sm:max-w-sm mx-auto">
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="1">1</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="2">2</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="3">3</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="4">4</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="5">5</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="6">6</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="7">7</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="8">8</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="9">9</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-lg font-bold shadow" data-key="backspace">⌫</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-bold shadow" data-key="0">0</button>
+            <button type="button" class="pvp-numpad-btn py-3 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold shadow" data-key="enter">↵</button>
+          </div>
         </div>
       </div>
 
-      <!-- Boss Input Buttons -->
-      <div id="boss-input-container-choice" class="grid grid-cols-2 gap-2.5 sm:gap-3">
-        <button type="button" class="boss-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-purple-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="0">
-          <span class="text-xs text-slate-400">A</span>
-          <span class="choice-val font-mono">0</span>
-          <span class="text-xs text-slate-500 font-mono hidden sm:inline">[1]</span>
-        </button>
-        <button type="button" class="boss-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-purple-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="1">
-          <span class="text-xs text-slate-400">B</span>
-          <span class="choice-val font-mono">0</span>
-          <span class="text-xs text-slate-500 font-mono hidden sm:inline">[2]</span>
-        </button>
-        <button type="button" class="boss-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-purple-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="2">
-          <span class="text-xs text-slate-400">C</span>
-          <span class="choice-val font-mono">0</span>
-          <span class="text-xs text-slate-500 font-mono hidden sm:inline">[3]</span>
-        </button>
-        <button type="button" class="boss-choice-btn min-h-[58px] py-3.5 px-4 rounded-2xl bg-slate-900/95 active:bg-purple-600 border border-slate-700 font-black text-2xl text-white transition-all transform active:scale-95 shadow-lg flex items-center justify-between" data-choice-index="3">
-          <span class="text-xs text-slate-400">D</span>
-          <span class="choice-val font-mono">0</span>
-          <span class="text-xs text-slate-500 font-mono hidden sm:inline">[4]</span>
-        </button>
+      <!-- PvP Result Overlay -->
+      <div id="pvp-result-overlay" class="hidden absolute inset-0 z-30 rounded-3xl bg-slate-950/92 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <span id="pvp-result-badge" class="text-xs font-bold uppercase tracking-widest text-amber-300">Match Complete</span>
+        <h3 id="pvp-result-title" class="text-2xl sm:text-3xl font-black text-white">Victory!</h3>
+        <p id="pvp-result-summary" class="text-xs sm:text-sm text-slate-300 max-w-sm"></p>
+        <span id="pvp-result-xp" class="px-3 py-1 rounded-full bg-violet-600/25 border border-violet-400/40 text-violet-300 font-mono font-bold text-xs">+45 XP</span>
+        <div class="flex items-center gap-2 pt-2">
+          <button id="btn-pvp-rematch" type="button" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs shadow">
+            Find Next Match
+          </button>
+          <button id="btn-pvp-back-lobby" type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-semibold text-xs">
+            PvP Hub
+          </button>
+        </div>
       </div>
 
     </section>
@@ -682,7 +1062,7 @@
               <div id="fc-front-equation" class="text-5xl sm:text-7xl font-black text-white font-mono">
                 7 × 8
               </div>
-              <span class="text-slate-400 text-xs mt-2 block">What is the product?</span>
+              <span id="fc-front-prompt" class="text-slate-400 text-xs mt-2 block">What is the product?</span>
             </div>
             <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -707,6 +1087,7 @@
               </div>
 
               <div id="fc-visual-dots-container" class="mt-2.5 flex flex-col gap-1 items-center justify-center max-h-24 overflow-y-auto"></div>
+              <div id="fc-skip-count-banner" class="hidden text-[11px] font-mono text-emerald-300 mt-1"></div>
             </div>
             <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -796,6 +1177,18 @@
           </div>
         </div>
 
+        <!-- Daily Challenge Share Box -->
+        <div id="results-daily-share-box" class="hidden bg-slate-900/80 rounded-2xl p-3.5 border border-cyan-500/30 space-y-2.5 text-center">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-300 block">Daily Math Challenge Result</span>
+          <div id="results-daily-grid" class="font-mono text-sm tracking-widest leading-relaxed select-all"></div>
+          <div class="flex items-center justify-center gap-2">
+            <button id="btn-results-share-daily" type="button" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white text-xs font-bold shadow">
+              Copy Shareable Result
+            </button>
+            <span id="results-share-feedback" class="text-[11px] font-bold text-emerald-400 hidden">Copied!</span>
+          </div>
+        </div>
+
         <!-- Missed Questions List -->
         <div id="results-mistakes-container" class="hidden text-left bg-slate-900/90 rounded-2xl p-3.5 border border-rose-500/20 space-y-2">
           <span class="text-xs font-bold text-rose-400 uppercase tracking-wider block">Questions to Review</span>
@@ -813,17 +1206,165 @@
             </svg>
             <span>Play Again</span>
           </button>
-          <button id="btn-results-lobby" class="w-full py-2.5 rounded-xl bg-slate-800 active:scale-95 text-slate-300 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <span>Return to Lobby</span>
-          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-results-leaderboard" type="button" class="py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/35 border border-amber-500/40 active:scale-95 text-amber-300 font-bold text-xs transition-all">
+              View Leaderboard
+            </button>
+            <button id="btn-results-lobby" class="py-2.5 rounded-xl bg-slate-800 active:scale-95 text-slate-300 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Lobby</span>
+            </button>
+          </div>
         </div>
 
       </div>
 
+    </section>
+
+    <!-- ==================================================================
+         VIEW 6: METEOR BLASTER ARCADE ARENA
+         ================================================================== -->
+    <section id="view-meteor" class="hidden space-y-3 max-w-2xl mx-auto w-full">
+      <!-- Meteor HUD -->
+      <div class="glass-panel rounded-2xl p-3 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span id="meteor-wave" class="px-2.5 py-1 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-300 font-bold text-xs">Wave 1</span>
+          <span id="meteor-combo" class="font-mono font-black text-amber-400 text-sm">x0</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] text-slate-400 uppercase font-bold">Shields</span>
+          <div id="meteor-shields" class="flex items-center gap-1"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-right">
+            <span class="text-[9px] text-slate-400 uppercase font-bold block">Score</span>
+            <span id="meteor-score" class="text-base sm:text-lg font-black text-indigo-300 font-mono">0</span>
+          </div>
+          <button id="btn-meteor-pause" type="button" class="p-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold active:scale-95" title="Pause (Esc)">❚❚</button>
+          <button id="btn-meteor-exit" type="button" class="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95" title="Quit">✕</button>
+        </div>
+      </div>
+
+      <!-- Canvas Stage -->
+      <div class="glass-card rounded-3xl overflow-hidden border border-sky-500/30 relative shadow-2xl">
+        <canvas id="meteor-canvas"></canvas>
+        <div id="meteor-pause-overlay" class="hidden absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6">
+          <span class="text-xs font-bold uppercase tracking-widest text-sky-300">Meteor Blaster Paused</span>
+          <button id="btn-meteor-resume" type="button" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-sm shadow-lg">
+            Resume
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Target Answer Pills -->
+      <div id="meteor-quick-choices" class="grid grid-cols-4 gap-2">
+        <button type="button" class="meteor-choice-btn py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 font-mono font-black text-lg text-white active:scale-95">—</button>
+        <button type="button" class="meteor-choice-btn py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 font-mono font-black text-lg text-white active:scale-95">—</button>
+        <button type="button" class="meteor-choice-btn py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 font-mono font-black text-lg text-white active:scale-95">—</button>
+        <button type="button" class="meteor-choice-btn py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-sky-400 font-mono font-black text-lg text-white active:scale-95">—</button>
+      </div>
+
+      <!-- Direct Laser Input & Compact Numpad -->
+      <div class="space-y-2">
+        <div class="glass-panel rounded-2xl p-2 flex items-center justify-between border border-sky-500/40 max-w-xs sm:max-w-sm mx-auto px-4">
+          <span class="text-xs text-slate-400">Laser Target:</span>
+          <span id="meteor-input-val" class="font-mono text-xl sm:text-2xl font-black text-sky-300 min-w-[60px] text-center border-b-2 border-sky-400">_</span>
+          <button id="btn-meteor-clear" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-rose-300">Clear</button>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 max-w-xs sm:max-w-sm mx-auto">
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="1">1</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="2">2</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="3">3</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="4">4</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="5">5</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="6">6</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="7">7</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="8">8</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="9">9</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-base font-bold active:scale-95" data-key="backspace">⌫</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="0">0</button>
+          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold active:scale-95" data-key="enter">↵</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         VIEW 7: 2-PLAYER SAME-DEVICE TUG-OF-WAR DUEL
+         ================================================================== -->
+    <section id="view-tug" class="hidden space-y-3 max-w-2xl mx-auto w-full relative">
+      <!-- Top Controls -->
+      <div class="glass-panel rounded-2xl p-2.5 flex items-center justify-between gap-2">
+        <span class="text-xs font-black text-amber-300 uppercase tracking-wider px-2">2P Tug-of-War</span>
+        <div class="flex items-center gap-2">
+          <button id="btn-tug-flip" type="button" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-200 active:scale-95">
+            Flip Top 180°
+          </button>
+          <button id="btn-tug-exit" type="button" class="p-1.5 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
+            Exit ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Player 1 Zone -->
+      <div id="tug-p1-zone" class="glass-card rounded-3xl p-4 border-2 border-indigo-500/40 space-y-2.5 transition-transform">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-black text-indigo-300">PLAYER 1 <span class="text-[10px] text-slate-400 font-normal hidden sm:inline">(Keys A/S/D/F)</span></span>
+          <span id="tug-p1-status" class="font-mono text-[11px] text-slate-300">Ready (0)</span>
+        </div>
+        <div id="tug-p1-equation" class="text-3xl sm:text-4xl font-black text-white font-mono text-center py-1">6 × 7</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button type="button" class="tug-p1-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p1-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p1-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p1-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+        </div>
+      </div>
+
+      <!-- Energy Rope Track -->
+      <div class="glass-panel rounded-2xl p-3 space-y-1.5">
+        <div class="flex justify-between items-center text-[10px] font-bold">
+          <span class="text-indigo-400">← P1 GOAL</span>
+          <span id="tug-rope-label" class="font-mono text-amber-300">EVEN!</span>
+          <span class="text-rose-400">P2 GOAL →</span>
+        </div>
+        <div id="tug-rope-track" class="relative h-5 rounded-full bg-gradient-to-r from-indigo-950 via-slate-900 to-rose-950 border border-slate-700 overflow-hidden">
+          <div class="absolute inset-y-0 left-1/2 w-0.5 bg-slate-500/50"></div>
+          <div id="tug-rope-knot" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-400 border-2 border-white shadow-lg" style="left: 50%"></div>
+        </div>
+      </div>
+
+      <!-- Player 2 Zone -->
+      <div id="tug-p2-zone" class="glass-card rounded-3xl p-4 border-2 border-rose-500/40 space-y-2.5">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-black text-rose-300">PLAYER 2 <span class="text-[10px] text-slate-400 font-normal hidden sm:inline">(Keys J/K/L/;)</span></span>
+          <span id="tug-p2-status" class="font-mono text-[11px] text-slate-300">Ready (0)</span>
+        </div>
+        <div id="tug-p2-equation" class="text-3xl sm:text-4xl font-black text-white font-mono text-center py-1">8 × 9</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button type="button" class="tug-p2-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p2-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p2-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+          <button type="button" class="tug-p2-choice py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-xl font-black active:scale-95">0</button>
+        </div>
+      </div>
+
+      <!-- Victory Overlay -->
+      <div id="tug-victory-overlay" class="hidden absolute inset-0 z-30 rounded-3xl bg-slate-950/92 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <span class="text-xs font-bold uppercase tracking-widest text-amber-300">Duel Complete</span>
+        <h3 id="tug-winner-title" class="text-2xl sm:text-3xl font-black text-white">Player 1 Wins!</h3>
+        <p id="tug-winner-stats" class="text-xs text-slate-300"></p>
+        <div class="flex items-center gap-2 pt-2">
+          <button id="btn-tug-rematch" type="button" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs shadow">
+            Rematch
+          </button>
+          <button id="btn-tug-lobby" type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-semibold text-xs">
+            Lobby
+          </button>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -884,7 +1425,35 @@
             <span class="text-[10px] text-slate-400" id="menu-speech-status">Off</span>
           </div>
         </button>
+
+        <button id="btn-menu-theme" type="button" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
+          <span id="menu-theme-icon-wrapper" class="mb-1 flex items-center"></span>
+          <div>
+            <span class="font-bold text-white block">Theme</span>
+            <span class="text-[10px] text-slate-400" id="menu-theme-status">Dark</span>
+          </div>
+        </button>
+
+        <button id="btn-menu-profiles" type="button" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95">
+          <svg class="w-5 h-5 text-indigo-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div>
+            <span class="font-bold text-white block">Profiles</span>
+            <span class="text-[10px] text-slate-400">Switch Learner</span>
+          </div>
+        </button>
+
+        <button id="btn-menu-leaderboard" type="button" class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-left flex flex-col justify-between active:scale-95 col-span-2">
+          <svg class="w-5 h-5 text-amber-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45.98-.98 1.05A4 4 0 0 1 5 14.2V4h14v10.2a4 4 0 0 1-4.02 3.85c-.53-.07-.98-.5-.98-1.05v-2.34"/></svg>
+          <div>
+            <span class="font-bold text-white block">Leaderboards</span>
+            <span class="text-[10px] text-slate-400">Device, Daily Global &amp; Room Codes</span>
+          </div>
+        </button>
       </div>
+
+      <button id="btn-menu-install" type="button" class="hidden w-full py-2.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+        Install Math Quest App
+      </button>
 
       <button id="btn-menu-reset" class="w-full py-2.5 text-center text-xs text-rose-400 hover:text-rose-300 underline block pt-1">
         Reset All Progress Data
@@ -1008,8 +1577,8 @@
           <span id="stat-highest-streak" class="text-base font-bold text-amber-400 mt-0.5 block font-mono">0</span>
         </div>
         <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
-          <span class="text-slate-400 block text-[10px]">Bosses Defeated</span>
-          <span id="stat-boss-defeated" class="text-base font-bold text-rose-400 mt-0.5 block font-mono">0</span>
+          <span class="text-slate-400 block text-[10px]">PvP Wins</span>
+          <span id="stat-pvp-wins" class="text-base font-bold text-amber-300 mt-0.5 block font-mono">0</span>
         </div>
       </div>
 
@@ -1019,7 +1588,7 @@
           <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <span>Records Breakdown</span>
         </span>
-        <div class="grid grid-cols-3 gap-1.5 text-center text-xs">
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-center text-xs">
           <div class="bg-slate-900/60 p-1.5 rounded-lg">
             <span class="text-[9px] text-slate-400 block">30s Blitz</span>
             <span id="record-blitz-30" class="font-mono font-bold text-indigo-300 text-xs">0</span>
@@ -1029,8 +1598,20 @@
             <span id="record-blitz-60" class="font-mono font-bold text-indigo-300 text-xs">0</span>
           </div>
           <div class="bg-slate-900/60 p-1.5 rounded-lg">
-            <span class="text-[9px] text-slate-400 block">Endless Record</span>
+            <span class="text-[9px] text-slate-400 block">120s Blitz</span>
+            <span id="record-blitz-120" class="font-mono font-bold text-indigo-300 text-xs">0</span>
+          </div>
+          <div class="bg-slate-900/60 p-1.5 rounded-lg">
+            <span class="text-[9px] text-slate-400 block">Survival</span>
+            <span id="record-survival" class="font-mono font-bold text-rose-300 text-xs">0</span>
+          </div>
+          <div class="bg-slate-900/60 p-1.5 rounded-lg">
+            <span class="text-[9px] text-slate-400 block">Endless</span>
             <span id="record-endless" class="font-mono font-bold text-cyan-300 text-xs">0</span>
+          </div>
+          <div class="bg-slate-900/60 p-1.5 rounded-lg">
+            <span class="text-[9px] text-slate-400 block">Meteor</span>
+            <span id="record-meteor" class="font-mono font-bold text-sky-300 text-xs">0</span>
           </div>
         </div>
       </div>
@@ -1049,8 +1630,40 @@
         </div>
       </div>
 
+      <!-- Parent / Teacher Progress Snapshot -->
+      <div id="parent-report-printable" class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 space-y-2 text-xs">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-bold text-slate-200 block">Parent / Teacher Progress Snapshot</span>
+            <span class="text-[10px] text-slate-400">Learner: <strong id="report-profile-name" class="text-indigo-300">Player 1</strong></span>
+          </div>
+          <button id="btn-print-report" type="button" class="no-print px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold active:scale-95">
+            Print / Save PDF
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <div class="bg-slate-900/60 p-2 rounded-lg">
+            <span class="text-[9px] text-slate-400 block">Facts Mastered (1–12)</span>
+            <span id="report-facts-mastered" class="font-mono font-bold text-emerald-400">0 / 78</span>
+          </div>
+          <div class="bg-slate-900/60 p-2 rounded-lg">
+            <span class="text-[9px] text-slate-400 block">Avg Response Speed</span>
+            <span id="report-avg-speed" class="font-mono font-bold text-indigo-300">—</span>
+          </div>
+        </div>
+        <div class="text-[11px] space-y-1">
+          <p class="text-slate-300"><span class="text-slate-400">Mastered Tables:</span> <span id="report-mastered-tables" class="font-semibold text-emerald-300">None yet</span></p>
+          <div>
+            <span class="text-slate-400 block mb-1">Top Focus Facts:</span>
+            <div id="report-weak-facts" class="space-y-1 text-[10px]">
+              <span class="text-slate-400">Play a round to generate insights.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Backup & Restore Data (JSON) -->
-      <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between gap-2">
+      <div class="no-print bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between gap-2">
         <div>
           <span class="text-[11px] font-bold text-slate-300 block">Progress Backup</span>
           <span class="text-[9px] text-slate-400">Save or transfer stats (JSON)</span>
@@ -1067,7 +1680,7 @@
       </div>
 
       <!-- Modal Actions -->
-      <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+      <div class="no-print pt-2 border-t border-slate-800 flex justify-between items-center">
         <button id="btn-reset-data" class="text-[10px] text-rose-400 hover:text-rose-300 underline">
           Reset All Data
         </button>
@@ -1078,11 +1691,139 @@
     </div>
   </div>
 
+  <!-- ====================================================================
+       MODAL 3: MULTI-PLAYER LOCAL PROFILES
+       ==================================================================== -->
+  <div id="modal-profiles" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-white">Player Profiles</h3>
+          <p class="text-[10px] text-slate-400">Each learner keeps separate XP, streaks, and 12×12 mastery</p>
+        </div>
+        <button id="btn-close-profiles" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <div id="profiles-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
+        <!-- Injected safely via DOM APIs -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-slate-300">Add New Learner</span>
+          <button id="btn-random-hero-name" type="button" class="text-[11px] font-bold text-indigo-300 hover:text-indigo-200 underline">
+            Random Hero Name
+          </button>
+        </div>
+        <input id="input-new-profile-name" type="text" maxlength="24" placeholder="Enter player or hero name..." class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500">
+        <div id="profile-avatar-picker" class="grid grid-cols-6 gap-1.5">
+          <!-- Injected via JS -->
+        </div>
+        <button id="btn-create-profile" type="button" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold shadow">
+          Create &amp; Switch Profile
+        </button>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button id="btn-profiles-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 4: LEADERBOARDS (LOCAL DEVICE + VERCEL ONLINE)
+       ==================================================================== -->
+  <div id="modal-leaderboard" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-3.5 border border-slate-700 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-white">Leaderboards</h3>
+          <p class="text-[10px] text-slate-400">Local device profiles, Daily Global &amp; Classroom Rooms</p>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="btn-lb-refresh" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300">
+            Refresh
+          </button>
+          <button id="btn-close-leaderboard" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+        </div>
+      </div>
+
+      <!-- Main Tabs -->
+      <div class="grid grid-cols-5 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-lb-tab="local">This Device</button>
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="daily">Daily</button>
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="blitz_60">Blitz 60s</button>
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="survival">Survival</button>
+        <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="meteor">Meteor</button>
+      </div>
+
+      <!-- Local Category Sub-Filter -->
+      <div id="lb-local-filter-row" class="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-indigo-600 text-white" data-local-cat="xp">Total XP</button>
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="daily">Today's Daily</button>
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="blitz">Best Blitz</button>
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="survival">Survival</button>
+        <button type="button" class="lb-local-cat-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400" data-local-cat="meteor">Meteor</button>
+      </div>
+
+      <!-- Online Classroom / Friend Room Code Bar -->
+      <div id="lb-room-bar" class="hidden flex items-center gap-1.5 bg-slate-800/70 p-2 rounded-xl border border-slate-700">
+        <input id="input-lb-room-code" type="text" maxlength="12" placeholder="Room code (e.g. GRADE4B) or leave blank for Global" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-indigo-500">
+        <button id="btn-lb-apply-room" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">Join</button>
+        <button id="btn-lb-clear-room" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold">Global</button>
+      </div>
+
+      <!-- Status Banner -->
+      <div id="lb-status-banner" class="text-[11px] text-slate-400 bg-slate-900/60 rounded-xl px-3 py-2 border border-slate-800">
+        Comparing all profiles saved on this device.
+      </div>
+
+      <!-- Entries List -->
+      <div id="leaderboard-rows" class="flex-1 overflow-y-auto space-y-1.5 max-h-64 pr-1">
+        <!-- Injected safely via DOM APIs -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button id="btn-leaderboard-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 5: IN-APP CONFIRMATION DIALOG
+       ==================================================================== -->
+  <div id="modal-confirm" class="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-5 space-y-4 border border-slate-700 shadow-2xl">
+      <div class="space-y-1.5">
+        <h3 id="confirm-modal-title" class="text-sm sm:text-base font-bold text-white">Confirm Action</h3>
+        <p id="confirm-modal-message" class="text-xs text-slate-300"></p>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button id="btn-confirm-cancel" type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
+          Cancel
+        </button>
+        <button id="btn-confirm-ok" type="button" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[70] flex flex-col gap-2 pointer-events-none max-w-xs w-full px-3 sm:px-0"></div>
+
   <!-- Scripts -->
   <script src="js/audio.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/confetti.js"></script>
   <script src="js/math-engine.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/arcade-games.js"></script>
+  <script src="js/pvp-arena.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

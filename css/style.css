@@ -2,6 +2,11 @@
    Math Quest Custom Styles & Animations (Mobile-First & Touch Optimized)
    ========================================================================== */
 
+/* Offline & Pre-CSS Baseline Fallback */
+.hidden {
+  display: none;
+}
+
 /* Touch & Mobile Ergonomics */
 html, body {
   min-height: 100dvh;
@@ -150,7 +155,8 @@ button, a, input, [role="button"], .choice-btn, .numpad-btn, .matrix-cell {
 }
 
 /* Numpad Button Active Micro-interaction */
-.numpad-btn {
+.numpad-btn,
+.pvp-numpad-btn {
   min-height: 48px;
   display: flex;
   align-items: center;
@@ -158,7 +164,8 @@ button, a, input, [role="button"], .choice-btn, .numpad-btn, .matrix-cell {
   transition: transform 0.1s ease, background-color 0.15s ease;
 }
 
-.numpad-btn:active {
+.numpad-btn:active,
+.pvp-numpad-btn:active {
   transform: scale(0.94);
   background-color: #4f46e5;
 }
@@ -207,27 +214,17 @@ button, a, input, [role="button"], .choice-btn, .numpad-btn, .matrix-cell {
 }
 
 /* ==========================================================================
-   RPG BOSS BATTLE STYLES & ANIMATIONS
+   PVP COMBAT EFFECTS & ANIMATIONS
    ========================================================================== */
-@keyframes bossFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-}
-
-.boss-idle {
-  animation: bossFloat 2.4s infinite ease-in-out;
-}
-
-@keyframes bossHitAnim {
+@keyframes pvpAvatarHit {
   0% { transform: scale(1) translateX(0); filter: brightness(1); }
-  20% { transform: scale(0.92) translateX(-12px); filter: brightness(2) drop-shadow(0 0 20px #ef4444); }
-  40% { transform: scale(1.05) translateX(10px); filter: brightness(1.5); }
-  60% { transform: scale(0.96) translateX(-6px); }
+  25% { transform: scale(0.92) translateX(-8px); filter: brightness(1.8) drop-shadow(0 0 14px #ef4444); }
+  55% { transform: scale(1.04) translateX(6px); }
   100% { transform: scale(1) translateX(0); filter: brightness(1); }
 }
 
-.boss-hit {
-  animation: bossHitAnim 0.45s ease-out;
+.pvp-avatar-hit {
+  animation: pvpAvatarHit 0.35s ease-out;
 }
 
 @keyframes slashSweep {
@@ -369,6 +366,54 @@ button, a, input, [role="button"], .choice-btn, .numpad-btn, .matrix-cell {
   box-shadow: 0 0 8px #34d399;
 }
 
+.array-dot.row-active {
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.75);
+  transform: scale(1.15);
+}
+
+/* Choice Answer Visual Feedback */
+.choice-correct {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
+}
+
+.choice-wrong {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+  border-color: #f43f5e !important;
+  color: #fda4af !important;
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.35) !important;
+}
+
+/* PvP Critical Hit & Shield Animations */
+@keyframes critFlashAnim {
+  0% { transform: scale(1); filter: brightness(1); }
+  25% { transform: scale(1.12); filter: brightness(2) drop-shadow(0 0 22px #fbbf24); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.crit-flash {
+  animation: critFlashAnim 0.45s ease-out;
+}
+
+.shield-active {
+  border-color: rgba(34, 211, 238, 0.85) !important;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 18px rgba(34, 211, 238, 0.18) !important;
+}
+
+/* Per-Table Mastery Progress Strip */
+.table-mastery-bar {
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: 9999px;
+  margin-top: 4px;
+  background: rgba(51, 65, 85, 0.65);
+  overflow: hidden;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
@@ -380,4 +425,342 @@ button, a, input, [role="button"], .choice-btn, .numpad-btn, .matrix-cell {
 ::-webkit-scrollbar-thumb {
   background: rgba(71, 85, 105, 0.8);
   border-radius: 9999px;
+}
+
+/* ==========================================================================
+   DAYLIGHT / CLASSROOM LIGHT THEME (html.theme-light)
+   ========================================================================== */
+html.theme-light,
+html.theme-light body {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light header {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.theme-light header h1 {
+  background: none !important;
+  -webkit-text-fill-color: #3730a3;
+  color: #3730a3 !important;
+}
+
+html.theme-light .glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+html.theme-light .glass-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+}
+
+html.theme-light .bg-slate-950,
+html.theme-light .bg-slate-950\/85,
+html.theme-light .bg-slate-950\/80,
+html.theme-light .bg-slate-950\/60 {
+  background-color: rgba(241, 245, 249, 0.92) !important;
+}
+
+html.theme-light #modal-matrix,
+html.theme-light #modal-stats,
+html.theme-light #modal-profiles,
+html.theme-light #modal-mobile-menu {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+html.theme-light .bg-slate-900,
+html.theme-light .bg-slate-900\/95,
+html.theme-light .bg-slate-900\/90,
+html.theme-light .bg-slate-900\/60,
+html.theme-light .bg-slate-800,
+html.theme-light .bg-slate-800\/90,
+html.theme-light .bg-slate-800\/80,
+html.theme-light .bg-slate-800\/70,
+html.theme-light .bg-slate-800\/60 {
+  background-color: #e2e8f0 !important;
+}
+
+html.theme-light .bg-slate-700 {
+  background-color: #cbd5e1 !important;
+}
+
+html.theme-light .border-slate-800,
+html.theme-light .border-slate-800\/80,
+html.theme-light .border-slate-700,
+html.theme-light .border-slate-700\/80,
+html.theme-light .border-slate-700\/60 {
+  border-color: #cbd5e1 !important;
+}
+
+html.theme-light .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .text-slate-100,
+html.theme-light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.theme-light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.theme-light .text-slate-400,
+html.theme-light .text-slate-500 {
+  color: #475569 !important;
+}
+
+html.theme-light .text-indigo-300,
+html.theme-light .text-indigo-400 {
+  color: #4338ca !important;
+}
+
+html.theme-light .text-emerald-300,
+html.theme-light .text-emerald-400 {
+  color: #047857 !important;
+}
+
+html.theme-light .text-amber-300,
+html.theme-light .text-amber-400 {
+  color: #b45309 !important;
+}
+
+html.theme-light .text-cyan-300,
+html.theme-light .text-cyan-400 {
+  color: #0e7490 !important;
+}
+
+html.theme-light .text-purple-300,
+html.theme-light .text-purple-400 {
+  color: #7e22ce !important;
+}
+
+html.theme-light .text-rose-200,
+html.theme-light .text-rose-300,
+html.theme-light .text-rose-400 {
+  color: #be123c !important;
+}
+
+html.theme-light .bg-indigo-600,
+html.theme-light .bg-emerald-600,
+html.theme-light .bg-rose-600,
+html.theme-light #btn-start-game,
+html.theme-light #btn-rec-quest-start,
+html.theme-light #btn-start-daily-challenge,
+html.theme-light #btn-shared-start,
+html.theme-light #btn-create-profile,
+html.theme-light #btn-results-replay,
+html.theme-light #btn-results-drill,
+html.theme-light #btn-drill-mistakes,
+html.theme-light #btn-matrix-drill-row,
+html.theme-light #btn-import-trigger {
+  color: #ffffff !important;
+}
+
+html.theme-light .bg-indigo-600 .text-white,
+html.theme-light .bg-emerald-600 .text-white,
+html.theme-light .bg-rose-600 .text-white,
+html.theme-light #btn-start-game .text-white,
+html.theme-light #btn-results-replay .text-white,
+html.theme-light .bg-gradient-to-tr .text-white,
+html.theme-light .matrix-cell.crosshair {
+  color: #ffffff !important;
+}
+
+html.theme-light .bg-indigo-600 {
+  background-color: #4f46e5 !important;
+}
+
+html.theme-light .bg-emerald-600 {
+  background-color: #059669 !important;
+}
+
+html.theme-light .bg-rose-600 {
+  background-color: #e11d48 !important;
+}
+
+html.theme-light #lobby-recommended-card {
+  background: linear-gradient(to right, #eef2ff, #ffffff, #ecfdf5) !important;
+  border-color: #a5b4fc !important;
+}
+
+html.theme-light #lobby-daily-challenge-card {
+  background: linear-gradient(to right, #ecfeff, #ffffff, #eef2ff) !important;
+  border-color: #67e8f9 !important;
+}
+
+html.theme-light #lobby-mistakes-alert {
+  background: linear-gradient(to right, #fff1f2, #fffbeb) !important;
+  border-color: #fda4af !important;
+}
+
+html.theme-light #lobby-shared-banner {
+  background: linear-gradient(to right, #eef2ff, #ecfeff) !important;
+  border-color: #818cf8 !important;
+}
+
+html.theme-light .bg-indigo-950\/40 {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+
+html.theme-light .bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+html.theme-light .bg-rose-950\/70 {
+  background-color: #ffe4e6 !important;
+  border-color: #fda4af !important;
+}
+
+html.theme-light .choice-btn,
+html.theme-light .pvp-choice-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.theme-light .choice-correct {
+  background-color: #d1fae5 !important;
+  border-color: #10b981 !important;
+  color: #065f46 !important;
+}
+
+html.theme-light .choice-wrong {
+  background-color: #ffe4e6 !important;
+  border-color: #f43f5e !important;
+  color: #9f1239 !important;
+}
+
+html.theme-light .matrix-cell.mastered {
+  background: rgba(16, 185, 129, 0.22);
+  color: #065f46;
+}
+
+html.theme-light .matrix-cell.learning {
+  background: rgba(245, 158, 11, 0.24);
+  color: #92400e;
+}
+
+html.theme-light .matrix-cell.struggling {
+  background: rgba(239, 68, 68, 0.22);
+  color: #9f1239;
+}
+
+html.theme-light .matrix-cell.untested {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+/* ==========================================================================
+   PRINTABLE PARENT / TEACHER PROGRESS REPORT
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header,
+  main,
+  #modal-matrix,
+  #modal-mobile-menu,
+  #modal-profiles,
+  .no-print {
+    display: none !important;
+  }
+
+  #modal-stats {
+    position: static !important;
+    display: block !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+  }
+
+  #modal-stats > div {
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #94a3b8 !important;
+    box-shadow: none !important;
+  }
+
+  #modal-stats * {
+    color: #0f172a !important;
+    background: transparent !important;
+    border-color: #cbd5e1 !important;
+  }
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATIONS, ARCADE MODES & NEW MODAL THEME SUPPORT
+   ========================================================================== */
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mq-toast {
+  animation: toastSlideIn 0.2s ease-out forwards;
+  pointer-events: auto;
+}
+
+#meteor-canvas {
+  display: block;
+  width: 100%;
+  height: 300px;
+}
+
+@media (min-width: 640px) {
+  #meteor-canvas {
+    height: 350px;
+  }
+}
+
+.tug-stunned {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+
+#tug-rope-knot,
+#pvp-rope-knot {
+  transition: left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#survival-fuse-bar {
+  transition: width 0.1s linear;
+}
+
+html.theme-light #modal-leaderboard,
+html.theme-light #modal-confirm {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+html.theme-light #btn-confirm-ok,
+html.theme-light #btn-lb-apply-room,
+html.theme-light #btn-results-leaderboard,
+html.theme-light #btn-pvp-find-match,
+html.theme-light #btn-pvp-create-room,
+html.theme-light #btn-pvp-join-room,
+html.theme-light #btn-pvp-rematch {
+  color: #ffffff !important;
+}
+
+html.theme-light #tug-p1-zone,
+html.theme-light #tug-p2-zone,
+html.theme-light #pvp-lobby-panel,
+html.theme-light #pvp-equation-card {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: #cbd5e1 !important;
 }

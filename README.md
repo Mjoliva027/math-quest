@@ -18,47 +18,68 @@ Because **Math Quest** is a lightweight, zero-dependency client application with
 
 ---
 
-## 🎮 Game Modes (Inline 5-Column Carousel)
+## 🎮 Game Modes & Daily Sprint
 
-Math Quest features a streamlined **inline mode selector** (5-column grid on desktop, touch-friendly horizontal swipe carousel on mobile) showcasing all 5 training formats:
+Math Quest features a streamlined **6-card inline mode selector** (responsive grid on desktop, horizontal swipe carousel on mobile) plus the Daily Math Challenge and Mistake Review Drill:
 
-1. **⚡ Speed Blitz (Time Attack):**
-   * Race the clock (choose **30s**, **60s**, or **120s** runs).
-   * **⏱️ Tiered Streak Time Bonus:** High streaks earn extra seconds back to the clock!
-     * **Streak 3:** **+2s** Streak Bonus
-     * **Streak 5:** **+3s** Fever Bonus
-     * **Streak 10+ (every 5):** **+5s** Mega Streak Bonus
-   * Build consecutive streaks to trigger score & XP multipliers (`1.5x`, `2x`, `3x`).
-   * Reach a streak of **5+** to activate **🔥 Fever Mode** (3.5x multiplier, neon fiery border, accelerated BGM tempo!).
+1. **📅 Daily Math Challenge (15-Question Sprint):**
+   * Deterministic date-seeded 15-problem sprint mixing Multiplication, Division, and Mystery Factor so every learner solves the exact same set each day.
+   * Awards a **+50 Bonus XP** first-completion reward and generates a **Wordle-style emoji share grid** (`🟩`/`🟥`, time, and streak).
 
-2. **♾️ Endless Cards (Choice-Based Continuous Practice):**
-   * Untimed, pressure-free flashcard-style practice with multiple choice options.
-   * Play as many problems as you want without life limits or ticking clocks.
-   * Tracks your active card count (`#1`, `#2`, ...), streak bonuses, and XP.
-   * Tap **Finish** anytime to end the session, review mistakes, and record your Endless High Score.
+2. **⚔️ PvP Arena (Online 1v1 HP Battle, Online Tug-of-War & 2P Local):**
+   * **Find Online Match:** Queue up on Vercel + Upstash Redis (`/api/match`) for real-time **1v1 HP Battles** (100 HP, `<2.5s` Critical Strikes, 5-Streak Shield) OR **Online Tug-of-War** (pull the shared rope 6 steps to win with `+2` Power Pulls)!
+   * **8-Second AI Rival Fallback:** If playing offline, locally, or when no human opponent is waiting, an adaptive AI Rival automatically steps in so you can battle anytime.
+   * **Friend Room Codes & Invite Links:** Create a 6-letter Room Code or share `?mode=pvp&code=XXXXXX&format=duel|tug` to duel friends directly.
+   * **Same-Device 2P Tug-of-War:** Launch split-screen offline 2-player duels (`A/S/D/F` vs `J/K/L/;` + **Flip Top 180°**) right from the PvP Hub.
 
-3. **🐉 RPG Boss Battle (Combat Mode):**
-   * Real RPG combat against animated math monsters:
-     * **Goblin Multiplier** (Tier 1, 100 HP)
-     * **Iron Math Golem** (Tier 2, 160 HP)
-     * **Calculus Hydra** (Tier 3, 240 HP)
-   * Correct answers trigger player sword slash attacks with floating damage numbers.
-   * Wrong answers or letting the 12s turn timer expire allows the boss to counter-attack!
-   * Defeating bosses awards special badges, bonus XP, and celebratory confetti.
+3. **☄️ Meteor Blaster (HTML5 Canvas Arcade):**
+   * Glowing equations descend toward your 3-shield base in real time!
+   * Type answers via physical keyboard/numpad or tap quick-target pills to fire lasers with particle explosions and wave progression.
+   * Catch **❄️ Freeze**, **💥 Nova**, and **🛡️ Shield** power-up meteors.
 
-4. **❤️ Survival (3 Hearts):**
-   * Start with 3 lives.
-   * Every mistake costs one heart.
-   * Untimed — tests pure precision and endurance under high stakes.
+4. **❤️ Survival Gauntlet (Endless Tower):**
+   * Climb Floors (every 5 correct answers advances a floor with **+25 Bonus XP** and escalating difficulty + score multipliers!).
+   * Beat the tightening per-question fuse (`15s` down to `7s`, with `❚❚` / `Esc` Pause), recover **+1 Heart** on a **10-answer streak**, and deploy **50/50 Hint** & **Shield Skip** tactical lifelines.
 
-5. **🎴 Flashcards (Study Mode):**
-   * Self-paced 3D card flips with touch swipe gestures (swipe left for learning, right for mastered).
-   * Tap or press **Spacebar** to flip the card and reveal the answer with conceptual hints and **visual dot array area models**.
-   * Rate your mastery with **Still Learning** or **Mastered!** to build confidence.
+5. **⚡ Speed Blitz (Time Attack):**
+   * Race the clock (choose **30s**, **60s**, or **120s** runs) with **Pause / Resume** (`Esc`), tiered Streak Time Bonuses (`+2s` / `+3s` / `+5s`), and **🔥 Fever Mode** (`3.5x` points + live Fever meter).
 
-6. **⚡ Mistake Review Drill:**
-   * Automatically collects any problem answered incorrectly during any round.
-   * Allows players to replay and drill exclusively their missed equations until mastered!
+6. **♾️ Endless Cards & 🎴 Study Flashcards:**
+   * Pressure-free untimed drills (`Finish` anytime) and 3D flip flashcards with **interactive skip-counting dot arrays** (tap any row to count by multiples!).
+
+7. **⚡ Mistake Review Drill:**
+   * Automatically collects missed equations across rounds and rotates missed cards to the back of the queue until mastered.
+
+---
+
+## 🏆 Leaderboards & Free Vercel Hosting (GitHub + Upstash Redis)
+
+Math Quest supports **Hybrid Leaderboards**:
+* **This Device (Offline):** Always works out of the box across all local learner profiles (Total XP, Today's Daily, Best Blitz, Survival Gauntlet, Meteor Blaster).
+* **Online Global, Friend Rooms & PvP Matchmaking (Vercel Serverless):** Hosted via `api/leaderboard.js` and `api/match.js` (zero npm packages) using Upstash Redis REST API. Enter any **Room Code** (e.g. `GRADE4B`) on leaderboards to compete exclusively with a classroom or friend group!
+
+### Deploy Free on Vercel via GitHub:
+1. Push this repository to a GitHub repo.
+2. Import the repo into **Vercel** (Hobby free tier — framework preset: **Other**, build command: none, output directory: `.`).
+3. *(Optional for Online Leaderboards & Online PvP)* Add **Upstash Redis** from the **Vercel Marketplace / Storage** tab so `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are automatically attached to your project, then redeploy.
+4. Security headers and `sw.js` cache headers are pre-configured in `vercel.json`.
+
+---
+
+## 🔢 Operations & Adaptive Learning
+
+* **6 Operation Modes:** Multiplication (`×`), Division (`÷`), Mystery Factor (`? × b = c`), Addition (`+`), Subtraction (`−`), and Mixed.
+* **Recommended Next Quest:** Analyzes your mistake queue, per-table accuracy, and response-time fluency (`>4.5s` slow facts) to suggest the highest-impact next drill or speed challenge.
+* **Daily Streak & Daily Quests:** Earn consecutive-day streaks and complete 3 rotating daily quests for bonus XP.
+
+---
+
+## 👥 Multi-Player Profiles, Themes & Sharing (Zero Backend)
+
+* **Local Player Profiles:** Switch, create, or remove separate learner profiles on shared family tablets or classroom devices without overwriting streaks or 12×12 heatmaps.
+* **Shareable Teacher / Parent Practice Links:** Click **Copy Practice Link** in Customize Practice to generate URL parameters (`?mode=...&op=...&diff=...&tables=...&input=...&dur=...`) that pre-configure a shared assignment.
+* **Dark & Daylight Classroom Themes:** Toggle between the signature dark arcade theme and a high-contrast light theme persisted per profile.
+* **Parent / Teacher Progress Snapshot:** View facts mastered out of 78 (`1×1`–`12×12`), mastered tables, average response speed, and top focus facts inside Career Stats, with **Print / Save PDF** support.
 
 ---
 
@@ -66,64 +87,40 @@ Math Quest features a streamlined **inline mode selector** (5-column grid on des
 
 * Click the **12×12 Grid** button in the top navigation bar to open the full interactive Pythagorean table.
 * **Mastery Heatmap:**
-  * 🟩 **Green (Mastered):** $\ge 80\%$ accuracy across attempts.
-  * 🟨 **Yellow (Learning):** $50\% - 79\%$ accuracy.
-  * 🟥 **Red (Needs Work):** $< 50\%$ accuracy.
+  * 🟩 **Green (Mastered):** >= 80% accuracy across attempts.
+  * 🟨 **Yellow (Learning):** 50% - 79% accuracy.
+  * 🟥 **Red (Needs Work):** < 50% accuracy.
   * ⬛ **Slate (Untested):** Not yet practiced.
-* **Interactive Crosshairs:** Hovering/tapping any cell highlights the factors, shows historical accuracy stats, and provides a **"Practice Table of X"** button for instant focused drilling.
+* **Interactive Crosshairs:** Hovering/tapping any cell highlights the factors, shows historical accuracy & average speed stats, and provides a **"Table of X"** button for instant focused drilling.
 
 ---
 
 ## 🟣 Visual Area Model (Dot Array Grid)
 
-* Multiplication is visually represented as an interactive grid of glowing dots (e.g. $4 \times 6$ renders 4 rows of 6 glowing gems).
+* Multiplication is visually represented as an interactive grid of glowing dots (e.g. `4 × 6` renders 4 rows of 6 glowing gems).
 * **Zero Answer Spoiler:** The answer remains safely concealed as `?` until the user submits their response, at which point the full equation is highlighted in glowing emerald or rose.
-* Available during quiz hints and on the back of study flashcards to help visual learners connect repeated addition to geometric arrays.
 
 ---
 
-## 🎨 Professional Vector SVG Iconography
+## ⌨️ Dual Input Styles, Auto-Submit & Keyboard Shortcuts
 
-* All UI icons have been upgraded from casual emojis to crisp, clean, lightweight inline vector SVGs.
-* Seamlessly styled for high-DPI retina displays with responsive coloring matching player rank, fever state, and active modes.
-
----
-
-## 🎵 8-Bit Synth BGM & 🗣️ Voice Read-Aloud
-
-* **Chiptune Arcade BGM:** Toggleable background music generated on the fly via the browser's native **Web Audio API** (zero MP3 files needed). Tempo and pitch dynamically accelerate when entering **Fever Mode**.
-* **🗣️ Speech Synthesis:** Uses the native browser Speech API to read aloud equations (e.g. *"What is seven times eight?"*) — perfect for younger learners and auditory memorization.
+* **Multiple Choice Mode:** 4 dynamically generated options; click or press **`1`**, **`2`**, **`3`**, **`4`**.
+* **Direct Input Mode:** Tactile on-screen numpad with **Backspace (`⌫`)**, **Clear**, and optional **Auto-Submit** (submits automatically once typed digits match the answer length), plus physical keyboard `0`–`9`, `Backspace`, `Enter`, and `Esc` to pause/resume or exit.
+* **Flashcards Navigation:** `Spacebar` / Tap / Click to flip; `1` or `ArrowLeft` for Still Learning; `2` or `ArrowRight` for Mastered.
 
 ---
 
-## ⌨️ Dual Input Styles & Keyboard Shortcuts
+## 🏆 Progression, Achievements & Offline PWA Storage
 
-* **Multiple Choice Mode:**
-  * 4 dynamically generated options with realistic distractors.
-  * Click on-screen buttons or press **`1`**, **`2`**, **`3`**, **`4`** on your keyboard.
-* **Direct Input Mode:**
-  * Tactile on-screen numpad for mobile/tablets.
-  * Physical keyboard support: type digits `0`–`9`, `Backspace` to delete, and `Enter` to submit.
-* **Flashcards Navigation:**
-  * `Spacebar` / Click: Flip card.
-  * `1` or `ArrowLeft`: Need more practice.
-  * `2` or `ArrowRight`: Mastered.
-
----
-
-## 🏆 Progression, Achievements & Storage
-
-* **XP & Level Progression:** Earn experience points, climb from *Number Novice* to *Grand Math Sage*, and track lifetime statistics.
-* **Badges & Achievements:** 8 unlockable milestone achievements (e.g., *Flame Keeper*, *Centurion*, *Boss Slayer*, *Hydra Bane*, *Speed Demon*, *Card Scholar*) tracked and showcased inside the Career Stats modal.
-* **Adaptive Learning Engine:** Automatically analyzes your 12×12 matrix heatmap and mistakes queue, prioritizing your struggling and unmastered multiplication facts ~45% of the time to maximize learning retention.
-* **JSON Backup & Restore:** Export your entire career history, high scores, matrix mastery stats, and unlocked achievements as a standalone `.json` backup file, or import it to sync between devices.
-* **Offline Local Storage & PWA:** Zero database required — fully installable as a mobile or desktop Progressive Web App via `manifest.json` and `sw.js` for instant offline practice.
+* **XP & Level Progression:** Climb from *Number Novice* to *Grand Math Sage* across 8 unlockable milestone badges.
+* **Persisted Preferences & JSON Backup:** All lobby settings, theme, and auto-submit preferences persist automatically, with full JSON export/import backup inside Career Stats.
+* **Offline Local Storage & PWA:** Installable via `manifest.json`, PNG icons, in-app **Install** prompt, and Service Worker (`sw.js`, `math-quest-v4`).
 
 ---
 
 ## 🧪 Automated Testing
 
-Math Quest includes an integrated Node.js test suite covering math generation, distractor uniqueness, visual arrays, matrix tracking, and JSON data integrity:
+Math Quest includes an integrated Node.js test suite covering math generation, seeded PvP decks, PvP combat/tug-of-war state, Survival Gauntlet floors, deterministic daily challenges, multi-profile storage, leaderboard safety, and JSON data integrity:
 
 ```bash
 node tests/runner.js

@@ -84,8 +84,8 @@ const SoundEngine = (() => {
     return speechEnabled;
   }
 
-  function speak(text) {
-    if (!speechEnabled || !('speechSynthesis' in window)) return;
+  function speak(text, force = false) {
+    if ((!speechEnabled && !force) || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel(); // Cancel any previous speech
       const utterance = new SpeechSynthesisUtterance(text);
@@ -97,12 +97,21 @@ const SoundEngine = (() => {
     }
   }
 
-  function speakEquation(num1, op, num2) {
-    if (!speechEnabled) return;
+  function speakEquation(num1, op, num2, force = false, extra = null) {
+    if (!speechEnabled && !force) return;
+    if (op === 'missing' && extra && extra.product) {
+      if (extra.missingPosition === 'first') {
+        speak(`what times ${extra.knownFactor} equals ${extra.product}`, force);
+      } else {
+        speak(`${extra.knownFactor} times what equals ${extra.product}`, force);
+      }
+      return;
+    }
     let opWord = 'times';
     if (op === 'add' || op === '+') opWord = 'plus';
     if (op === 'subtract' || op === '−') opWord = 'minus';
-    speak(`${num1} ${opWord} ${num2}`);
+    if (op === 'divide' || op === '÷') opWord = 'divided by';
+    speak(`${num1} ${opWord} ${num2}`, force);
   }
 
   /**
@@ -231,6 +240,21 @@ const SoundEngine = (() => {
     playTone(60, 'sine', 0.4, 0.05, 0.35);
   }
 
+  // Critical hit sound (energetic rising triad)
+  function playCritical() {
+    if (muted) return;
+    playTone(659.25, 'triangle', 0.1, 0, 0.22);
+    playTone(880, 'sawtooth', 0.12, 0.05, 0.16);
+    playTone(1318.5, 'triangle', 0.22, 0.1, 0.24);
+  }
+
+  // Shield block deflect sound
+  function playShieldBlock() {
+    if (muted) return;
+    playTone(440, 'sine', 0.14, 0, 0.2);
+    playTone(784, 'triangle', 0.2, 0.06, 0.22);
+  }
+
   // Soft flip whoosh for flashcards
   function playFlip() {
     if (muted) return;
@@ -337,6 +361,8 @@ const SoundEngine = (() => {
     playSlash,
     playBossHit,
     playBossAttack,
+    playCritical,
+    playShieldBlock,
     playFlip,
     playClick,
     playLevelUp,
