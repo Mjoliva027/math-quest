@@ -124,6 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
     memoryDeck: [],
     memoryIndex: 0,
     isFirstTimeOnboarding: false,
+    audioPreviewTimer: null,
+    audioPreviewRestore: null,
   };
 
   // =========================================================================
@@ -398,6 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordSurvival = document.getElementById('record-survival');
   const recordEndless = document.getElementById('record-endless');
   const recordMeteor = document.getElementById('record-meteor');
+  const recordBoss = document.getElementById('record-boss');
   const achievementsContainer = document.getElementById('achievements-container');
   const achievementsCount = document.getElementById('achievements-count');
   const statsChartSummary = document.getElementById('stats-chart-summary');
@@ -3549,6 +3552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     shopTabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         SoundEngine.playClick();
+        stopAudioPreview();
         state.shopTab = btn.dataset.shopTab || 'avatars';
         if (shopFeedback) shopFeedback.textContent = '';
         renderShopModal();
@@ -4365,6 +4369,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnProfilesDone) {
       btnProfilesDone.textContent = state.isFirstTimeOnboarding ? 'Play as Guest / Continue' : 'Done';
     }
+    if (state.isFirstTimeOnboarding && inputNewProfileName && !inputNewProfileName.value.trim() && typeof LeaderboardClient !== 'undefined') {
+      inputNewProfileName.value = LeaderboardClient.generateHeroName();
+    }
     renderProfilesModal();
     modalProfiles.classList.remove('hidden');
   }
@@ -4484,6 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actionBtn.textContent = 'Equip';
         actionBtn.addEventListener('click', () => {
           SoundEngine.playClick();
+          stopAudioPreview();
           const res = StorageManager.equipCosmetic(tab, item.id);
           if (res.success) {
             if (tab === 'themes') applyTheme(item.id);
@@ -4503,6 +4511,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'w-full py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 text-[11px] font-bold';
         actionBtn.textContent = `Unlock · ${item.cost} ⭐`;
         actionBtn.addEventListener('click', () => {
+          stopAudioPreview();
           const res = StorageManager.purchaseShopItem(tab, item.id);
           if (res.success) {
             SoundEngine.playLevelUp();
@@ -4519,9 +4528,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      card.appendChild(actionBtn);
+      if (tab === 'audio') {
+        const actionsRow = document.createElement('div');
+        actionsRow.className = 'flex items-center gap-1.5';
+        const previewBtn = document.createElement('button');
+        previewBtn.type = 'button';
+        previewBtn.className = 'px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 border border-slate-700 text-indigo-300 text-[11px] font-bold active:scale-95 flex-shrink-0';
+        previewBtn.textContent = '▶ Preview';
+        previewBtn.title = `Preview ${item.name}`;
+        previewBtn.addEventListener('click', () => previewShopAudioItem(item));
+        actionsRow.appendChild(previewBtn);
+        actionsRow.appendChild(actionBtn);
+        card.appendChild(actionsRow);
+      } else {
+        card.appendChild(actionBtn);
+      }
       shopItemsGrid.appendChild(card);
     });
+  }
+
+  function stopAudioPreview() {
+    clearTimeout(state.audioPreviewTimer);
+    state.audioPreviewTimer = null;
+    if (state.audioPreviewRestore) {
+      const fn = state.audioPreviewRestore;
+      state.audioPreviewRestore = null;
+      fn();
+    }
+  }
+
+  function previewShopAudioItem(item) {
+    if (!item || typeof SoundEngine === 'undefined') return;
+    if (SoundEngine.isMuted()) {
+      showToast('Unmute sound to preview audio.', 'info');
+      return;
+    }
+    stopAudioPreview();
+
+    if (item.kind === 'sfx') {
+      SoundEngine.setSfxPack(item.id);
+      SoundEngine.playCorrect();
+      state.audioPreviewRestore = () => {
+        const equipped = (StorageManager.getShopState().cosmetics || {}).equippedSfx || 'sfx_classic';
+        SoundEngine.setSfxPack(equipped);
+      };
+      state.audioPreviewTimer = setTimeout(stopAudioPreview, 450);
+    } else {
+      const wasMuted = SoundEngine.isBgmMuted();
+      SoundEngine.setBgmTrack(item.id);
+      if (wasMuted) SoundEngine.toggleBGM();
+      if (shopFeedback) shopFeedback.textContent = `Previewing ${item.name}...`;
+      state.audioPreviewRestore = () => {
+        const equipped = (StorageManager.getShopState().cosmetics || {}).equippedBgm || 'bgm_classic';
+        SoundEngine.setBgmTrack(equipped);
+        if (wasMuted && !SoundEngine.isBgmMuted()) SoundEngine.toggleBGM();
+      };
+      state.audioPreviewTimer = setTimeout(stopAudioPreview, 2200);
+    }
   }
 
   function openShopModal() {
@@ -4533,6 +4596,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeShopModal() {
+    stopAudioPreview();
     if (modalShop) modalShop.classList.add('hidden');
   }
 
@@ -4824,6 +4888,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recordSurvival) recordSurvival.textContent = stats.highScores.survival || 0;
     if (recordEndless) recordEndless.textContent = stats.highScores.endless || 0;
     if (recordMeteor) recordMeteor.textContent = stats.highScores.meteor || 0;
+    if (recordBoss) recordBoss.textContent = stats.highScores.boss || 0;
 
     // Render Achievements Showcase
     const achievements = StorageManager.getAchievements();
