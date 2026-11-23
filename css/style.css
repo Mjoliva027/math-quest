@@ -673,6 +673,7 @@ html.theme-light .matrix-cell.untested {
   #modal-matrix,
   #modal-mobile-menu,
   #modal-profiles,
+  #modal-guide,
   .no-print {
     display: none !important;
   }
@@ -993,12 +994,16 @@ html.theme-forest .text-indigo-400 {
 
 html.theme-synthwave #modal-shop,
 html.theme-nebula #modal-shop,
-html.theme-forest #modal-shop {
+html.theme-forest #modal-shop,
+html.theme-synthwave #modal-guide,
+html.theme-nebula #modal-guide,
+html.theme-forest #modal-guide {
   background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Light theme support for engagement elements */
-html.theme-light #modal-shop {
+html.theme-light #modal-shop,
+html.theme-light #modal-guide {
   background-color: rgba(15, 23, 42, 0.45) !important;
 }
 html.theme-light #lobby-ghost-banner {
