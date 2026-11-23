@@ -275,6 +275,17 @@ describe('Engagement API - PvP board, Room Goals, Emotes & Searching Count', () 
     const keys = lbApi.buildRoomGoalKeys('GRADE4B', '2026-W47');
     expect(keys.countKey).toContain('GRADE4B');
     expect(keys.membersKey).toContain('2026-W47');
+
+    const rawEntries = [
+      JSON.stringify({ name: 'Player 1', avatar: 'knight', clientId: 'cid_1', ts: 2 }), '715',
+      JSON.stringify({ name: 'Ally', avatar: 'owl', clientId: 'cid_2', ts: 3 }), '520',
+      JSON.stringify({ name: 'Player 1', avatar: 'knight', clientId: 'cid_1', ts: 1 }), '105',
+    ];
+    const deduped = lbApi.deduplicateLeaderboardEntries(rawEntries, 25);
+    expect(deduped.length).toBe(2);
+    expect(deduped[0].score).toBe(715);
+    expect(deduped[1].name).toBe('Ally');
+    expect(deduped[1].rank).toBe(2);
   });
 
   it('tracks searching players in a 30s sliding window with removal', () => {

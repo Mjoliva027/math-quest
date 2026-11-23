@@ -228,6 +228,43 @@ function validateScoreSubmission(body) {
   };
 }
 
+function getLeaderboardIdentity(meta) {
+  const safeName = sanitizeNickname(meta && meta.name).toLowerCase();
+  const clientId = meta && typeof meta.clientId === 'string'
+    ? meta.clientId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 48)
+    : '';
+  return clientId ? `${clientId}:${safeName}` : safeName;
+}
+
+function deduplicateLeaderboardEntries(rawList, limit = 25) {
+  const entries = [];
+  const seen = new Set();
+  if (!Array.isArray(rawList)) return entries;
+
+  for (let i = 0; i < rawList.length && entries.length < limit; i += 2) {
+    try {
+      const meta = JSON.parse(rawList[i]);
+      const rawScore = Number(rawList[i + 1]);
+      const identity = getLeaderboardIdentity(meta);
+      if (seen.has(identity)) continue;
+      seen.add(identity);
+      entries.push({
+        rank: entries.length + 1,
+        name: sanitizeNickname(meta.name),
+        avatar: ALLOWED_AVATARS.includes(meta.avatar) ? meta.avatar : 'knight',
+        score: rawScore,
+        correct: meta.correct,
+        total: meta.total,
+        timeSeconds: meta.timeSeconds,
+        wave: meta.wave,
+        floor: meta.floor,
+        clientId: meta.clientId || '',
+      });
+    } catch (e) {}
+  }
+  return entries;
+}
+
 function getRedisCredentials() {
   const url = String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
   const token = String(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '').trim();
@@ -349,28 +386,8 @@ async function handler(req, res) {
 
     try {
       const key = buildBoardKey(board, dateKey, room);
-      const rawList = await redisCommand(['ZREVRANGE', key, 0, 24, 'WITHSCORES']);
-      const entries = [];
-      if (Array.isArray(rawList)) {
-        for (let i = 0; i < rawList.length; i += 2) {
-          try {
-            const meta = JSON.parse(rawList[i]);
-            const rawScore = Number(rawList[i + 1]);
-            entries.push({
-              rank: entries.length + 1,
-              name: sanitizeNickname(meta.name),
-              avatar: ALLOWED_AVATARS.includes(meta.avatar) ? meta.avatar : 'knight',
-              score: rawScore,
-              correct: meta.correct,
-              total: meta.total,
-              timeSeconds: meta.timeSeconds,
-              wave: meta.wave,
-              floor: meta.floor,
-              clientId: meta.clientId || '',
-            });
-          } catch (e) {}
-        }
-      }
+      const rawList = await redisCommand(['ZREVRANGE', key, 0, 74, 'WITHSCORES']);
+      const entries = deduplicateLeaderboardEntries(rawList, 25);
       return sendJson(res, 200, { configured: true, board, dateKey, room, entries });
     } catch (err) {
       return sendJson(res, 500, { configured: true, error: 'Failed to load leaderboard', entries: [] });
@@ -440,6 +457,31 @@ async function handler(req, res) {
         memberObj.floor = d.floor;
       }
 
+      const myIdentity = getLeaderboardIdentity(memberObj);
+      const existingRaw = await redisCommand(['ZREVRANGE', key, 0, 99, 'WITHSCORES']);
+      const staleMembers = [];
+      let bestExisting = -1;
+      if (Array.isArray(existingRaw)) {
+        for (let i = 0; i < existingRaw.length; i += 2) {
+          try {
+            const parsed = JSON.parse(existingRaw[i]);
+            if (getLeaderboardIdentity(parsed) === myIdentity) {
+              const s = Number(existingRaw[i + 1]);
+              if (Number.isFinite(s) && s > bestExisting) bestExisting = s;
+              staleMembers.push(existingRaw[i]);
+            }
+          } catch (e) {}
+        }
+      }
+
+      if (bestExisting >= d.score) {
+        return sendJson(res, 200, { configured: true, accepted: true, keptBest: true, entry: memberObj, score: bestExisting });
+      }
+
+      if (staleMembers.length > 0) {
+        await redisCommand(['ZREM', key, ...staleMembers]);
+      }
+
       await redisCommand(['ZADD', key, d.score, JSON.stringify(memberObj)]);
       // Retain top 100 entries (remove lower ranks from 0 to -101)
       await redisCommand(['ZREMRANGEBYRANK', key, 0, -101]);
@@ -467,5 +509,6 @@ handler.normalizeRoomCode = normalizeRoomCode;
 handler.computeCompositeScore = computeCompositeScore;
 handler.buildBoardKey = buildBoardKey;
 handler.generateKidSafeName = generateKidSafeName;
+handler.deduplicateLeaderboardEntries = deduplicateLeaderboardEntries;
 
 module.exports = handler;
