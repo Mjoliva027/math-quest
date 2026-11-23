@@ -60,11 +60,11 @@
             <path d="m5 3-2 2"></path>
           </svg>
         </div>
-        <div>
+        <div class="hidden sm:block">
           <h1 class="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
             MATH QUEST
           </h1>
-          <p class="text-[10px] text-slate-400 font-medium hidden sm:block">Master Multiplication & Math</p>
+          <p class="text-[10px] text-slate-400 font-medium">Master Multiplication &amp; Math</p>
         </div>
       </div>
 
@@ -160,7 +160,7 @@
         <!-- Player Profile Switcher (Upper-Right) -->
         <button id="btn-profile-switcher" type="button" title="Switch Player Profile" class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-bold text-slate-200 transition-all active:scale-95 max-w-[95px] sm:max-w-[140px]">
           <span id="nav-profile-avatar" class="flex items-center justify-center flex-shrink-0"></span>
-          <span id="nav-profile-name" class="truncate">Player 1</span>
+          <span id="nav-profile-name" class="hidden sm:inline truncate">Player 1</span>
         </button>
       </div>
     </div>
@@ -864,12 +864,12 @@
 
       <!-- Matchmaking & Room Lobby Panel -->
       <div id="pvp-lobby-panel" class="glass-card rounded-3xl p-4 sm:p-6 space-y-4 border border-amber-500/40 shadow-2xl">
-        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
           <div>
             <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">Multiplayer &amp; Rivals</span>
             <h2 class="text-lg sm:text-xl font-black text-white">PvP Battle Arena</h2>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span id="pvp-rank-badge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold text-orange-300">&#127942; 0 · Bronze</span>
             <span id="pvp-record-badge" class="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono font-bold text-amber-300">0W · 0L · 0 Streak</span>
             <button id="btn-pvp-lobby-exit" type="button" class="p-1.5 px-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold active:scale-95">
@@ -1463,18 +1463,18 @@
           <button id="btn-meteor-clear" type="button" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-rose-300">Clear</button>
         </div>
         <div class="grid grid-cols-3 gap-1.5 max-w-xs sm:max-w-sm mx-auto">
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="1">1</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="2">2</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="3">3</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="4">4</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="5">5</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="6">6</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="7">7</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="8">8</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="9">9</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-base font-bold active:scale-95" data-key="backspace">⌫</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="0">0</button>
-          <button type="button" class="meteor-numpad-btn py-2.5 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold active:scale-95" data-key="enter">↵</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="1">1</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="2">2</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="3">3</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="4">4</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="5">5</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="6">6</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="7">7</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="8">8</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="9">9</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 font-mono text-base font-bold active:scale-95" data-key="backspace">⌫</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono text-lg font-bold active:scale-95" data-key="0">0</button>
+          <button type="button" class="meteor-numpad-btn py-2 sm:py-2.5 rounded-xl bg-emerald-600 border border-emerald-400 text-white font-mono text-sm font-bold active:scale-95" data-key="enter">↵</button>
         </div>
       </div>
       </div>
@@ -1706,7 +1706,7 @@
       </div>
 
       <!-- Mobile Segment Switcher -->
-      <div class="flex bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+      <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[11px] sm:text-xs font-bold">
         <button type="button" class="matrix-tab-btn flex-1 py-1.5 rounded-lg bg-indigo-600 text-white active:scale-95 text-center" data-tab="1-6">
           Tables 1–6
         </button>
@@ -2025,7 +2025,7 @@
       </div>
 
       <!-- Main Tabs -->
-      <div class="grid grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-lb-tab="local">This Device</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="daily">Daily</button>
         <button type="button" class="lb-tab-btn py-1.5 rounded-lg text-slate-400" data-lb-tab="blitz_60">Blitz 60s</button>
@@ -2096,7 +2096,7 @@
           <button id="btn-close-shop" type="button" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
         </div>
       </div>
-      <div class="grid grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[10px] sm:text-[11px] font-bold">
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg bg-indigo-600 text-white" data-shop-tab="avatars">Avatars</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="frames">Frames</button>
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="lasers">Lasers</button>
@@ -2105,7 +2105,7 @@
         <button type="button" class="shop-tab-btn py-1.5 rounded-lg text-slate-400" data-shop-tab="consumables">Boosts</button>
       </div>
       <p id="shop-feedback" class="text-[11px] text-slate-400 min-h-[1rem]"></p>
-      <div id="shop-items-grid" class="flex-1 overflow-y-auto grid grid-cols-2 gap-2 pr-1 max-h-72"></div>
+      <div id="shop-items-grid" class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1 max-h-72"></div>
       <div class="pt-2 border-t border-slate-800 flex justify-end">
         <button id="btn-shop-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">Done</button>
       </div>
