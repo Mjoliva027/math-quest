@@ -530,10 +530,15 @@ function buildPublicMatchView(match, viewerPlayerId, nowMs = Date.now()) {
   };
 }
 
+function getRedisCredentials() {
+  const url = String(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').trim();
+  const token = String(process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '').trim();
+  return { url, token, configured: Boolean(url && token) };
+}
+
 async function redisCommand(commandArgs) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const { url, token, configured } = getRedisCredentials();
+  if (!configured) {
     throw new Error('Redis not configured');
   }
 
@@ -709,7 +714,7 @@ async function parseJsonBody(req) {
 }
 
 async function handler(req, res) {
-  const isConfigured = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  const isConfigured = getRedisCredentials().configured;
 
   if (req.method === 'GET') {
     const query = req.query || {};
