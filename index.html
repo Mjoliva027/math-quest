@@ -141,6 +141,14 @@
               <path d="M8 17v-3"></path>
             </svg>
           </button>
+
+          <button id="btn-guide-toggle" type="button" title="How to Play" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 hover:text-white transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
         </div>
 
         <!-- Mobile Action Bar -->
@@ -1671,6 +1679,18 @@
             <span class="text-[10px] text-slate-400">Device, Daily Global &amp; Room Codes</span>
           </div>
         </button>
+
+        <button id="btn-menu-guide" type="button" class="p-3.5 rounded-2xl bg-indigo-950/60 border border-indigo-500/40 text-left flex flex-col justify-between active:scale-95 col-span-2">
+          <svg class="w-5 h-5 text-indigo-300 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <div>
+            <span class="font-bold text-white block">How to Play</span>
+            <span class="text-[10px] text-slate-400">Simple step-by-step walkthrough</span>
+          </div>
+        </button>
       </div>
 
       <button id="btn-menu-install" type="button" class="hidden w-full py-2.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
@@ -2108,6 +2128,48 @@
       <div id="shop-items-grid" class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1 max-h-72"></div>
       <div class="pt-2 border-t border-slate-800 flex justify-end">
         <button id="btn-shop-done" type="button" class="px-3.5 py-1.5 bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 7: STEP-BY-STEP HOW TO PLAY GUIDE
+       ==================================================================== -->
+  <div id="modal-guide" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 border border-indigo-500/40 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span id="guide-step-badge" class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-bold text-[11px] font-mono">Step 1 of 4</span>
+          <h3 class="text-sm sm:text-base font-bold text-white">How to Play</h3>
+        </div>
+        <button id="btn-close-guide" type="button" class="text-slate-400 hover:text-white text-lg p-1" title="Close Guide">✕</button>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900/75 border border-slate-800 p-4 space-y-3">
+        <div class="flex items-center gap-3">
+          <div id="guide-step-icon" class="w-11 h-11 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 text-xl"></div>
+          <div>
+            <h4 id="guide-step-title" class="text-sm sm:text-base font-black text-white leading-snug">Pick Your Mode &amp; Tables</h4>
+            <p id="guide-step-desc" class="text-xs text-slate-300 mt-0.5 leading-relaxed"></p>
+          </div>
+        </div>
+        <ul id="guide-step-bullets" class="space-y-1.5 text-xs text-slate-300 pt-1"></ul>
+      </div>
+
+      <div id="guide-step-dots" class="flex items-center justify-center gap-2"></div>
+
+      <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+        <button id="btn-guide-skip" type="button" class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold active:scale-95">
+          Skip
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="btn-guide-prev" type="button" class="hidden px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold active:scale-95">
+            Back
+          </button>
+          <button id="btn-guide-next" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow active:scale-95">
+            Next &rarr;
+          </button>
+        </div>
       </div>
     </div>
   </div>

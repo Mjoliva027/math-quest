@@ -126,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     isFirstTimeOnboarding: false,
     audioPreviewTimer: null,
     audioPreviewRestore: null,
+    guideStep: 0,
+    guideNextProfiles: false,
   };
 
   // =========================================================================
@@ -152,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSoundToggleMobile = document.getElementById('btn-sound-toggle-mobile');
   const soundIconMobileWrapper = document.getElementById('sound-icon-mobile-wrapper');
   const btnStatsModal = document.getElementById('btn-stats-modal');
+  const btnGuideToggle = document.getElementById('btn-guide-toggle');
   const btnMatrixToggle = document.getElementById('btn-matrix-toggle');
   const btnMobileMenu = document.getElementById('btn-mobile-menu');
   const modalMobileMenu = document.getElementById('modal-mobile-menu');
@@ -177,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuThemeStatus = document.getElementById('menu-theme-status');
   const btnMenuProfiles = document.getElementById('btn-menu-profiles');
   const btnMenuLeaderboard = document.getElementById('btn-menu-leaderboard');
+  const btnMenuGuide = document.getElementById('btn-menu-guide');
   const btnMenuInstall = document.getElementById('btn-menu-install');
   const btnMenuReset = document.getElementById('btn-menu-reset');
 
@@ -462,6 +466,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const shopFeedback = document.getElementById('shop-feedback');
   const shopItemsGrid = document.getElementById('shop-items-grid');
 
+  // Step-by-Step How to Play Guide Modal Elements
+  const modalGuide = document.getElementById('modal-guide');
+  const btnCloseGuide = document.getElementById('btn-close-guide');
+  const guideStepBadge = document.getElementById('guide-step-badge');
+  const guideStepIcon = document.getElementById('guide-step-icon');
+  const guideStepTitle = document.getElementById('guide-step-title');
+  const guideStepDesc = document.getElementById('guide-step-desc');
+  const guideStepBullets = document.getElementById('guide-step-bullets');
+  const guideStepDots = document.getElementById('guide-step-dots');
+  const btnGuideSkip = document.getElementById('btn-guide-skip');
+  const btnGuidePrev = document.getElementById('btn-guide-prev');
+  const btnGuideNext = document.getElementById('btn-guide-next');
+
   // Confirmation Dialog & Toasts
   const modalConfirm = document.getElementById('modal-confirm');
   const confirmModalTitle = document.getElementById('confirm-modal-title');
@@ -513,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       refreshLobbyOnlineCount();
       if (!state.ghostChallenge && typeof StorageManager.needsProfileSetup === 'function' && StorageManager.needsProfileSetup()) {
-        openProfilesModal(true);
+        openGuideModal(true);
       }
     }
   }
@@ -3867,8 +3884,42 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Stats Modal
+    // Stats Modal & How to Play Guide
     btnStatsModal.addEventListener('click', openStatsModal);
+    if (btnGuideToggle) btnGuideToggle.addEventListener('click', () => openGuideModal(false));
+    if (btnMenuGuide) {
+      btnMenuGuide.addEventListener('click', () => {
+        if (modalMobileMenu) modalMobileMenu.classList.add('hidden');
+        openGuideModal(false);
+      });
+    }
+    if (btnCloseGuide) btnCloseGuide.addEventListener('click', closeGuideModal);
+    if (btnGuideSkip) btnGuideSkip.addEventListener('click', closeGuideModal);
+    if (btnGuidePrev) {
+      btnGuidePrev.addEventListener('click', () => {
+        if (state.guideStep > 0) {
+          SoundEngine.playClick();
+          state.guideStep--;
+          renderGuideModal();
+        }
+      });
+    }
+    if (btnGuideNext) {
+      btnGuideNext.addEventListener('click', () => {
+        SoundEngine.playClick();
+        if (state.guideStep < GUIDE_STEPS.length - 1) {
+          state.guideStep++;
+          renderGuideModal();
+        } else {
+          closeGuideModal();
+        }
+      });
+    }
+    if (modalGuide) {
+      modalGuide.addEventListener('click', (e) => {
+        if (e.target === modalGuide) closeGuideModal();
+      });
+    }
     btnCloseStats.addEventListener('click', closeStatsModal);
     btnModalCloseAction.addEventListener('click', closeStatsModal);
     modalStats.addEventListener('click', (e) => {
@@ -4158,6 +4209,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleGlobalKeydown(e) {
     if (modalConfirm && !modalConfirm.classList.contains('hidden')) {
       if (e.key === 'Escape') closeConfirmDialog();
+      return;
+    }
+
+    if (modalGuide && !modalGuide.classList.contains('hidden')) {
+      if (e.key === 'Escape') {
+        closeGuideModal();
+      } else if (e.key === 'ArrowLeft' && state.guideStep > 0) {
+        state.guideStep--;
+        renderGuideModal();
+      } else if (e.key === 'ArrowRight') {
+        if (state.guideStep < GUIDE_STEPS.length - 1) {
+          state.guideStep++;
+          renderGuideModal();
+        } else {
+          closeGuideModal();
+        }
+      }
       return;
     }
 
@@ -4598,6 +4666,123 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeShopModal() {
     stopAudioPreview();
     if (modalShop) modalShop.classList.add('hidden');
+  }
+
+  const GUIDE_STEPS = [
+    {
+      icon: '🎮',
+      title: 'Pick Your Mode & Tables',
+      desc: 'Start a round from the home lobby in just two taps.',
+      bullets: [
+        'Swipe or pick a game mode: Speed Blitz, PvP Arena, Meteor Blaster, Survival, Endless, Flashcards, or Boss Battle.',
+        'Open Customize Practice below to choose +, −, ×, ÷, or Mystery Factor (?) and filter times tables (1×–12×).',
+        'Tap Start Playing (or Launch Recommended Quest) whenever you are ready.',
+      ],
+    },
+    {
+      icon: '⚡',
+      title: 'Solve Fast & Build Streaks',
+      desc: 'Answer quickly using taps, keyboard keys, or hands-free voice.',
+      bullets: [
+        'Choose Multiple Choice (keys 1–4) or Numpad typing (keys 0–9 + Enter / Auto-Submit), or tap 🎤 Speak where supported.',
+        'Streak 5+ activates 🔥 Fever Mode (3.5× points) and powers Nitro Racer & Companion Boss Strikes!',
+        'Need help? Tap rows on the Dot Array to skip-count, or read the Mental Trick Coach if you miss one.',
+      ],
+    },
+    {
+      icon: '⚔️',
+      title: 'Battle Friends & Join Rooms',
+      desc: 'Compete live, team up against a Boss, or play side-by-side offline.',
+      bullets: [
+        'In PvP Arena, pick 1v1 HP Battle, Tug-of-War, Co-Op Boss Raid, or Classroom Party Quiz.',
+        'Share your 6-letter Room Code or invite link — or play offline anytime with adaptive AI & 2P split-screen.',
+        'Enter a Classroom Room Code under Ranks to contribute solved facts to your group Weekly Goal.',
+      ],
+    },
+    {
+      icon: '🏆',
+      title: 'Earn Stars, Cards & Evolve Your Pet',
+      desc: 'Come back daily to unlock collectibles and track mastery.',
+      bullets: [
+        'Finish rounds and Daily Quests to open the Daily Mystery Chest for ⭐ Stars, 🛡️ Streak Freeze shields, or 2× XP boosts.',
+        'Spend ⭐ Stars in the Star Shop for rare avatars, frames, laser skins, themes, and chiptune audio packs.',
+        'Check 12×12 Grid for your Heatmap & 12 Holographic Hero Cards, and Stats for your 7-day chart & certificate!',
+      ],
+    },
+  ];
+
+  function renderGuideModal() {
+    const total = GUIDE_STEPS.length;
+    const idx = Math.max(0, Math.min(total - 1, state.guideStep || 0));
+    state.guideStep = idx;
+    const step = GUIDE_STEPS[idx];
+
+    if (guideStepBadge) guideStepBadge.textContent = `Step ${idx + 1} of ${total}`;
+    if (guideStepIcon) guideStepIcon.textContent = step.icon;
+    if (guideStepTitle) guideStepTitle.textContent = step.title;
+    if (guideStepDesc) guideStepDesc.textContent = step.desc;
+
+    if (guideStepBullets) {
+      guideStepBullets.innerHTML = '';
+      step.bullets.forEach((line) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-2 leading-relaxed';
+        const dot = document.createElement('span');
+        dot.className = 'text-indigo-400 font-black mt-0.5 flex-shrink-0';
+        dot.textContent = '•';
+        const txt = document.createElement('span');
+        txt.textContent = line;
+        li.appendChild(dot);
+        li.appendChild(txt);
+        guideStepBullets.appendChild(li);
+      });
+    }
+
+    if (guideStepDots) {
+      guideStepDots.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const dotBtn = document.createElement('button');
+        dotBtn.type = 'button';
+        dotBtn.className = i === idx
+          ? 'w-6 h-2 rounded-full bg-indigo-500 transition-all'
+          : 'w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all';
+        dotBtn.title = `Go to Step ${i + 1}`;
+        dotBtn.addEventListener('click', () => {
+          SoundEngine.playClick();
+          state.guideStep = i;
+          renderGuideModal();
+        });
+        guideStepDots.appendChild(dotBtn);
+      }
+    }
+
+    if (btnGuidePrev) btnGuidePrev.classList.toggle('hidden', idx === 0);
+    if (btnGuideSkip) btnGuideSkip.classList.toggle('hidden', idx === total - 1);
+    if (btnGuideNext) {
+      if (idx === total - 1) {
+        btnGuideNext.textContent = state.guideNextProfiles ? 'Choose Your Hero →' : 'Got It!';
+      } else {
+        btnGuideNext.textContent = 'Next →';
+      }
+    }
+  }
+
+  function openGuideModal(chainToProfiles = false) {
+    if (!modalGuide) return;
+    state.guideStep = 0;
+    state.guideNextProfiles = chainToProfiles === true;
+    SoundEngine.playClick();
+    renderGuideModal();
+    modalGuide.classList.remove('hidden');
+  }
+
+  function closeGuideModal() {
+    if (modalGuide) modalGuide.classList.add('hidden');
+    const shouldChainProfiles = state.guideNextProfiles;
+    state.guideNextProfiles = false;
+    if (shouldChainProfiles && typeof StorageManager.needsProfileSetup === 'function' && StorageManager.needsProfileSetup()) {
+      openProfilesModal(true);
+    }
   }
 
   function renderLeaderboardRows(rows, emptyMessage) {
